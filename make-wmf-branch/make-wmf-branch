@@ -1,0 +1,189 @@
+#!/usr/bin/env php
+<?php
+
+if ( php_sapi_name() !== 'cli' ) {
+	echo "This script only works in CLI mode\n";
+	exit( 1 );
+}
+
+if ( count( $argv ) < 3 ) {
+	echo "Usage: make-wmf-branch <new-version> <old-version>\n";
+	echo "Example: make-wmf-branch 1.20wmf2 1.20wmf1\n";
+	exit( 1 );
+}
+
+$newVersion = $argv[1];
+$oldVersion = $argv[2];
+
+$obj = new MakeWmfBranch( $newVersion, $oldVersion );
+$obj->execute();
+
+class MakeWmfBranch {
+	var $dryRun;
+	var $newVersion, $oldVersion, $buildDir;
+	var $normalExtensions, $specialExtensions, $branchedExtensions, $patches, $preservedItems;
+	var $baseRepoPath;
+
+	function __construct( $newVersion, $oldVersion ) {
+		$this->newVersion = $newVersion;
+		$this->oldVersion = $oldVersion;
+		$codeDir = dirname( __FILE__ );
+		$buildDir = sys_get_temp_dir() . '/make-wmf-branch';
+
+		require( "{$codeDir}/default.conf" );
+		if ( file_exists( "{$codeDir}/local.conf" ) ) {
+			require( "{$codeDir}/local.conf" );
+		}
+
+		$this->dryRun = $dryRun;
+		$this->buildDir = $buildDir;
+		$this->normalExtensions = $normalExtensions;
+		$this->specialExtensions = $specialExtensions;
+		$this->branchedExtensions = $branchedExtensions;
+		$this->patches = $patches;
+		$this->preservedItems = $preservedItems;
+		$this->baseRepoPath = $baseRepoPath;
+		$this->branchPrefix = $branchPrefix;
+	}
+
+	function runCmd( /*...*/ ) {
+		$args = func_get_args();
+		$encArgs = array_map( 'escapeshellarg', $args );
+		$cmd = implode( ' ', $encArgs );
+		echo "$cmd\n";
+		passthru( $cmd, $ret );
+		if ( $ret ) {
+			$this->croak( $args[0] . " exit with status $ret\n" );
+		}
+	}
+
+	function runWriteCmd( /*...*/ ) {
+		$args = func_get_args();
+		if ( $this->dryRun ) {
+			$encArgs = array_map( 'escapeshellarg', $args );
+			$cmd = implode( ' ', $encArgs );
+			echo "[dry-run] $cmd\n";
+		} else {
+			call_user_func_array( array( $this, 'runCmd' ), $args );
+		}
+	}
+
+	function chdir( $dir ) {
+		if ( !chdir( $dir ) ) {
+			$this->croak( "Unable to change working directory\n" );
+		}
+		echo "cd $dir\n";
+	}
+
+	function croak( $msg ) {
+		fwrite( STDERR, "$msg\n" );
+		exit( 1 );
+	}
+
+	function execute() {
+		$this->setupBuildDirectory();
+		$this->branchExtensions();
+		$this->branchWmf();
+	}
+
+	function setupBuildDirectory() {
+		# Create a temporary build directory
+		if ( file_exists( $this->buildDir ) ) {
+			$this->runCmd( 'rm', '-rf', '--', $this->buildDir );
+		}
+		if ( !mkdir( $this->buildDir ) ) {
+			$this->croak( "Unable to create build directory {$this->buildDir}" );
+		}
+		$this->chdir( $this->buildDir );
+	}
+	
+	function branchExtensions() {
+		foreach( $this->branchedExtensions as $ext ) {
+			$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/extensions/{$ext}.git", $ext );
+			$this->chdir( "$ext" );
+			$newVersion = $this->branchPrefix . $this->newVersion;
+			$this->runCmd( 'git', 'branch', $newVersion );
+			$this->runWriteCmd( 'git', 'push', 'origin', $newVersion );
+			$this->chdir( $this->buildDir );
+		}
+	}
+
+	function branchWmf() {
+		# Clone the repository
+		$oldVersion = $this->oldVersion == 'master' ? 'master' : $this->branchPrefix . $this->oldVersion;
+		$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/core.git", '-b', $oldVersion, 'wmf' );
+
+		$this->chdir( 'wmf' );
+
+		# Look for the extensions we want to preserve the old branch's state
+		$preservedRefs = array();
+		foreach( $this->specialExtensions as $name => $copy ) {
+			if( $copy === true ) {
+				if( $this->oldVersion == 'master' ) {
+					// There's nothing to copy in this instance, if you're trying
+					// pin while oldVersion is master then use sha1's instead of true
+					continue;
+				} elseif( file_exists( "extension/$name" ) ) {
+					$preservedRefs[$name] = file_get_contents( "extensions/$name" );
+				} else {
+					$this->croak( "Extension ($name) wants to copy from the old branch "
+						. "but it doesn't exist there. Check configuration." );
+				}
+			} elseif( is_string( $copy ) ) {
+				$preservedRefs[$name] = "Subproject commit $copy";
+			} else {
+				$this->croak( "Extension ($name) misconfigured. Don't know how to proceed." );
+			}
+		}
+
+		# Create a new branch from master and switch to it
+		$newVersion = $this->branchPrefix . $this->newVersion;
+		$this->runCmd( 'git', 'checkout', '-q', '-b', $newVersion );
+
+		# Delete extensions/README and extensions/.gitignore
+		$this->runWriteCmd( 'git', 'rm', '-q', "extensions/README", "extensions/.gitignore" );
+
+		# Add extension submodules
+		foreach ( array_merge( $this->normalExtensions, $this->specialExtensions, $this->branchedExtensions ) as $name ) {
+			if( in_array( $name, $this->branchedExtensions ) ) {
+				$this->runWriteCmd( 'git', 'submodule', 'add', '-b', $newVersion, '-q',
+					"{$this->baseRepoPath}/extensions/{$name}.git", "extensions/$name" );			
+			} else {
+				$this->runWriteCmd( 'git', 'submodule', 'add', '-q',
+					"{$this->baseRepoPath}/extensions/{$name}.git", "extensions/$name" );
+			}
+			if( isset( $preservedRefs[$name] ) ) {
+				file_put_contents( "extensions/$name", $preservedRefs[$name] );	
+			}
+		}
+
+		# Copy in preserved items - TODO/FIXME
+		foreach ( $this->preservedItems as $item ) {
+			//$this->runCmd( 'svn', 'cp', '--quiet',
+			//	"{$this->destBaseUrl}/{$this->oldVersion}/$item",
+			//	dirname( "$item" ) );
+		}
+
+		# Do intermediate commit
+		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new WMF {$this->newVersion} branch" );
+
+		# Fix $wgVersion
+		$this->fixVersion( "includes/DefaultSettings.php" );
+
+		# Apply patches - TODO/FIXME
+		foreach ( $this->patches as $patch ) {
+			// $this->runCmd( 'svn', 'merge', '-q', '-c', $patch['rev'], $patch['base'], $destRel );
+		}
+
+		# Do the final commit
+		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m',
+			"Applied patches to new WMF {$this->newVersion} branch" );
+	}
+
+	function fixVersion( $fileName ) {
+		$s = file_get_contents( $fileName );
+		$s = preg_replace( '/^( \$wgVersion \s+ = \s+ )  [^;]*  ( ; \s* ) $/xm',
+			"\\1'{$this->newVersion}'\\2", $s );
+		file_put_contents( $fileName, $s );
+	}
+}

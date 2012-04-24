@@ -1,0 +1,327 @@
+#!/usr/bin/python
+
+import sys, getopt, time, re, os, subprocess, hashlib
+
+def dieUsage():
+	print """
+Usage:
+  ./make-release --snapshot
+  ./make-release [--yes] [--no-previous] <next-version> [<previous-version>]
+
+Example:
+  ./make-release 1.19.0
+
+If the previous version is not given, it will be derived from the next version,
+and you will be prompted to confirm that the version number is correct. To
+always answer "yes", use the --yes option.
+
+Use --no-previous to disable the diff to previous entirely.
+"""
+	sys.exit(1)
+
+def main():
+	try:
+		options, args = getopt.getopt(sys.argv[1:], '', ['help', 'snapshot', 'yes', 'no-previous'])
+	except getopt.GetoptError, err:
+		print str(err)
+		dieUsage()
+
+	snapshot = False
+	yes = False
+	noPrevious = False
+	for name, value in options:
+		if name == '--help':
+			dieUsage()
+		elif name == '--snapshot':
+			snapshot = True
+		elif name == '--yes':
+			yes = True
+		elif name == '--no-previous':
+			noPrevious = True
+
+	# Snapshot release?
+	if snapshot:
+		makeRelease(
+				version = 'snapshot-' + time.strftime('%Y%m%d', time.gmtime()),
+				branch = 'trunk',
+				dir = 'snapshots')
+		return
+
+	# Need a version specified if not snapshot
+	if len(args) == 0:
+		dieUsage()
+
+	decomposed = decomposeVersion(args[0])
+	if decomposed == None:
+		print 'Invalid version number "%s"' % (args[0])
+		sys.exit(1)
+
+	if len(args) >= 2:
+		# Given the previous version on the command line
+		makeRelease(
+				version = args[0],
+				prevVersion = args[1],
+				prevBranch = versionToBranch(args[1]),
+				branch = decomposed['branch'],
+				dir = decomposed['major'])
+		return
+
+	if decomposed['prevVersion'] == None:
+		if not ask("No previous release found. Do you want to make a release with no patch?"):
+			print 'Please specify the correct previous release on the command line'
+			sys.exit(1)
+		else:
+			noPrevious = True
+
+	if noPrevious:
+		makeRelease(
+				version = args[0],
+				branch = decomposed['branch'],
+				dir = decomposed['major'])
+	else:
+		if not ask("Was %s the previous release?" % (decomposed['prevVersion'])):
+			print 'Please specify the correct previous release on the command line'
+			sys.exit(1)
+
+		makeRelease(
+			version = args[0],
+			prevVersion = decomposed['prevVersion'],
+			prevBranch = decomposed['prevBranch'],
+			branch = decomposed['branch'],
+			dir = decomposed['major'] )
+
+def ask(question):
+	while True:
+		print question + ' [y/n] ',
+		response = sys.stdin.readline()
+		if len(response) > 0:
+			if response[0].lower() == 'y':
+				return True
+			elif response[0].lower() == 'n':
+				return False
+		print 'Please type "y" for yes or "n" for no'
+
+def decomposeVersion(version):
+	ret = {}
+	m = re.compile('(\d+)\.(\d+)\.(\d+)$').match(version)
+	if m != None:
+		ret['major'] = m.group(1) + "." + m.group(2)
+		ret['branch'] = 'tags/' + m.group(1) + '.' + m.group(2) + '.' + m.group(3)
+		if int(m.group(3)) == 0:
+			ret['prevVersion'] = None
+		else:
+			newMinor = str(int(m.group(3)) - 1)
+			ret['prevVersion'] = ret['major'] + '.' + newMinor
+			ret['prevBranch'] = 'tags/' + m.group(1) + '.' + m.group(2) + '.' + newMinor
+		return ret
+
+	m = re.compile('(\d+)\.(\d+)\.(\d+)([A-Za-z]+)(\d+)$').match(version)
+	if m == None:
+		return None
+
+	ret['major'] = m.group(1) + "." + m.group(2)
+	ret['branch'] = ('tags/' + m.group(1) + '.' + m.group(2) + '.' + m.group(3) +
+		m.group(4) + m.group(5))
+	if int(m.group(5)) == 0:
+		ret['prevVersion'] = None
+	else:
+		newMinor = str(int(m.group(5)) - 1)
+		ret['prevVersion'] = ret['major'] + "." + m.group(3) + m.group(4) + newMinor
+		ret['prevBranch'] = ('tags/' + m.group(1) + '.' + m.group(2) + '.' + m.group(3) +
+			m.group(4) + newMinor)
+	return ret
+
+def versionToBranch(version):
+	return 'tags/' + version
+
+def hashfile(fileName, algorithm):
+	f = open(fileName, 'r')
+	hash = hashlib.new(algorithm)
+	while True:
+		buf = f.read(16384)
+		if buf == '':
+			break
+		hash.update(buf)
+	f.close()
+	return hash.hexdigest()
+
+def export(tag, dir):
+	print "Cloning core..."
+
+	proc = subprocess.Popen(['git', 'clone', '-q',
+		'ssh://gerrit.wikimedia.org:29418/mediawiki/core.git', dir])
+
+	if proc.wait() != 0:
+		print "git clone failed, exiting"
+		sys.exit(1)
+
+	os.chdir(dir)
+
+	if tag != 'trunk':
+		print "Checking out %s..." % (tag)
+		proc = subprocess.Popen(['git', 'checkout', tag])
+		
+		if proc.wait() != 0:
+			print "git checkout failed, exiting"
+			sys.exit(1)
+
+	subprocess.Popen(['rm', '-rf', '.git' ])
+	os.chdir('..')
+	print "Done"
+
+def exportExtension(branch, extension, dir):
+	print "Exporting extension %s into %s branch..." % (extension, branch)
+
+	proc = subprocess.Popen(['git', 'clone', '-q',
+		'ssh://gerrit.wikimedia.org:29418/mediawiki/extensions/' + extension + '.git',
+		dir + "/extensions/" + extension
+	])
+	if proc.wait() != 0:
+		print "git clone failed, exiting"
+		sys.exit(1)
+	subprocess.Popen(['rm', '-rf', dir + "/extensions/" + extension + '/.git' ])
+	print "Done"
+
+def makePatch(patchFileName, dir1, dir2, type):
+	patchFile = open(patchFileName, 'w')
+	args = ['diff', '-Nru']
+	if type == 'i18n':
+		print "Generating i18n patch file..."
+		dir1 += '/languages/messages'
+		dir2 += '/languages/messages'
+	else:
+		print "Generating normal patch file..."
+		excludedExtensions = ['messages', '*.png', '*.jpg', '*.xcf', '*.gif', '*.svg', '*.tiff', '*.zip', '*.xmp']
+		for ext in excludedExtensions:
+			args.extend(['-x', ext])
+
+	args.extend([dir1, dir2])
+	print ' '.join(args)
+	diffProc = subprocess.Popen(args, stdout = subprocess.PIPE)
+	gzipProc = subprocess.Popen(['gzip', '-9'], stdin = diffProc.stdout, stdout = patchFile)
+
+	diffStatus = diffProc.wait()
+
+	if diffStatus > 1 or gzipProc.wait() != 0:
+		print "diff failed, exiting"
+		sys.exit(1)
+	patchFile.close()
+	print "Done"
+	return diffStatus == 1
+
+def makeRelease(version, branch, dir, prevVersion = None, prevBranch = None):
+	if not os.path.exists('build'):
+		os.mkdir('build')
+	if not os.path.exists('uploads'):
+		os.mkdir('uploads')
+	os.chdir('build')
+
+	if not os.path.exists(dir):
+		os.mkdir(dir)
+
+	package = 'mediawiki-' + version
+
+	# Export the target
+	export(branch, package)
+
+	# Export extensions for inclusion
+	extensions = []
+	if dir > '1.17':
+		extensions = ['ConfirmEdit', 'Gadgets', 'Nuke', 'ParserFunctions', 'Renameuser', 'Vector', 'WikiEditor']
+
+	for ext in extensions:
+		exportExtension(branch, ext, package)
+
+	# Generate the .tar.gz file
+	outFile = open(dir + '/' + package + '.tar.gz', 'w')
+	tarProc = subprocess.Popen(['tar', '-c',
+		'--exclude', 'testsuite',
+		'--exclude', 'mediawiki-large.xcf',
+		'--exclude', 'mediawiki-largesquare.xcf',
+		package ],
+		stdout = subprocess.PIPE)
+	gzipProc = subprocess.Popen(['gzip', '-9'],
+		stdin = tarProc.stdout, stdout = outFile)
+
+	if tarProc.wait() != 0 or gzipProc.wait() != 0:
+		print "tar/gzip failed, exiting"
+		sys.exit(1)
+	outFile.close()
+	outFiles = [package + '.tar.gz']
+
+	# Patch
+	if prevVersion != None:
+		prevDir = 'mediawiki-' + prevVersion
+		export(prevBranch, prevDir)
+
+		for ext in extensions:
+			exportExtension(prevBranch, ext, prevDir)
+
+		makePatch(dir + '/' + package + '.patch.gz', prevDir, package, 'normal')
+		outFiles.append(package + '.patch.gz')
+		haveI18n = False
+		if os.path.exists(package+'/languages/messages'):
+			i18nPatch = 'mediawiki-i18n-' + version + '.patch.gz'
+			if (makePatch(dir + '/' +  i18nPatch, prevDir, package, 'i18n')):
+				outFiles.append(i18nPatch)
+				haveI18n = True
+
+	# Sign
+	uploadFiles = []
+	for fileName in outFiles:
+		proc = subprocess.Popen(['gpg', '--detach-sign', dir +'/' + fileName])
+		if proc.wait() != 0:
+			print "gpg failed, exiting"
+			sys.exit(1)
+		uploadFiles.append(dir + '/' + fileName)
+		uploadFiles.append(dir + '/' + fileName + '.sig')
+
+	# Generate upload tarball
+	args = ['tar', 'cf', '../uploads/upload-' + version + '.tar']
+	args.extend(uploadFiles)
+	proc = subprocess.Popen(args)
+	if proc.wait() != 0:
+		print "Failed to generate upload.tar, exiting"
+		sys.exit(1)
+
+	# Write email template
+	print
+	print "Full release notes:"
+	url = 'https://svn.wikimedia.org/svnroot/mediawiki/' + branch + '/phase3/RELEASE-NOTES'
+	if dir > '1.17':
+		url += '-' + dir 
+	
+	print url
+	print 'https://www.mediawiki.org/wiki/Release_notes/' + dir
+	print
+	print
+	print '**********************************************************************'
+
+	print 'Download:'
+	print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + package + '.tar.gz'
+	print
+
+	if prevVersion != None:
+		if haveI18n:
+			print "Patch to previous version (" + prevVersion + "), without interface text:"
+			print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + package + '.patch.gz'
+			print "Interface text changes:"
+			print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + i18nPatch
+		else:
+			print "Patch to previous version (" + prevVersion + "):"
+			print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + package + '.patch.gz'
+		print
+
+	print 'GPG signatures:'
+	for fileName in outFiles:
+		print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + fileName + '.sig'
+	print
+
+	print 'Public keys:'
+	print 'https://secure.wikimedia.org/keys.html'
+	print
+
+	os.chdir('..')
+
+if __name__ == '__main__':
+	main()
