@@ -160,15 +160,11 @@ def export(tag, dir):
 	if tag != 'trunk':
 		print "Checking out %s..." % (tag)
 		proc = subprocess.Popen(['git', 'checkout', tag])
-		
+
 		if proc.wait() != 0:
 			print "git checkout failed, exiting"
 			sys.exit(1)
 
-	rmProc = subprocess.Popen(['rm', '-rf', '.git' ])
-	if rmProc.wait() != 0:
-		print "failed removing .git directory, exiting"
-		sys.exit(1)
 	os.chdir('..')
 	print "Done"
 
@@ -182,10 +178,7 @@ def exportExtension(branch, extension, dir):
 	if proc.wait() != 0:
 		print "git clone failed, exiting"
 		sys.exit(1)
-	rmProc = subprocess.Popen(['rm', '-rf', dir + "/extensions/" + extension + '/.git' ])
-	if rmProc.wait() != 0:
-		print "failed removing .git directory, exiting"
-		sys.exit(1)
+
 	print "Done"
 
 def makePatch(patchFileName, dir1, dir2, type):
@@ -197,7 +190,7 @@ def makePatch(patchFileName, dir1, dir2, type):
 		dir2 += '/languages/messages'
 	else:
 		print "Generating normal patch file..."
-		excludedExtensions = ['messages', '*.png', '*.jpg', '*.xcf', '*.gif', '*.svg', '*.tiff', '*.zip', '*.xmp']
+		excludedExtensions = ['messages', '*.png', '*.jpg', '*.xcf', '*.gif', '*.svg', '*.tiff', '*.zip', '*.xmp', '.git*']
 		for ext in excludedExtensions:
 			args.extend(['-x', ext])
 
@@ -207,9 +200,12 @@ def makePatch(patchFileName, dir1, dir2, type):
 	gzipProc = subprocess.Popen(['gzip', '-9'], stdin = diffProc.stdout, stdout = patchFile)
 
 	diffStatus = diffProc.wait()
+	gzipStatus = gzipProc.wait()
 
-	if diffStatus > 1 or gzipProc.wait() != 0:
+	if diffStatus > 1 or gzipStatus != 0:
 		print "diff failed, exiting"
+		print "diff: " + str(diffStatus)
+		print "gzip: " + str(gzipStatus)
 		sys.exit(1)
 	patchFile.close()
 	print "Done"
@@ -240,12 +236,10 @@ def makeRelease(version, branch, dir, prevVersion = None, prevBranch = None):
 
 	# Generate the .tar.gz file
 	outFile = open(dir + '/' + package + '.tar.gz', 'w')
-	tarProc = subprocess.Popen(['tar', '-c',
-		'--exclude', 'testsuite',
-		'--exclude', 'mediawiki-large.xcf',
-		'--exclude', 'mediawiki-largesquare.xcf',
-		package ],
-		stdout = subprocess.PIPE)
+	print os.getcwd()
+	args = ['tar', '--exclude-vcs', '-c', package]
+	print ' '.join(args)
+	tarProc = subprocess.Popen(args, stdout = subprocess.PIPE)
 	gzipProc = subprocess.Popen(['gzip', '-9'],
 		stdin = tarProc.stdout, stdout = outFile)
 
@@ -254,6 +248,7 @@ def makeRelease(version, branch, dir, prevVersion = None, prevBranch = None):
 		sys.exit(1)
 	outFile.close()
 	outFiles = [package + '.tar.gz']
+	print package + '.tar.gz written'
 
 	# Patch
 	if prevVersion != None:
@@ -265,11 +260,13 @@ def makeRelease(version, branch, dir, prevVersion = None, prevBranch = None):
 
 		makePatch(dir + '/' + package + '.patch.gz', prevDir, package, 'normal')
 		outFiles.append(package + '.patch.gz')
+		print package + '.patch.gz written'
 		haveI18n = False
 		if os.path.exists(package+'/languages/messages'):
 			i18nPatch = 'mediawiki-i18n-' + version + '.patch.gz'
 			if (makePatch(dir + '/' +  i18nPatch, prevDir, package, 'i18n')):
 				outFiles.append(i18nPatch)
+				print i18nPatch + ' written'
 				haveI18n = True
 
 	# Sign
