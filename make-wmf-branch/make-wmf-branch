@@ -22,7 +22,7 @@ class MakeWmfBranch {
 	var $dryRun;
 	var $newVersion, $oldVersion, $buildDir;
 	var $normalExtensions, $specialExtensions, $branchedExtensions, $patches, $preservedItems;
-	var $baseRepoPath;
+	var $baseRepoPath, $anonRepoPath;
 
 	function __construct( $newVersion, $oldVersion ) {
 		$this->newVersion = $newVersion;
@@ -43,6 +43,7 @@ class MakeWmfBranch {
 		$this->patches = $patches;
 		$this->preservedItems = $preservedItems;
 		$this->baseRepoPath = $baseRepoPath;
+		$this->anonRepoPath = $anonRepoPath;
 		$this->branchPrefix = $branchPrefix;
 	}
 
@@ -147,13 +148,13 @@ class MakeWmfBranch {
 		foreach ( array_merge( $this->normalExtensions, $this->specialExtensions, $this->branchedExtensions ) as $name ) {
 			if( in_array( $name, $this->branchedExtensions ) ) {
 				$this->runWriteCmd( 'git', 'submodule', 'add', '-b', $newVersion, '-q',
-					"{$this->baseRepoPath}/extensions/{$name}.git", "extensions/$name" );			
+					"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
 			} else {
 				$this->runWriteCmd( 'git', 'submodule', 'add', '-q',
-					"{$this->baseRepoPath}/extensions/{$name}.git", "extensions/$name" );
+					"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
 			}
 			if( isset( $preservedRefs[$name] ) ) {
-				file_put_contents( "extensions/$name", $preservedRefs[$name] );	
+				file_put_contents( "extensions/$name", $preservedRefs[$name] );
 			}
 		}
 
