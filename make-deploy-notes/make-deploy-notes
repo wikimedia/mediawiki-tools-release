@@ -1,0 +1,166 @@
+#!/usr/bin/env php
+<?php
+
+class ExecException extends Exception {}
+
+/**
+ * get_args - validation on the command line arguments
+ */
+function get_args( $argv ) {
+	if ( count( $argv ) == 3 ) {
+		return array( $argv[1], $argv[2] );
+	}
+	else {
+		print "usage: $argv[0] oldbranch newbranch\n";
+		print "  example: $argv[0] origin/wmf/1.20wmf2 origin/wmf/1.20wmf3\n";
+		exit(1);
+	}
+}
+
+/**
+ * capture_output - wrapper around exec to throw more useful exception when
+ *  things go sideways
+ */
+function capture_output( $command ) {
+	$cwd = getcwd();
+	$output = array();
+	exec( $command, $output, $status );
+	if( $status != 0 ) {
+		throw new ExecException( "Error in command: $command\nDirectory: $cwd\nStatus: $status\nOutput: ".print_r($output)."\n" );
+	}
+	return $output;
+}
+
+/**
+ * get_extension_versions - get a list of records, one for each extension.  Each
+ *   record contains "name", "oldrev", and "newrev"
+ */
+function get_extension_versions( $oldbranch, $newbranch ) {
+	$retval = array();
+	$extrecord = array();
+	foreach ( explode( "\n", git_extension_diff_output( $oldbranch, $newbranch ) ) as $line ) {
+		#diff --git a/extensions/AbuseFilter b/extensions/AbuseFilter
+		if( preg_match( '!^diff --git a/extensions/([^\. ]+) b/extensions/([^\. ]+)!', $line, $matches ) ) {
+			if( count( $extrecord ) > 0 ) {
+				$retval[] = $extrecord;
+				$extrecord = array();
+			}
+			$extrecord['name'] = $matches[1];
+		}
+		#-Subproject commit 0c6faec654e25cd5ac8141d4c3f3793c2caeb0e9
+		elseif( preg_match( '!^-Subproject commit ([a-f0-9]*)!', $line, $matches ) ){
+			$extrecord['oldrev'] = $matches[1];
+		}
+		#+Subproject commit d693a1bca606473ae9ec8513ad90ddaa80de351d
+		elseif( preg_match( '!^\+Subproject commit ([a-f0-9]*)!', $line, $matches ) ) {
+			$extrecord['newrev'] = $matches[1];
+			$retval[] = $extrecord;
+			$extrecord = array();
+		}
+	}
+	return $retval;
+}
+
+
+/**
+ * git_cherry_log_output_core - git command to pull all revisions that exist in
+ * newbranch that don't exist in oldbranch.  The format is wiki ready; valid
+ * wiki markup that still should be sanitiz
+ */
+function git_cherry_log_output_core( $oldbranch, $newbranch ) {
+	$output = array();
+	exec("git log --pretty=format:'* [https://gerrit.wikimedia.org/r/#q,%H,n,z %h] - %s' --cherry-pick --right-only --no-merges $oldbranch...$newbranch", $output);
+	return $output;
+}
+
+/**
+ * git_cherry_log_output_extension - git command to pull all revisions that exist in
+ * newbranch that don't exist in oldbranch.
+ */
+function git_cherry_log_output_extension( $extension, $oldrev, $newrev ) {
+	$gitdir = getcwd();
+	chdir( 'extensions/' . $extension );
+	$command = "git log --pretty=format:'* [https://gerrit.wikimedia.org/r/#q,%H,n,z %h] - %s'  --cherry-pick --right-only --no-merges $oldrev..$newrev";
+	try {
+		$retval = capture_output( $command );
+	}
+	catch ( ExecException $e ) {
+		throw new Exception( "Problem with command: $command\n******** LIKELY CAUSE: you need to run 'git fetch --all' in this extension directory ($extension)" );
+	}
+
+	chdir( $gitdir );
+
+	return $retval;
+}
+
+/**
+ * git_extension_diff_output - git command for getting the diff list for extensions.
+ */
+function git_extension_diff_output( $oldbranch, $newbranch ) {
+	return shell_exec( "git diff $oldbranch $newbranch extensions" );
+}
+
+/**
+ * filter_git_output - perform any extra functions needed prior to posting to
+ *  a wiki page (sanitization, making obvious removals, linking bugs, etc)
+ */
+function filter_git_output( $logoutput ) {
+	$retval = '';
+    foreach ( $logoutput as $line ) {
+		if( strstr( $line, 'Localisation updates from' ) ) {
+			continue;
+		}
+		if( strstr( $line, 'Add .gitignore' ) ) {
+			continue;
+		}
+		$line = preg_replace( '/bug (\d+)/', '{{Bugzilla|$1}}', $line );
+		$line = htmlspecialchars( $line );
+		$retval .= $line . "\n";
+	}
+	return $retval;
+}
+
+/**
+ *
+ */
+function get_all_extension_change_markup( $oldbranch, $newbranch ) {
+	$retval = '';
+	$extrecords = get_extension_versions( $oldbranch, $newbranch );
+    foreach ( $extrecords as $extrecord ) {
+		if( !array_key_exists( 'oldrev', $extrecord ) ) {
+			$logoutput = array( "** Newly deployed extension" );
+		}
+		elseif( !array_key_exists( 'newrev', $extrecord ) ) {
+			$logoutput = git_cherry_log_output_extension( $extrecord['name'], $extrecord['oldrev'], "HEAD" );
+		}
+		else {
+			$logoutput = git_cherry_log_output_extension( $extrecord['name'], $extrecord['oldrev'], $extrecord['newrev'] );
+		}
+		$changes = filter_git_output( $logoutput );
+		if( $changes != "" ) {
+			$retval .= '=== ' . $extrecord['name'] . " ===\n";
+			$retval .= $changes;
+		}
+	}
+	return $retval;
+}
+
+/**
+ * Main program flow
+ * Get changes for core (git_cherry_log_output_core + filter_git_output)
+ * Get extension markup (get_all_extension_change_markup)
+ *   -> Get list of extensions (get_extension_versions)
+ *   -> On each extension:
+ *      ->  Get changes and filter (get_cherry_log_output_extension + filter_git_output)
+ */
+function main( $argv ) {
+	list( $oldbranch, $newbranch ) = get_args( $argv );
+	print "== Core changes ==\n";
+	$coreoutput = git_cherry_log_output_core( $oldbranch, $newbranch );
+	print filter_git_output( $coreoutput );
+	print "== Extensions ==\n";
+	print get_all_extension_change_markup( $oldbranch, $newbranch );
+}
+
+main( $argv );
+
