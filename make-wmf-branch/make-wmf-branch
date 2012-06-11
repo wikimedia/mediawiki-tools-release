@@ -174,9 +174,11 @@ class MakeWmfBranch {
 		# Point gitreview defaultbranch at wmf/version
 		$this->fixGitReview();
 
-		# Apply patches - TODO/FIXME
+		# Apply patches
 		foreach ( $this->patches as $patch ) {
-			// $this->runCmd( 'svn', 'merge', '-q', '-c', $patch['rev'], $patch['base'], $destRel );
+			// git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
+			$this->runCmd( 'git', 'fetch', $this->baseRepoPath, $patch,
+				'&&', 'git', 'cherry-pick', 'FETCH_HEAD', );
 		}
 
 		# Do the final commit
