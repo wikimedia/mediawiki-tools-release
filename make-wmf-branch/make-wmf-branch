@@ -171,6 +171,9 @@ class MakeWmfBranch {
 		# Fix $wgVersion
 		$this->fixVersion( "includes/DefaultSettings.php" );
 
+		# Point gitreview defaultbranch at wmf/version
+		$this->fixGitReview();
+
 		# Apply patches - TODO/FIXME
 		foreach ( $this->patches as $patch ) {
 			// $this->runCmd( 'svn', 'merge', '-q', '-c', $patch['rev'], $patch['base'], $destRel );
@@ -186,5 +189,11 @@ class MakeWmfBranch {
 		$s = preg_replace( '/^( \$wgVersion \s+ = \s+ )  [^;]*  ( ; \s* ) $/xm',
 			"\\1'{$this->newVersion}'\\2", $s );
 		file_put_contents( $fileName, $s );
+	}
+
+	function fixGitReview() {
+		$s = file_get_contents( ".gitreview" );
+		$s = str_replace( "defaultbranch=master", "defaultbranch=wmf/{$this->newVersion}", $s );
+		file_put_contents( ".gitreview", $s );
 	}
 }
