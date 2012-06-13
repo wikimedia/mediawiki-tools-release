@@ -165,7 +165,10 @@ def export(tag, dir):
 			print "git checkout failed, exiting"
 			sys.exit(1)
 
-	subprocess.Popen(['rm', '-rf', '.git' ])
+	rmProc = subprocess.Popen(['rm', '-rf', '.git' ])
+	if rmProc.wait() != 0:
+		print "failed removing .git directory, exiting"
+		sys.exit(1)
 	os.chdir('..')
 	print "Done"
 
@@ -179,7 +182,10 @@ def exportExtension(branch, extension, dir):
 	if proc.wait() != 0:
 		print "git clone failed, exiting"
 		sys.exit(1)
-	subprocess.Popen(['rm', '-rf', dir + "/extensions/" + extension + '/.git' ])
+	rmProc = subprocess.Popen(['rm', '-rf', dir + "/extensions/" + extension + '/.git' ])
+	if rmProc.wait() != 0:
+		print "failed removing .git directory, exiting"
+		sys.exit(1)
 	print "Done"
 
 def makePatch(patchFileName, dir1, dir2, type):
