@@ -148,14 +148,27 @@ def hashfile(fileName, algorithm):
 def export(tag, dir):
 	print "Cloning core..."
 
-	proc = subprocess.Popen(['git', 'clone', '-q',
-		'ssh://gerrit.wikimedia.org:29418/mediawiki/core.git', dir])
+	if not os.path.exists(dir):
+		proc = subprocess.Popen(['git', 'clone', '-q',
+			'ssh://gerrit.wikimedia.org:29418/mediawiki/core.git', dir])
 
-	if proc.wait() != 0:
-		print "git clone failed, exiting"
-		sys.exit(1)
+		if proc.wait() != 0:
+			print "git clone failed, exiting"
+			sys.exit(1)
+		print "Done"
+	else:
+		print "Checkout already exists"
 
 	os.chdir(dir)
+
+	# Unconditionally git pull for ease
+	print "Updating checkout..."
+	proc = subprocess.Popen(['git', 'pull'])
+
+	if proc.wait() != 0:
+		print "git pull failed, exiting"
+		sys.exit(1)
+	print "Done"
 
 	if tag != 'trunk':
 		print "Checking out %s..." % (tag)
