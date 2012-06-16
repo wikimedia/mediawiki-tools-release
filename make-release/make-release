@@ -145,6 +145,21 @@ def hashfile(fileName, algorithm):
 	f.close()
 	return hash.hexdigest()
 
+def patchExport(patch, dir):
+	os.chdir(dir)
+	print "Applying patch " . patch
+
+	# git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
+	proc = subprocess.Popen(['git', 'fetch', 'ssh://gerrit.wikimedia.org:29418/mediawiki/core', patch,
+		'&&', 'git', 'cherry-pick', 'FETCH_HEAD'])
+
+	if proc.wait() != 0:
+		print "git patch failed, exiting"
+		sys.exit(1)
+
+	os.chdir('..')
+	print "Done"
+
 def export(tag, dir):
 	print "Cloning core..."
 
@@ -238,6 +253,10 @@ def makeRelease(version, branch, dir, prevVersion = None, prevBranch = None):
 
 	# Export the target
 	export(branch, package)
+
+	patchRevisions = []
+	for patch in patchRevisions:
+		patchExport(patch, package)
 
 	# Export extensions for inclusion
 	extensions = []
