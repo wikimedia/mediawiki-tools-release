@@ -175,9 +175,9 @@ class MakeWmfBranch {
 		$this->fixGitReview();
 
 		# Apply patches
-		foreach ( $this->patches as $patch ) {
+		foreach ( $this->patches as $patch => $subpath ) {
 			// git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
-			$this->runCmd( 'git', 'fetch', $this->baseRepoPath, $patch,
+			$this->runCmd( 'git', 'fetch', $this->baseRepoPath + '/' + $subpath, $patch,
 				'&&', 'git', 'cherry-pick', 'FETCH_HEAD' );
 		}
 
@@ -199,4 +199,3 @@ class MakeWmfBranch {
 		file_put_contents( ".gitreview", $s );
 	}
 }
-1
