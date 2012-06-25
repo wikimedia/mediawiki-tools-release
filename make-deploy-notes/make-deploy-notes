@@ -12,7 +12,7 @@ function get_args( $argv ) {
 	}
 	else {
 		print "usage: $argv[0] oldbranch newbranch\n";
-		print "  example: $argv[0] origin/wmf/1.20wmf2 origin/wmf/1.20wmf3\n";
+		print "  example: $argv[0] gerrit/wmf/1.20wmf2 gerrit/wmf/1.20wmf3\n";
 		exit(1);
 	}
 }
@@ -69,7 +69,7 @@ function get_extension_versions( $oldbranch, $newbranch ) {
  */
 function git_cherry_log_output_core( $oldbranch, $newbranch ) {
 	$output = array();
-	exec("git log --pretty=format:'* [https://gerrit.wikimedia.org/r/#q,%H,n,z %h] - %s' --cherry-pick --right-only --no-merges $oldbranch...$newbranch", $output);
+	exec("git log --pretty=format:'* {{git|%h}} - %s' --cherry-pick --right-only --no-merges $oldbranch...$newbranch", $output);
 	return $output;
 }
 
@@ -80,7 +80,7 @@ function git_cherry_log_output_core( $oldbranch, $newbranch ) {
 function git_cherry_log_output_extension( $extension, $oldrev, $newrev ) {
 	$gitdir = getcwd();
 	chdir( 'extensions/' . $extension );
-	$command = "git log --pretty=format:'* [https://gerrit.wikimedia.org/r/#q,%H,n,z %h] - %s'  --cherry-pick --right-only --no-merges $oldrev..$newrev";
+	$command = "git log --pretty=format:'* {{git|%h}} - %s'  --cherry-pick --right-only --no-merges $oldrev..$newrev";
 	try {
 		$retval = capture_output( $command );
 	}
@@ -113,7 +113,7 @@ function filter_git_output( $logoutput ) {
 		if( strstr( $line, 'Add .gitignore' ) ) {
 			continue;
 		}
-		$line = preg_replace( '/bug (\d+)/', '{{Bugzilla|$1}}', $line );
+		$line = preg_replace( '/bug (\d+)/', '{{bugzilla|$1}}', $line );
 		$line = htmlspecialchars( $line );
 		$retval .= $line . "\n";
 	}
