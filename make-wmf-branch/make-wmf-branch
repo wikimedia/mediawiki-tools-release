@@ -168,18 +168,18 @@ class MakeWmfBranch {
 		# Do intermediate commit
 		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new WMF {$this->newVersion} branch" );
 
+		# Apply patches
+		foreach ( $this->patches as $patch => $subpath ) {
+			// git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
+			$this->runCmd( 'git', 'fetch', $this->baseRepoPath . '/' . $subpath, $patch );
+			$this->runCmd( 'git', 'cherry-pick', 'FETCH_HEAD' );
+		}
+
 		# Fix $wgVersion
 		$this->fixVersion( "includes/DefaultSettings.php" );
 
 		# Point gitreview defaultbranch at wmf/version
 		$this->fixGitReview();
-
-		# Apply patches
-		foreach ( $this->patches as $patch => $subpath ) {
-			// git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
-			$this->runCmd( 'git', 'fetch', $this->baseRepoPath . '/' . $subpath, $patch,
-				'&&', 'git', 'cherry-pick', 'FETCH_HEAD' );
-		}
 
 		# Do the final commit
 		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m',
