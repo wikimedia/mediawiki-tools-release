@@ -184,6 +184,8 @@ class MakeWmfBranch {
 		# Do the final commit
 		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m',
 			"Applied patches to new WMF {$this->newVersion} branch" );
+
+		$this->runWriteCmd( 'git', 'push', 'origin', 'wmf/' . $this->newVersion  );
 	}
 
 	function fixVersion( $fileName ) {
