@@ -177,7 +177,7 @@ class MakeWmfBranch {
 		# Apply patches
 		foreach ( $this->patches as $patch => $subpath ) {
 			// git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
-			$this->runCmd( 'git', 'fetch', $this->baseRepoPath + '/' + $subpath, $patch,
+			$this->runCmd( 'git', 'fetch', $this->baseRepoPath . '/' . $subpath, $patch,
 				'&&', 'git', 'cherry-pick', 'FETCH_HEAD' );
 		}
 
