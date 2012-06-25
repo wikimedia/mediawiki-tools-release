@@ -106,8 +106,11 @@ function git_extension_diff_output( $oldbranch, $newbranch ) {
  */
 function filter_git_output( $logoutput ) {
 	$retval = '';
-    foreach ( $logoutput as $line ) {
+	foreach ( $logoutput as $line ) {
 		if( strstr( $line, 'Localisation updates from' ) ) {
+			continue;
+		}
+		if( strstr( $line, 'COMMITMSG' ) ) { // Fix for escaping fail leaving a commit summary of $COMMITMSG
 			continue;
 		}
 		if( strstr( $line, 'Add .gitignore' ) ) {
@@ -126,7 +129,7 @@ function filter_git_output( $logoutput ) {
 function get_all_extension_change_markup( $oldbranch, $newbranch ) {
 	$retval = '';
 	$extrecords = get_extension_versions( $oldbranch, $newbranch );
-    foreach ( $extrecords as $extrecord ) {
+	foreach ( $extrecords as $extrecord ) {
 		if( !array_key_exists( 'oldrev', $extrecord ) ) {
 			$logoutput = array( "** Newly deployed extension" );
 		}
