@@ -21,7 +21,7 @@ Use --no-previous to disable the diff to previous entirely.
 
 def main():
 	try:
-		options, args = getopt.getopt(sys.argv[1:], '', ['help', 'snapshot', 'yes', 'no-previous'])
+		options, args = getopt.getopt(sys.argv[1:], '', ['help', 'snapshot', 'yes', 'no-previous', 'git-root='])
 	except getopt.GetoptError, err:
 		print str(err)
 		dieUsage()
@@ -29,6 +29,7 @@ def main():
 	snapshot = False
 	yes = False
 	noPrevious = False
+	gitRoot = 'ssh://gerrit.wikimedia.org:29418/mediawiki'
 	for name, value in options:
 		if name == '--help':
 			dieUsage()
@@ -38,13 +39,16 @@ def main():
 			yes = True
 		elif name == '--no-previous':
 			noPrevious = True
+		elif name == '--git-root':
+			gitRoot = value
 
 	# Snapshot release?
 	if snapshot:
 		makeRelease(
 				version = 'snapshot-' + time.strftime('%Y%m%d', time.gmtime()),
 				branch = 'trunk',
-				dir = 'snapshots')
+				dir = 'snapshots',
+				gitRoot = gitRoot)
 		return
 
 	# Need a version specified if not snapshot
@@ -63,7 +67,8 @@ def main():
 				prevVersion = args[1],
 				prevBranch = versionToBranch(args[1]),
 				branch = decomposed['branch'],
-				dir = decomposed['major'])
+				dir = decomposed['major'],
+				gitRoot = gitRoot)
 		return
 
 	if decomposed['prevVersion'] == None:
@@ -77,7 +82,8 @@ def main():
 		makeRelease(
 				version = args[0],
 				branch = decomposed['branch'],
-				dir = decomposed['major'])
+				dir = decomposed['major'],
+				gitRoot = gitRoot)
 	else:
 		if not ask("Was %s the previous release?" % (decomposed['prevVersion'])):
 			print 'Please specify the correct previous release on the command line'
@@ -88,7 +94,8 @@ def main():
 			prevVersion = decomposed['prevVersion'],
 			prevBranch = decomposed['prevBranch'],
 			branch = decomposed['branch'],
-			dir = decomposed['major'] )
+			dir = decomposed['major'],
+			gitRoot = gitRoot )
 
 def ask(question):
 	while True:
@@ -145,12 +152,12 @@ def hashfile(fileName, algorithm):
 	f.close()
 	return hash.hexdigest()
 
-def patchExport(patch, dir):
+def patchExport(patch, dir, gitRoot):
 	os.chdir(dir)
 	print "Applying patch " . patch
 
 	# git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
-	proc = subprocess.Popen(['git', 'fetch', 'ssh://gerrit.wikimedia.org:29418/mediawiki/core', patch,
+	proc = subprocess.Popen(['git', 'fetch', gitRoot + '/core', patch,
 		'&&', 'git', 'cherry-pick', 'FETCH_HEAD'])
 
 	if proc.wait() != 0:
@@ -160,12 +167,12 @@ def patchExport(patch, dir):
 	os.chdir('..')
 	print "Done"
 
-def export(tag, dir):
+def export(tag, dir, gitRoot):
 	print "Cloning core..."
 
 	if not os.path.exists(dir):
 		proc = subprocess.Popen(['git', 'clone', '-q',
-			'ssh://gerrit.wikimedia.org:29418/mediawiki/core.git', dir])
+			gitRoot + '/core.git', dir])
 
 		if proc.wait() != 0:
 			print "git clone failed, exiting"
@@ -196,11 +203,11 @@ def export(tag, dir):
 	os.chdir('..')
 	print "Done"
 
-def exportExtension(branch, extension, dir):
+def exportExtension(branch, extension, dir, gitRoot):
 	print "Exporting extension %s into %s branch..." % (extension, branch)
 
 	proc = subprocess.Popen(['git', 'clone', '-q',
-		'ssh://gerrit.wikimedia.org:29418/mediawiki/extensions/' + extension + '.git',
+		gitRoot + '/extensions/' + extension + '.git',
 		dir + "/extensions/" + extension
 	])
 	if proc.wait() != 0:
@@ -239,7 +246,7 @@ def makePatch(patchFileName, dir1, dir2, type):
 	print "Done"
 	return diffStatus == 1
 
-def makeRelease(version, branch, dir, prevVersion = None, prevBranch = None):
+def makeRelease(version, branch, dir, gitRoot, prevVersion = None, prevBranch = None):
 	if not os.path.exists('build'):
 		os.mkdir('build')
 	if not os.path.exists('uploads'):
@@ -252,11 +259,11 @@ def makeRelease(version, branch, dir, prevVersion = None, prevBranch = None):
 	package = 'mediawiki-' + version
 
 	# Export the target
-	export(branch, package)
+	export(branch, package, gitRoot)
 
 	patchRevisions = []
 	for patch in patchRevisions:
-		patchExport(patch, package)
+		patchExport(patch, package, gitRoot)
 
 	# Export extensions for inclusion
 	extensions = []
@@ -264,7 +271,7 @@ def makeRelease(version, branch, dir, prevVersion = None, prevBranch = None):
 		extensions = ['ConfirmEdit', 'Gadgets', 'Nuke', 'ParserFunctions', 'PdfHandler', 'Renameuser', 'SpamBlacklist', 'Vector', 'WikiEditor']
 
 	for ext in extensions:
-		exportExtension(branch, ext, package)
+		exportExtension(branch, ext, package, gitRoot)
 
 	# Generate the .tar.gz file
 	outFile = open(dir + '/' + package + '.tar.gz', 'w')
@@ -285,10 +292,10 @@ def makeRelease(version, branch, dir, prevVersion = None, prevBranch = None):
 	# Patch
 	if prevVersion != None:
 		prevDir = 'mediawiki-' + prevVersion
-		export(prevBranch, prevDir)
+		export(prevBranch, prevDir, gitRoot)
 
 		for ext in extensions:
-			exportExtension(prevBranch, ext, prevDir)
+			exportExtension(prevBranch, ext, prevDir, gitRoot)
 
 		makePatch(dir + '/' + package + '.patch.gz', prevDir, package, 'normal')
 		outFiles.append(package + '.patch.gz')
