@@ -266,9 +266,12 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion = None, prevBranch = 
 		patchExport(patch, package, gitRoot)
 
 	# Export extensions for inclusion
-	extensions = []
-	if dir > '1.17':
+	if dir > '1.20':
 		extensions = ['ConfirmEdit', 'Gadgets', 'Nuke', 'ParserFunctions', 'PdfHandler', 'Renameuser', 'SpamBlacklist', 'Vector', 'WikiEditor']
+	elif dir > '1.17':
+		extensions = ['ConfirmEdit', 'Gadgets', 'Nuke', 'ParserFunctions', 'Renameuser', 'Vector', 'WikiEditor']
+	else:
+		extensions = []
 
 	for ext in extensions:
 		exportExtension(branch, ext, package, gitRoot)
