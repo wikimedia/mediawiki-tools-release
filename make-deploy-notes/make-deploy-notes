@@ -106,15 +106,19 @@ function git_extension_diff_output( $oldbranch, $newbranch ) {
  */
 function filter_git_output( $logoutput ) {
 	$retval = '';
+	$skipLines = array(
+		'Localisation updates from',
+		'COMMITMSG', // Fix for escaping fail leaving a commit summary of $COMMITMSG
+		'Add .gitignore',
+		'Creating new WMF,
+		'Commit of various live hacks', // Our catchall patch for live hacky stuff
+		'Applied patches to new WMF',
+	);
 	foreach ( $logoutput as $line ) {
-		if( strstr( $line, 'Localisation updates from' ) ) {
-			continue;
-		}
-		if( strstr( $line, 'COMMITMSG' ) ) { // Fix for escaping fail leaving a commit summary of $COMMITMSG
-			continue;
-		}
-		if( strstr( $line, 'Add .gitignore' ) ) {
-			continue;
+		foreach( $skipLines as $skip ) {
+			if( strstr( $line, $skip ) ) {
+				continue;
+			}
 		}
 		$line = preg_replace( '/bug (\d+)/', '{{bugzilla|$1}}', $line );
 		$line = htmlspecialchars( $line );
