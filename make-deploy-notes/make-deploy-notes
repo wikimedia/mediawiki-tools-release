@@ -110,7 +110,7 @@ function filter_git_output( $logoutput ) {
 		'Localisation updates from',
 		'COMMITMSG', // Fix for escaping fail leaving a commit summary of $COMMITMSG
 		'Add .gitignore',
-		'Creating new WMF,
+		'Creating new WMF',
 		'Commit of various live hacks', // Our catchall patch for live hacky stuff
 		'Applied patches to new WMF',
 	);
