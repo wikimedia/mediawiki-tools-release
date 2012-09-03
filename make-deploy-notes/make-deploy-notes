@@ -120,7 +120,7 @@ function filter_git_output( $logoutput ) {
 				continue;
 			}
 		}
-		$line = preg_replace( '/bug (\d+)/', '{{bugzilla|$1}}', $line );
+		$line = preg_replace( '/bug (\d+)/i', '{{bugzilla|$1}}', $line );
 		$line = htmlspecialchars( $line );
 		$retval .= $line . "\n";
 	}
