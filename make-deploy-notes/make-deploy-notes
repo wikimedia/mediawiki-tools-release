@@ -114,7 +114,7 @@ function filter_git_output( $logoutput ) {
 		'Creating new WMF',
 		'Commit of various live hacks', // Our catchall patch for live hacky stuff
 		'Applied patches to new WMF',
-		'Update .*? to (master|head)', // Update foo to master
+		'(Updat(e|ing))? ?.*? to (master|head)', // Update foo to master
 	);
 	foreach ( $logoutput as $line ) {
 		foreach( $skipLines as $skip ) {
