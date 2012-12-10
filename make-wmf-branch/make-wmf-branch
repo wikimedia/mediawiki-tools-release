@@ -159,7 +159,7 @@ class MakeWmfBranch {
 
 		# Delete extensions/README and extensions/.gitignore if we branched master
 		if( $this->oldVersion == 'master' ) {
-			$this->runWriteCmd( 'git', 'rm', '-q', "extensions/README", "extensions/.gitignore" );
+			$this->runCmd( 'git', 'rm', '-q', "extensions/README", "extensions/.gitignore" );
 		}
 
 		# Add extension submodules
@@ -167,10 +167,10 @@ class MakeWmfBranch {
 			array_merge( $this->normalExtensions, array_keys( $this->specialExtensions ), $this->branchedExtensions )
 				as $name ) {
 			if( in_array( $name, $this->branchedExtensions ) ) {
-				$this->runWriteCmd( 'git', 'submodule', 'add', '-b', $newVersion, '-q',
+				$this->runCmd( 'git', 'submodule', 'add', '-b', $newVersion, '-q',
 					"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
 			} else {
-				$this->runWriteCmd( 'git', 'submodule', 'add', '-q',
+				$this->runCmd( 'git', 'submodule', 'add', '-q',
 					"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
 			}
 			if( isset( $preservedRefs[$name] ) ) {
@@ -184,7 +184,7 @@ class MakeWmfBranch {
 		$this->runCmd( 'git', 'add', '-f', 'StartProfiler.php' );
 
 		# Do intermediate commit
-		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new WMF {$this->newVersion} branch" );
+		$this->runCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new WMF {$this->newVersion} branch" );
 
 		# Apply patches
 		foreach ( $this->patches as $patch => $subpath ) {
@@ -200,7 +200,7 @@ class MakeWmfBranch {
 		$this->fixGitReview();
 
 		# Do the final commit
-		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m',
+		$this->runCmd( 'git', 'commit', '-a', '-q', '-m',
 			"Applied patches to new WMF {$this->newVersion} branch" );
 
 		$this->runWriteCmd( 'git', 'push', 'origin', 'wmf/' . $this->newVersion  );
