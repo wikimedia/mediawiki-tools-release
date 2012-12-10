@@ -180,11 +180,6 @@ class MakeWmfBranch {
 			}
 		}
 
-		# Symlink to StartProfiler.php
-		echo "Creating symlink to StartProfiler.php\n";
-		symlink( "../StartProfiler.php", "StartProfiler.php" );
-		$this->runCmd( 'git', 'add', '-f', 'StartProfiler.php' );
-
 		# Do intermediate commit
 		$this->runCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new WMF {$this->newVersion} branch" );
 
