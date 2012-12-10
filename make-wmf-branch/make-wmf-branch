@@ -7,22 +7,25 @@ if ( php_sapi_name() !== 'cli' ) {
 }
 
 if ( count( $argv ) < 3 ) {
-	echo "Usage: make-wmf-branch <new-version> <old-version>\n";
+	echo "Usage: make-wmf-branch <new-version> <old-version> <path to clone>\n";
 	echo "Example: make-wmf-branch 1.20wmf2 1.20wmf1\n";
+	echo " <path to clone>, if given, is a local clone on disk to use\n";
 	exit( 1 );
 }
 
 $newVersion = $argv[1];
 $oldVersion = $argv[2];
+$clonePath = isset( $argv[3] ) ? $argv[3] : null;
 
 $obj = new MakeWmfBranch( $newVersion, $oldVersion );
-$obj->execute();
+$obj->execute( $clonePath );
 
 class MakeWmfBranch {
 	var $dryRun;
 	var $newVersion, $oldVersion, $buildDir;
 	var $normalExtensions, $specialExtensions, $branchedExtensions, $patches, $preservedItems;
 	var $baseRepoPath, $anonRepoPath;
+	var $noisy;
 
 	function __construct( $newVersion, $oldVersion ) {
 		$this->newVersion = $newVersion;
@@ -40,6 +43,7 @@ class MakeWmfBranch {
 		$this->normalExtensions = $normalExtensions;
 		$this->specialExtensions = $specialExtensions;
 		$this->branchedExtensions = $branchedExtensions;
+		$this->noisy = $noisy;
 		$this->patches = $patches;
 		$this->preservedItems = $preservedItems;
 		$this->baseRepoPath = $baseRepoPath;
@@ -49,6 +53,9 @@ class MakeWmfBranch {
 
 	function runCmd( /*...*/ ) {
 		$args = func_get_args();
+		if( $this->noisy && in_array( "-q", $args ) ) {
+			$args = array_diff( $args, array( "-q" ) );
+		}
 		$encArgs = array_map( 'escapeshellarg', $args );
 		$cmd = implode( ' ', $encArgs );
 		echo "$cmd\n";
@@ -81,10 +88,10 @@ class MakeWmfBranch {
 		exit( 1 );
 	}
 
-	function execute() {
+	function execute( $clonePath ) {
 		$this->setupBuildDirectory();
 		$this->branchExtensions();
-		$this->branchWmf();
+		$this->branchWmf( $clonePath );
 	}
 
 	function setupBuildDirectory() {
@@ -109,12 +116,21 @@ class MakeWmfBranch {
 		}
 	}
 
-	function branchWmf() {
+	function branchWmf( $clonePath ) {
 		# Clone the repository
 		$oldVersion = $this->oldVersion == 'master' ? 'master' : $this->branchPrefix . $this->oldVersion;
-		$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/core.git", '-b', $oldVersion, 'wmf' );
+		$path = $clonePath ? $clonePath : "{$this->baseRepoPath}/core.git";
+		$this->runCmd( 'git', 'clone', '-q', $path, '-b', $oldVersion, 'wmf' );
 
 		$this->chdir( 'wmf' );
+
+		# If we cloned from somewhere other than SSH, update remotes
+		# and make sure our clone is up to date with origin
+		if( $clonePath ) {
+			$this->runCmd( 'git', 'remote', 'remove', 'origin' );
+			$this->runCmd( 'git', 'remote', 'add', 'origin', "{$this->baseRepoPath}/core.git" );
+			$this->runCmd( 'git', 'pull', '-q', '--ff-only', 'origin', $oldVersion );
+		}
 
 		# Look for the extensions we want to preserve the old branch's state
 		$preservedRefs = array();
@@ -141,8 +157,10 @@ class MakeWmfBranch {
 		$newVersion = $this->branchPrefix . $this->newVersion;
 		$this->runCmd( 'git', 'checkout', '-q', '-b', $newVersion );
 
-		# Delete extensions/README and extensions/.gitignore
-		$this->runWriteCmd( 'git', 'rm', '-q', "extensions/README", "extensions/.gitignore" );
+		# Delete extensions/README and extensions/.gitignore if we branched master
+		if( $this->oldVersion == 'master' ) {
+			$this->runWriteCmd( 'git', 'rm', '-q', "extensions/README", "extensions/.gitignore" );
+		}
 
 		# Add extension submodules
 		foreach (
@@ -160,12 +178,10 @@ class MakeWmfBranch {
 			}
 		}
 
-		# Copy in preserved items - TODO/FIXME
-		/* foreach ( $this->preservedItems as $item ) {
-			$this->runCmd( 'svn', 'cp', '--quiet',
-				"{$this->destBaseUrl}/{$this->oldVersion}/$item",
-				dirname( "$item" ) );
-		} */
+		# Symlink to StartProfiler.php
+		echo "Creating symlink to StartProfiler.php\n";
+		symlink( "../StartProfiler.php", "StartProfiler.php" );
+		$this->runCmd( 'git', 'add', '-f', 'StartProfiler.php' );
 
 		# Do intermediate commit
 		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new WMF {$this->newVersion} branch" );
