@@ -41,6 +41,10 @@ function get_extension_versions( $oldbranch, $newbranch ) {
 	foreach ( explode( "\n", git_extension_diff_output( $oldbranch, $newbranch ) ) as $line ) {
 		#diff --git a/extensions/AbuseFilter b/extensions/AbuseFilter
 		if( preg_match( '!^diff --git a/extensions/([^\. ]+) b/extensions/([^\. ]+)!', $line, $matches ) ) {
+			if ( $matches[1] === 'README' ) {
+				continue;
+			}
+
 			if( count( $extrecord ) > 0 ) {
 				$retval[] = $extrecord;
 				$extrecord = array();
