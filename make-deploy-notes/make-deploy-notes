@@ -173,7 +173,7 @@ function filter_git_output( $logoutput ) {
 		}
 		$line = preg_replace( '/bug:?\s*(\d+)/i', '{{bugzilla|$1}}', $line );
 		$line = htmlspecialchars( $line );
-		$retval .= $line . "\n";
+		$retval .= "* $line\n";
 	}
 	return $retval;
 }
