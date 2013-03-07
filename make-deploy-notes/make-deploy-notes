@@ -65,36 +65,78 @@ function get_extension_versions( $oldbranch, $newbranch ) {
 	return $retval;
 }
 
-
 /**
- * git_cherry_log_output_core - git command to pull all revisions that exist in
- * newbranch that don't exist in oldbranch.  The format is wiki ready; valid
- * wiki markup that still should be sanitiz
+ * Fetch an array of the change's subject for a given path, along with a bug number.
  */
-function git_cherry_log_output_core( $oldbranch, $newbranch ) {
-	$output = array();
-	exec("git log --pretty=format:'* {{git|%h}} - %s' --cherry-pick --right-only --no-merges $oldbranch...$newbranch", $output);
-	return $output;
+function useful_git_log( $oldRev, $newRev, $ext = null ) {
+	$gitDir = getcwd();
+	$myDir = $ext ? "$gitDir/extensions/$ext" : $gitDir;
+	if( !is_dir( $myDir ) ) {
+		return "";
+	}
+	chdir( $myDir );
+	$retval = full_git_log_as_array( $oldRev, $newRev );
+	$gitLog = array();
+	foreach( $retval as $commit ) {
+		$lines = array_filter( explode( "\n", $commit['message'] ) );
+		$first = true;
+		$subject = '';
+		$bugs = array();
+		foreach( $lines as $line ) {
+			if( $first ) {
+				$first = false;
+				if( preg_match( "/\(?(Bug|RT)\s*(\d+)\)?\s*(.+)/i", $line, $issueRes ) ) {
+					$bugs[] = $issueRes[2];
+					$subject = $issueRes[3];
+				} else {
+					$subject = $line;
+				}
+			} elseif( preg_match( "/(Bug|RT):\s*(\d+)/i", $line, $issueRes ) ) {
+				$bugs[] = $issueRes[2];
+			}
+		}
+		$baseLogEntry = "{{git|" . substr( $commit['hash'], 1, 8 ) . "}} - ";
+		// Trim down to the first bit
+		$subject = trim( ltrim( trim( $subject ), '-' ) );
+		$subject = preg_replace( "/    .+$/i", '', $subject );
+		$bugs = $bugs ? " (bug " . implode( ", bug ", $bugs ) . ")" : '';
+		$gitLog[] = $baseLogEntry . $subject . $bugs;
+	}
+	chdir( $gitDir );
+	return $gitLog;
 }
 
-/**
- * git_cherry_log_output_extension - git command to pull all revisions that exist in
- * newbranch that don't exist in oldbranch.
- */
-function git_cherry_log_output_extension( $extension, $oldrev, $newrev ) {
-	$gitdir = getcwd();
-	chdir( 'extensions/' . $extension );
-	$command = "git log --pretty=format:'* {{git|%h}} - %s'  --cherry-pick --right-only --no-merges $oldrev..$newrev";
+function full_git_log_as_array( $oldRev, $newRev ) {
+	$command = "git log --cherry-pick --right-only --no-merges $oldRev..$newRev";
 	try {
-		$retval = capture_output( $command );
+		$output = capture_output( $command );
+	} catch( ExecException $e ) {
+		throw new Exception( "Problem with command: $command\n******** LIKELY CAUSE: you need to run 'git fetch --all' in an extension directory" );
 	}
-	catch ( ExecException $e ) {
-		throw new Exception( "Problem with command: $command\n******** LIKELY CAUSE: you need to run 'git fetch --all' in this extension directory ($extension)" );
+	$history = array();
+	foreach( $output as $line ) {
+		if( strpos( $line, 'commit ' ) === 0 ) {
+			if( !empty( $commit ) ) {
+				array_push( $history, $commit );
+				unset( $commit );
+			}
+			$commit['hash']   = substr( $line, strlen( 'commit' ) );
+			continue;
+		} elseif( strpos( $line, 'Author' ) === 0 || strpos( $line, 'Date' ) === 0 ) {
+			continue;
+		} else {
+			if( isset( $commit['message'] ) ) {
+				$commit['message'] .= "\n" . $line;
+			} else {
+				$commit['message'] = $line;
+			}
+			continue;
+		}
+		if( !empty( $commit ) ) {
+		    array_push($history, $commit);
+		}
 	}
-
-	chdir( $gitdir );
-
-	return $retval;
+	return $history;
 }
 
 /**
@@ -120,13 +162,16 @@ function filter_git_output( $logoutput ) {
 		'Applied patches to new WMF',
 		'(Updat(e|ing))? ?.*? to (master|head|[0-9a-f]{5,40}|production tip)', // Update foo to master
 	);
+	if( !$logoutput ) {
+		return;
+	}
 	foreach ( $logoutput as $line ) {
 		foreach( $skipLines as $skip ) {
 			if ( preg_match( '/' . $skip . '/i', $line ) ) {
 				continue 2;
 			}
 		}
-		$line = preg_replace( '/bug (\d+)/i', '{{bugzilla|$1}}', $line );
+		$line = preg_replace( '/bug:?\s*(\d+)/i', '{{bugzilla|$1}}', $line );
 		$line = htmlspecialchars( $line );
 		$retval .= $line . "\n";
 	}
@@ -144,10 +189,10 @@ function get_all_extension_change_markup( $oldbranch, $newbranch ) {
 			$logoutput = array( "** Newly deployed extension" );
 		}
 		elseif( !array_key_exists( 'newrev', $extrecord ) ) {
-			$logoutput = git_cherry_log_output_extension( $extrecord['name'], $extrecord['oldrev'], "HEAD" );
+			$logoutput = useful_git_log( $extrecord['oldrev'], "HEAD", $extrecord['name'] );
 		}
 		else {
-			$logoutput = git_cherry_log_output_extension( $extrecord['name'], $extrecord['oldrev'], $extrecord['newrev'] );
+			$logoutput = useful_git_log( $extrecord['oldrev'], $extrecord['newrev'], $extrecord['name'] );
 		}
 		$changes = filter_git_output( $logoutput );
 		if( $changes != "" ) {
@@ -169,7 +214,7 @@ function get_all_extension_change_markup( $oldbranch, $newbranch ) {
 function main( $argv ) {
 	list( $oldbranch, $newbranch ) = get_args( $argv );
 	print "== Core changes ==\n";
-	$coreoutput = git_cherry_log_output_core( $oldbranch, $newbranch );
+	$coreoutput = useful_git_log( $oldbranch, $newbranch );
 	print filter_git_output( $coreoutput );
 	print "== Extensions ==\n";
 	print get_all_extension_change_markup( $oldbranch, $newbranch );
