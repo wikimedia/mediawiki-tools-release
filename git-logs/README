@@ -1,0 +1,9 @@
+This is a script to pull the git logs from for a branch.
+It's really just a fancier way of running
+'git log --no-merges commitId..> ChangeLogsYYYY-MM-DD'.
+You can enter a commit Id or press <ENTER> to retrieve the latest stored commit Id.
+
+
+Usage:
+  ./log_updates.py
+
