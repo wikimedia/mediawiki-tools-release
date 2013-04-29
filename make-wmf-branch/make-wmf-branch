@@ -179,6 +179,11 @@ class MakeWmfBranch {
 				$this->chdir( "../.." );
 			}
 		}
+		# Fix $wgVersion
+		$this->fixVersion( "includes/DefaultSettings.php" );
+
+		# Point gitreview defaultbranch at wmf/version
+		$this->fixGitReview();
 
 		# Do intermediate commit
 		$this->runCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new WMF {$this->newVersion} branch" );
@@ -189,12 +194,6 @@ class MakeWmfBranch {
 			$this->runCmd( 'git', 'fetch', $this->baseRepoPath . '/' . $subpath, $patch );
 			$this->runCmd( 'git', 'cherry-pick', 'FETCH_HEAD' );
 		}
-
-		# Fix $wgVersion
-		$this->fixVersion( "includes/DefaultSettings.php" );
-
-		# Point gitreview defaultbranch at wmf/version
-		$this->fixGitReview();
 
 		# Do the final commit
 		$this->runCmd( 'git', 'commit', '-a', '-q', '-m',
