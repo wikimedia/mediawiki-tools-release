@@ -279,7 +279,7 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion = None, prevBranch = 
 	# Generate the .tar.gz file
 	outFile = open(dir + '/' + package + '.tar.gz', 'w')
 	print os.getcwd()
-	args = ['tar', '--exclude-vcs', '-x', '.gitreview', '-c', package]
+	args = ['tar', '--format=gnu', '--exclude-vcs', '-x', '.gitreview', '-c', package]
 	print ' '.join(args)
 	tarProc = subprocess.Popen(args, stdout = subprocess.PIPE)
 	gzipProc = subprocess.Popen(['gzip', '-9'],
