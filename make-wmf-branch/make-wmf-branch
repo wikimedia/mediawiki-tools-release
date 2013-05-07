@@ -103,7 +103,7 @@ class MakeWmfBranch {
 		}
 		$this->chdir( $this->buildDir );
 	}
-	
+
 	function branchExtensions() {
 		foreach( $this->branchedExtensions as $ext ) {
 			$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/extensions/{$ext}.git", $ext );
