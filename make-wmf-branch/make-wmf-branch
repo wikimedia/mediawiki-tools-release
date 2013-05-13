@@ -195,10 +195,6 @@ class MakeWmfBranch {
 			$this->runCmd( 'git', 'cherry-pick', 'FETCH_HEAD' );
 		}
 
-		# Do the final commit
-		$this->runCmd( 'git', 'commit', '-a', '-q', '-m',
-			"Applied patches to new WMF {$this->newVersion} branch" );
-
 		$this->runWriteCmd( 'git', 'push', 'origin', 'wmf/' . $this->newVersion  );
 	}
 
