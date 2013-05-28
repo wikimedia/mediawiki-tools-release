@@ -363,7 +363,7 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion = None, prevBranch = 
 	print
 
 	print 'Public keys:'
-	print 'https://secure.wikimedia.org/keys.html'
+	print 'https://www.mediawiki.org/keys/keys.html'
 	print
 
 	os.chdir('..')
