@@ -158,12 +158,11 @@ function filter_git_output( $logoutput ) {
 	$skipLines = array(
 		'Localisation updates from',
 		'COMMITMSG', // Fix for escaping fail leaving a commit summary of $COMMITMSG
-		'Add \.gitignore',
-		'Add \.gitreview and \.gitignore',
+		'Add (\.gitreview and )?\.gitignore',
 		'Creating new WMF',
 		'Commit of various live hacks', // Our catchall patch for live hacky stuff
 		'Applied patches to new WMF',
-		'(Updat(e|ing))? ?.*?( to (master|head|[0-9a-f]{5,40}|production tip))?', // Update foo to master
+		'(Updat(e|ing) )? ?.*? to (master|head|[0-9a-f]{5,40}|production tip)', // Update foo to master
 		'Bump .*? for deployment',
 	);
 	foreach ( $logoutput as $line ) {
