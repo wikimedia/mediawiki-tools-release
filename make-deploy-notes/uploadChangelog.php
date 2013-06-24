@@ -1,3 +1,4 @@
+<?php
 /**
  * Copyright © 2013 Sam Reed
  *
@@ -18,8 +19,6 @@
  *
  * @file
  */
-
-<?php
 
 if ( count( $argv ) !== 2 ) {
 	print "usage: $argv[0] wmf/1.22wmf6\n";
