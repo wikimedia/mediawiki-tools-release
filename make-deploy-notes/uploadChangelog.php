@@ -38,6 +38,12 @@ $escPrevVer = escapeshellarg( $previousVersion );
 
 $output = shell_exec( "php -f ./make-deploy-notes {$escPrevVer} {$escVer}" );
 
+if ( stripos( $output, 'array(' ) !== false ) {
+	// Broken output, don't upload
+	print "Output looks erroneous\n";
+	return;
+}
+
 require_once( 'botclasses.php' );
 $wiki = new wikipedia( 'https://www.mediawiki.org/w/api.php' );
 
