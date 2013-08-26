@@ -73,7 +73,7 @@ def main():
 		dieUsage()
 
 	decomposed = decomposeVersion(args[0])
-	if decomposed == None:
+	if decomposed is None:
 		print 'Invalid version number "%s"' % (args[0])
 		sys.exit(1)
 
@@ -96,7 +96,7 @@ def main():
 			gitRoot=gitRoot)
 		return
 
-	if decomposed['prevVersion'] == None:
+	if decomposed['prevVersion'] is None:
 		if not ask("No previous release found. Do you want to make a release with no patch?"):
 			print 'Please specify the correct previous release on the command line'
 			sys.exit(1)
@@ -140,7 +140,7 @@ def ask(question):
 def decomposeVersion(version):
 	ret = {}
 	m = re.compile('(\d+)\.(\d+)\.(\d+)$').match(version)
-	if m != None:
+	if m is not None:
 		ret['major'] = m.group(1) + "." + m.group(2)
 		ret['branch'] = 'tags/' + m.group(1) + '.' + m.group(2) + '.' + m.group(3)
 		if int(m.group(3)) == 0:
@@ -152,7 +152,7 @@ def decomposeVersion(version):
 		return ret
 
 	m = re.compile('(\d+)\.(\d+)\.(\d+)([A-Za-z]+)(\d+)$').match(version)
-	if m == None:
+	if m is None:
 		return None
 
 	ret['major'] = m.group(1) + "." + m.group(2)
@@ -344,7 +344,7 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None, prevBranch=None
 	outFiles.append(makeTarFile(package, package, dir, rootDir))
 
 	# Patch
-	if prevVersion != None:
+	if prevVersion is not None:
 		prevDir = 'mediawiki-' + prevVersion
 		export(prevBranch, prevDir, gitRoot)
 
@@ -397,7 +397,7 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None, prevBranch=None
 	print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + package + '.tar.gz'
 	print
 
-	if prevVersion != None:
+	if prevVersion is not None:
 		if haveI18n:
 			print "Patch to previous version (" + prevVersion + "), without interface text:"
 			print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + package + '.patch.gz'
