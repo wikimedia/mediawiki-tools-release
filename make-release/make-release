@@ -1,6 +1,13 @@
 #!/usr/bin/python
 
-import sys, getopt, time, re, os, subprocess, hashlib
+import getopt
+import hashlib
+import os
+import re
+import subprocess
+import sys
+import time
+
 
 def dieUsage():
 	print """
@@ -18,6 +25,7 @@ always answer "yes", use the --yes option.
 Use --no-previous to disable the diff to previous entirely.
 """
 	sys.exit(1)
+
 
 def main():
 	try:
@@ -54,10 +62,10 @@ def main():
 	# Snapshot release?
 	if snapshot:
 		makeRelease(
-				version = 'snapshot-' + time.strftime('%Y%m%d', time.gmtime()),
-				branch = 'trunk',
-				dir = 'snapshots',
-				gitRoot = gitRoot)
+				version='snapshot-' + time.strftime('%Y%m%d', time.gmtime()),
+				branch='trunk',
+				dir='snapshots',
+				gitRoot=gitRoot)
 		return
 
 	# Need a version specified if not snapshot
@@ -79,13 +87,13 @@ def main():
 	if len(args) >= 2:
 		# Given the previous version on the command line
 		makeRelease(
-			extensions = extensions,
-			version = args[0],
-			prevVersion = args[1],
-			prevBranch = versionToBranch(args[1]),
-			branch = decomposed['branch'],
-			dir = decomposed['major'],
-			gitRoot = gitRoot)
+			extensions=extensions,
+			version=args[0],
+			prevVersion=args[1],
+			prevBranch=versionToBranch(args[1]),
+			branch=decomposed['branch'],
+			dir=decomposed['major'],
+			gitRoot=gitRoot)
 		return
 
 	if decomposed['prevVersion'] == None:
@@ -97,24 +105,25 @@ def main():
 
 	if noPrevious:
 		makeRelease(
-			extensions = extensions,
-			version = args[0],
-			branch = decomposed['branch'],
-			dir = decomposed['major'],
-			gitRoot = gitRoot)
+			extensions=extensions,
+			version=args[0],
+			branch=decomposed['branch'],
+			dir=decomposed['major'],
+			gitRoot=gitRoot)
 	else:
 		if not ask("Was %s the previous release?" % (decomposed['prevVersion'])):
 			print 'Please specify the correct previous release on the command line'
 			sys.exit(1)
 
 		makeRelease(
-			extensions = extensions,
-			version = args[0],
-			prevVersion = decomposed['prevVersion'],
-			prevBranch = decomposed['prevBranch'],
-			branch = decomposed['branch'],
-			dir = decomposed['major'],
-			gitRoot = gitRoot)
+			extensions=extensions,
+			version=args[0],
+			prevVersion=decomposed['prevVersion'],
+			prevBranch=decomposed['prevBranch'],
+			branch=decomposed['branch'],
+			dir=decomposed['major'],
+			gitRoot=gitRoot)
+
 
 def ask(question):
 	while True:
@@ -126,6 +135,7 @@ def ask(question):
 			elif response[0].lower() == 'n':
 				return False
 		print 'Please type "y" for yes or "n" for no'
+
 
 def decomposeVersion(version):
 	ret = {}
@@ -157,8 +167,10 @@ def decomposeVersion(version):
 			m.group(4) + newMinor)
 	return ret
 
+
 def versionToBranch(version):
 	return 'tags/' + version
+
 
 def hashfile(fileName, algorithm):
 	f = open(fileName, 'r')
@@ -171,25 +183,26 @@ def hashfile(fileName, algorithm):
 	f.close()
 	return hash.hexdigest()
 
+
 def getGit(repo, dir, label):
-	if ( os.path.exists( dir ) ):
-		print "Updating "+ label +" in "+ dir +"..."
+	if (os.path.exists(dir)):
+		print "Updating " + label + " in " + dir + "..."
 		proc = subprocess.Popen(['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
 	else:
-		print "Cloning "+ label +" into "+ dir +"..."
+		print "Cloning " + label + " into " + dir + "..."
 		proc = subprocess.Popen(['git', 'clone', '-q', repo, dir])
 
 	if proc.wait() != 0:
 		print "git clone failed, exiting"
 		sys.exit(1)
 
+
 def patchExport(patch, dir, gitRoot):
 	os.chdir(dir)
 	print "Applying patch " . patch
 
 	# git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
-	proc = subprocess.Popen(['git', 'fetch', gitRoot + '/core', patch,
-		'&&', 'git', 'cherry-pick', 'FETCH_HEAD'])
+	proc = subprocess.Popen(['git', 'fetch', gitRoot + '/core', patch, '&&', 'git', 'cherry-pick', 'FETCH_HEAD'])
 
 	if proc.wait() != 0:
 		print "git patch failed, exiting"
@@ -197,6 +210,7 @@ def patchExport(patch, dir, gitRoot):
 
 	os.chdir('..')
 	print "Done"
+
 
 def export(tag, dir, gitRoot):
 	getGit(gitRoot + '/core.git', dir, "core")
@@ -214,9 +228,11 @@ def export(tag, dir, gitRoot):
 	os.chdir('..')
 	print "Done"
 
+
 def exportExtension(branch, extension, dir, gitRoot):
 	getGit(gitRoot + '/extensions/' + extension + '.git', dir + '/extensions/' + extension, extension)
 	print "Done"
+
 
 def makePatch(patchFileName, dir1, dir2, type):
 	patchFile = open(patchFileName, 'w')
@@ -233,8 +249,8 @@ def makePatch(patchFileName, dir1, dir2, type):
 
 	args.extend([dir1, dir2])
 	print ' '.join(args)
-	diffProc = subprocess.Popen(args, stdout = subprocess.PIPE)
-	gzipProc = subprocess.Popen(['gzip', '-9'], stdin = diffProc.stdout, stdout = patchFile)
+	diffProc = subprocess.Popen(args, stdout=subprocess.PIPE)
+	gzipProc = subprocess.Popen(['gzip', '-9'], stdin=diffProc.stdout, stdout=patchFile)
 
 	diffStatus = diffProc.wait()
 	gzipStatus = gzipProc.wait()
@@ -248,9 +264,10 @@ def makePatch(patchFileName, dir1, dir2, type):
 	print "Done"
 	return diffStatus == 1
 
-def getVersionExtensions(version, extensions = []):
+
+def getVersionExtensions(version, extensions=[]):
 	coreExtensions = ['ConfirmEdit', 'Gadgets', 'Nuke', 'ParserFunctions', 'PdfHandler', 'Renameuser',
-			  'SpamBlacklist', 'Vector', 'WikiEditor' ]
+			  'SpamBlacklist', 'Vector', 'WikiEditor']
 	newExtensions = ['Cite',
 			  'ImageMap',
 			  'Interwiki',
@@ -273,7 +290,8 @@ def getVersionExtensions(version, extensions = []):
 
 	return extensions
 
-def makeTarFile(package, file, dir, rootDir, argAdd = []):
+
+def makeTarFile(package, file, dir, rootDir, argAdd=[]):
 	# Generate the .tar.gz file
 	outFile = open(dir + '/' + file + '.tar.gz', 'w')
 	args = ['tar', '--format=gnu', '--exclude-vcs', '--exclude-from', rootDir + '/tarignore']
@@ -281,9 +299,9 @@ def makeTarFile(package, file, dir, rootDir, argAdd = []):
 	args += ['-c', package]
 	print ' '.join(args)
 	exit
-	tarProc = subprocess.Popen(args, stdout = subprocess.PIPE)
+	tarProc = subprocess.Popen(args, stdout=subprocess.PIPE)
 	gzipProc = subprocess.Popen(['gzip', '-9'],
-		stdin = tarProc.stdout, stdout = outFile)
+		stdin=tarProc.stdout, stdout=outFile)
 
 	if tarProc.wait() != 0 or gzipProc.wait() != 0:
 		print "tar/gzip failed, exiting"
@@ -294,7 +312,7 @@ def makeTarFile(package, file, dir, rootDir, argAdd = []):
 	return targz
 
 
-def makeRelease(version, branch, dir, gitRoot, prevVersion = None, prevBranch = None, extensions = []):
+def makeRelease(version, branch, dir, gitRoot, prevVersion=None, prevBranch=None, extensions=[]):
 	if not os.path.exists('build'):
 		os.mkdir('build')
 	if not os.path.exists('uploads'):
@@ -317,13 +335,13 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion = None, prevBranch = 
 	extExclude = []
 	for ext in getVersionExtensions(version, extensions):
 		exportExtension(branch, ext, package, gitRoot)
-		extExclude.append( "--exclude" )
-		extExclude.append( "extensions/" + ext )
+		extExclude.append("--exclude")
+		extExclude.append("extensions/" + ext)
 
 	# Generate the .tar.gz files
 	outFiles = []
-	outFiles.append( makeTarFile( package, 'mediawiki-core-' + version, dir, rootDir, extExclude ) )
-	outFiles.append( makeTarFile( package, package, dir, rootDir ) )
+	outFiles.append(makeTarFile(package, 'mediawiki-core-' + version, dir, rootDir, extExclude))
+	outFiles.append(makeTarFile(package, package, dir, rootDir))
 
 	# Patch
 	if prevVersion != None:
@@ -337,9 +355,9 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion = None, prevBranch = 
 		outFiles.append(package + '.patch.gz')
 		print package + '.patch.gz written'
 		haveI18n = False
-		if os.path.exists(package+'/languages/messages'):
+		if os.path.exists(package + '/languages/messages'):
 			i18nPatch = 'mediawiki-i18n-' + version + '.patch.gz'
-			if (makePatch(dir + '/' +  i18nPatch, prevDir, package, 'i18n')):
+			if (makePatch(dir + '/' + i18nPatch, prevDir, package, 'i18n')):
 				outFiles.append(i18nPatch)
 				print i18nPatch + ' written'
 				haveI18n = True
@@ -347,7 +365,7 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion = None, prevBranch = 
 	# Sign
 	uploadFiles = []
 	for fileName in outFiles:
-		proc = subprocess.Popen(['gpg', '--detach-sign', dir +'/' + fileName])
+		proc = subprocess.Popen(['gpg', '--detach-sign', dir + '/' + fileName])
 		if proc.wait() != 0:
 			print "gpg failed, exiting"
 			sys.exit(1)
