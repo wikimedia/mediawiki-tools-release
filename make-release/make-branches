@@ -1,0 +1,185 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Create branches for MediaWiki core and all Wikimedia-hosted
+ * extension repositories.
+ *
+ * Example for REL1_21:
+ *
+ * $ cd mediawiki/core
+ * $ git log --right-only --oneline gerrit/master...gerrit/REL1_21
+ *
+ * Get the last one and take note of the the commit hash.
+ * This commit is the first one that is in REl1_21 but not in master.
+ * Now get the CommitDate (not AuthorDate) of the parent of that commit, which
+ * is the last commit that is both in master and in the release branch.
+ * We can instruct git to access the parent by tacking "~1" to the hash:
+ *
+ * $ git show --format=fuller --quiet 4cb0dc1~1
+ *   commit 49eacb3b3ae9cebdc7a407360454af3c1e33b3c9
+ *   CommitDate: Sat Mar 16 12:00:59 2013 +0000
+ *
+ * @author Chad Horohoe, 2012
+ * @author Timo Tijhof, 2013
+ * @author Mark A. Hershberger, 2013
+ * @license WTFPL (See LICENSE file)
+ */
+
+if ( php_sapi_name() !== 'cli' ) {
+	echo "This script only works from the command line\n";
+	exit( 1 );
+}
+
+$self = basename( __FILE__ );
+
+if ( count( $argv ) < 2 ) {
+	echo
+		"usage: $self <branch-name>\n"
+		. "\n"
+		. "Example: $self REL1_21\n";
+	exit( 1 );
+}
+
+$maker = new MakeExtensionBranches( array(
+	'branchName' => $argv[1],
+) );
+
+$maker->run();
+
+class MakeExtensionBranches {
+
+	protected $codeDir;
+	protected $conf, $opts;
+
+	public function __construct( $opts ) {
+		$this->codeDir = __DIR__;
+
+		require "{$this->codeDir}/default.conf";
+		if ( file_exists( "{$this->codeDir}/local.conf" ) ) {
+			require "{$this->codeDir}/local.conf";
+		}
+
+		$this->conf = $conf;
+		$this->opts = (object) $opts;
+
+	}
+
+	protected function setup() {
+		if ( !$this->conf->extRepos ) {
+			// Fetch from Gerrit
+			$list = $this->execReadCmd( $exit, 'ssh', '-p', '29418', 'gerrit.wikimedia.org', 'gerrit', 'ls-projects', '-p', 'mediawiki/extensions' );
+			// Trim leading/trailing whitespace
+			$list = array_map( 'trim', $list );
+			// Ignore empty lines
+			$list = array_filter( $list );
+
+			$this->conf->extRepos = $list;
+		}
+	}
+
+	public function branchAndTag( $name, $url, $dir ) {
+		$this->execReadCmd( $exitcode, 'git', 'clone', '-q', $url, '-b', 'master', $name );
+		$this->chdir( $dir );
+
+		$out = $exitcode = null;
+		// Check if the branch exists already
+		$branchName = $this->opts->branchName;
+		$this->execReadCmd( $exitcode, 'git', 'show-branch', 'origin/', $branchName );
+		if ( $exitcode == 0 ) {
+			echo "Skipping $extRepo: Branch exists already\n";
+			continue;
+		}
+		$commit = $this->execReadCmd( $exitcode, 'git', 'rev-list', '-n', '1', '--before', $this->opts->branchDate, 'master' );
+		if ( !$commit ) {
+			echo "Skipping $extRepo: Repo does not have a commit before the branch date\n";
+			continue;
+		}
+		if ( $this->conf->verbose ) {
+			echo "... $extRepo: Branching $branchName at $commit\n";
+		}
+		$this->execReadCmd( $exitcode, 'git', 'checkout', '-q', $commit );
+		$this->execReadCmd( $exitcode, 'git', 'branch', $branchName, $exitcode );
+		if ( $exitcode != 0 ) {
+			echo "Skipping $extRepo: Creating branch failed (exit code: $exitcode)\n";
+			continue;
+		}
+		$this->execWriteCmd( $exitcode, 'git', 'push', 'origin', "$branchName:refs/heads/$branchName" );
+	}
+
+	public function run() {
+		$this->setup();
+		$this->setupBuildDirectory();
+
+		$this->branchCore();
+		$this->tagCore();
+
+		foreach ( $this->conf->extRepos as $extRepo ) {
+			if ( $extRepo === 'mediawiki/extensions' ) {
+				// Skip the meta repository
+				continue;
+			}
+			$url = str_replace( '{repository}', $extRepo, $this->conf->extRepoUrlFormat );
+			$this->branchAndTag( basename( $extRepo ), $url, $this->buildDir . "/" . $extRepo );
+
+		}
+
+		echo "Done!\n";
+	}
+
+	protected function setupBuildDirectory() {
+		if ( is_dir( $this->conf->buildDir ) ) {
+			echo "Using existing build dir";
+		} elseif ( !mkdir( $this->conf->buildDir ) ) {
+			$this->error( "Unable to create directory {$this->conf->buildDir}" );
+		}
+	}
+
+	protected function chdir( $dir ) {
+		if ( !chdir( $dir ) ) {
+			$this->error( "Unable to change working directory to $dir\n" );
+		}
+		if ( $this->conf->verbose ) {
+			echo "[cwd] $dir\n";
+		}
+	}
+
+	protected function execReadCmd( /*...*/ ) {
+		$args = func_get_args();
+		$exitCode = array_unshift( $args );
+		if ( $this->conf->verbose && in_array( '-q', $args ) ) {
+			$args = array_diff( $args, array( '-q' ) );
+		}
+		$cmd = implode( ' ', array_map( 'escapeshellarg', $args ) );
+		if ( $this->conf->verbose ) {
+			echo "[exec] $cmd\n";
+		}
+		$exitCode = null;
+		ob_start();
+
+		passthru( $cmd, $exitCode );
+		$output = ob_get_contents();
+		ob_end_clean();
+		if ( $exitCode ) {
+			$this->error( $args[0] . " exit with status $exitCode\n" );
+		}
+		return trim( $output );
+	}
+
+	/**
+	 * Commands that are guarded behind conf->dryRun.
+	 */
+	protected function execWriteCmd( /*...*/ ) {
+		$args = func_get_args();
+		$cmd = implode( ' ', array_map( 'escapeshellarg', $args ) );
+		if ( $this->conf->dryRun ) {
+			echo "[dryRun] $cmd\n";
+		} else {
+			call_user_func_array( array( $this, 'execReadCmd' ), $args );
+		}
+	}
+
+	protected function error( $msg ) {
+		fwrite( STDERR, "$msg\n" );
+		exit( 1 );
+	}
+}
