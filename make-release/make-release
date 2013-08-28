@@ -394,7 +394,7 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None, prevBranch=None
     # Write email template
     print
     print "Full release notes:"
-    url = 'https://svn.wikimedia.org/svnroot/mediawiki/' + branch + '/phase3/RELEASE-NOTES'
+    url = 'https://git.wikimedia.org/blob/mediawiki%2Fcore.git/' + branch + '/RELEASE-NOTES'
     if dir > '1.17':
         url += '-' + dir
 
