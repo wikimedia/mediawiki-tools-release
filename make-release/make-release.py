@@ -16,6 +16,9 @@ import re
 import subprocess
 import sys
 import time
+import yaml
+
+config = {}
 
 
 def getVersionExtensions(version, extensions=[]):
@@ -102,12 +105,25 @@ def versionToBranch(version):
     return 'tags/' + version
 
 
+def read_config(conffile=None):
+    if conffile is None:
+        conffile = 'make-release.yaml'
+
+    if not os.path.isfile(conffile):
+        print "Configuration file not found: %s" % conffile
+        sys.exit(1)
+
+    return yaml.load(open('make-release.yaml'))
+
+
 def parse_args():
     """Parse command line arguments and return options"""
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+
+    parser.add_argument('--conf', help='specify the configuration file')
 
     # Positional arguments:
     parser.add_argument(
@@ -182,31 +198,14 @@ class MakeRelease(object):
     def main(self):
         " return value should be usable as an exit code"
 
+        global config  # yeah globals are evil. We know.
+        config = read_config(options.conf)
+
+        # TODO we should validate the YAML configuration file
+
         extensions = []
-        smwExtensions = [
-            'SemanticMediaWiki',
-            'SemanticResultFormats',
-            'SemanticForms',
-            'SemanticCompoundQueries',
-            'SemanticInternalObjects',
-            'SemanticDrilldown',
-            'SemanticMaps',
-            'SemanticWatchlist',
-            'SemanticTasks',
-            'SemanticFormsInputs',
-            'SemanticImageInput',
-            'Validator',
-            'AdminLinks',
-            'ApprovedRevs',
-            'Arrays',
-            'DataTransfer',
-            'ExternalData',
-            'HeaderTabs',
-            'Maps',
-            'PageSchemas',
-            'ReplaceText',
-            'Widgets',
-        ]
+        bundles = config.get('bundles')
+        smwExtensions = bundles.get('smw')
 
         # No version specified, assuming a snapshot release
         if options.version is None:
@@ -393,7 +392,7 @@ class MakeRelease(object):
             "Tarignore %s not found, IGNORING." % tarignore
             tarignore = None
 
-       # Generate the .tar.gz file
+        # Generate the .tar.gz file
         filename = dir + '/' + file + '.tar.gz'
         outFile = open(filename, "w")
         args = [tar, '--format=gnu', '--exclude-vcs']

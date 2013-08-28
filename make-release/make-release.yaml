@@ -1,0 +1,24 @@
+bundles:
+    smw:
+        - AdminLinks
+        - ApprovedRevs
+        - Arrays
+        - DataTransfer,
+        - ExternalData
+        - HeaderTabs
+        - Maps
+        - PageSchemas
+        - ReplaceText
+        - SemanticCompoundQueries
+        - SemanticDrilldown,
+        - SemanticForms,
+        - SemanticFormsInputs,
+        - SemanticImageInput
+        - SemanticInternalObjects
+        - SemanticMaps
+        - SemanticMediaWiki
+        - SemanticResultFormats
+        - SemanticTasks
+        - SemanticWatchlist
+        - Validator
+        - Widgets
