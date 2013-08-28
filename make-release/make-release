@@ -1,7 +1,21 @@
 #!/usr/bin/python
 # vim:sw=4:ts=4:et:
 
-import getopt
+"""
+Helper to generate a MediaWiki tarball.
+
+example:
+  ./make-release 1.19.0
+  ./make-release  # takes a snapshot
+
+If the previous version is not given, it will be derived from the next version,
+and you will be prompted to confirm that the version number is correct. To
+always answer "yes", use the --yes option.
+
+Use --no-previous to disable the diff to previous entirely.
+"""
+
+import argparse
 import hashlib
 import os
 import re
@@ -11,29 +25,12 @@ import time
 
 
 def dieUsage():
-    print """
-Usage:
-  ./make-release --snapshot
-  ./make-release [--yes] [--no-previous] <next-version> [<previous-version>]
-
-Example:
-  ./make-release 1.19.0
-
-If the previous version is not given, it will be derived from the next version,
-and you will be prompted to confirm that the version number is correct. To
-always answer "yes", use the --yes option.
-
-Use --no-previous to disable the diff to previous entirely.
-"""
+    print __doc__
     sys.exit(1)
 
 
 def main():
-    try:
-        options, args = getopt.getopt(sys.argv[1:], '', ['help', 'snapshot', 'yes', 'no-previous', 'git-root=', 'smw'])
-    except getopt.GetoptError, err:
-        print str(err)
-        dieUsage()
+    options = parse_args()
 
     extensions = []
     smwExtensions = [
@@ -42,60 +39,38 @@ def main():
         "SemanticMaps", "SemanticWatchlist", "SemanticTasks", "SemanticFormsInputs",
         "SemanticImageInput", "Validator", "AdminLinks", "ApprovedRevs", "Arrays", "DataTransfer",
         "ExternalData", "HeaderTabs", "Maps", "PageSchemas", "ReplaceText", "Widgets"]
-    snapshot = False
-    yes = False
-    noPrevious = False
-    gitRoot = 'ssh://gerrit.wikimedia.org:29418/mediawiki'
-    smw = False
-    for name, value in options:
-        if name == '--help':
-            dieUsage()
-        elif name == '--snapshot':
-            snapshot = True
-        elif name == '--yes':
-            yes = True
-        elif name == '--no-previous':
-            noPrevious = True
-        elif name == '--git-root':
-            gitRoot = value
-        elif name == '--smw':
-            smw = True
 
-    # Snapshot release?
-    if snapshot:
+    # No version specified, assuming a snapshot release
+    if options.nextversion is None:
         makeRelease(
             version='snapshot-' + time.strftime('%Y%m%d', time.gmtime()),
             branch='trunk',
             dir='snapshots',
-            gitRoot=gitRoot)
+            gitRoot=options.gitroot)
         return
 
-    # Need a version specified if not snapshot
-    if len(args) == 0:
-        dieUsage()
-
-    decomposed = decomposeVersion(args[0])
+    decomposed = decomposeVersion(options.nextversion)
     if decomposed is None:
-        print 'Invalid version number "%s"' % (args[0])
-        sys.exit(1)
+        print 'Invalid version number "%s"' % (options.nextversion)
+        sys.exit(1)  # FIXME: return 1
 
     version = decomposed['major']
 
-    if smw:
+    if options.smw:
         # Other extensions for inclusion
         for ext in smwExtensions:
             extensions.append(ext)
 
-    if len(args) >= 2:
+    if options.previousversion:
         # Given the previous version on the command line
         makeRelease(
             extensions=extensions,
-            version=args[0],
-            prevVersion=args[1],
-            prevBranch=versionToBranch(args[1]),
+            version=options.nextversion,
+            prevVersion=options.previousversion,
+            prevBranch=versionToBranch(options.previousversion),
             branch=decomposed['branch'],
             dir=decomposed['major'],
-            gitRoot=gitRoot)
+            gitRoot=options.gitroot)
         return
 
     if decomposed['prevVersion'] is None:
@@ -108,10 +83,10 @@ def main():
     if noPrevious:
         makeRelease(
             extensions=extensions,
-            version=args[0],
+            version=options.nextversion,
             branch=decomposed['branch'],
             dir=decomposed['major'],
-            gitRoot=gitRoot)
+            gitRoot=options.gitroot)
     else:
         if not ask("Was %s the previous release?" % (decomposed['prevVersion'])):
             print 'Please specify the correct previous release on the command line'
@@ -119,12 +94,49 @@ def main():
 
         makeRelease(
             extensions=extensions,
-            version=args[0],
+            version=options.nextversion,
             prevVersion=decomposed['prevVersion'],
             prevBranch=decomposed['prevBranch'],
             branch=decomposed['branch'],
             dir=decomposed['major'],
-            gitRoot=gitRoot)
+            gitRoot=options.gitroot)
+
+
+def parse_args():
+    """Parse command line arguments and returns options"""
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    # Positional arguments:
+    parser.add_argument(
+        'nextversion', nargs='?',
+        help='version you are about to release')
+    parser.add_argument(
+        'previousversion', nargs='?',
+        help='version that came before')
+
+    # Optional arguments:
+    parser.add_argument(
+        '--yes', dest='yes', action='store_true',
+        help='answer yes to any question'
+    )
+    parser.add_argument(
+        '--no-previous', dest='no-previous', action='store_true',
+        help='disable the diff with previous version'
+    )
+    parser.add_argument(
+        '--git-root', dest='gitroot',
+        default='ssh://gerrit.wikimedia.org:29418/mediawiki',
+        help='base git URL to fetch projects from (defaults to Gerrit)'
+    )
+    parser.add_argument(
+        '--smw', dest='smw', action='store_true',
+        help='include the SemanticMediaWiki bundle'
+    )
+
+    return parser.parse_args()
 
 
 def ask(question):
