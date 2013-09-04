@@ -360,7 +360,7 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None, prevBranch=None
         export(prevBranch, prevDir, gitRoot)
 
         for ext in getVersionExtensions(prevVersion, extensions):
-            exportExtension(branch, ext, package, gitRoot)
+            exportExtension(branch, ext, prevDir, gitRoot)
 
         makePatch(dir + '/' + package + '.patch.gz', prevDir, package, 'normal')
         outFiles.append(package + '.patch.gz')
