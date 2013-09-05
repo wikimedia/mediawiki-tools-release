@@ -34,11 +34,29 @@ def main():
 
     extensions = []
     smwExtensions = [
-        "SemanticMediaWiki", "SemanticResultFormats", "SemanticForms",
-        "SemanticCompoundQueries", "SemanticInternalObjects", "SemanticDrilldown",
-        "SemanticMaps", "SemanticWatchlist", "SemanticTasks", "SemanticFormsInputs",
-        "SemanticImageInput", "Validator", "AdminLinks", "ApprovedRevs", "Arrays", "DataTransfer",
-        "ExternalData", "HeaderTabs", "Maps", "PageSchemas", "ReplaceText", "Widgets"]
+        'SemanticMediaWiki',
+        'SemanticResultFormats',
+        'SemanticForms',
+        'SemanticCompoundQueries',
+        'SemanticInternalObjects',
+        'SemanticDrilldown',
+        'SemanticMaps',
+        'SemanticWatchlist',
+        'SemanticTasks',
+        'SemanticFormsInputs',
+        'SemanticImageInput',
+        'Validator',
+        'AdminLinks',
+        'ApprovedRevs',
+        'Arrays',
+        'DataTransfer',
+        'ExternalData',
+        'HeaderTabs',
+        'Maps',
+        'PageSchemas',
+        'ReplaceText',
+        'Widgets',
+    ]
 
     # No version specified, assuming a snapshot release
     if options.nextversion is None:
@@ -74,8 +92,10 @@ def main():
         return
 
     if decomposed['prevVersion'] is None:
-        if not ask("No previous release found. Do you want to make a release with no patch?"):
-            print 'Please specify the correct previous release on the command line'
+        if not ask("No previous release found. Do you want to make a release"
+                   "with no patch?"):
+            print('Please specify the correct previous release'
+                  'on the command line')
             sys.exit(1)
         else:
             noPrevious = True
@@ -88,8 +108,10 @@ def main():
             dir=decomposed['major'],
             gitRoot=options.gitroot)
     else:
-        if not ask("Was %s the previous release?" % (decomposed['prevVersion'])):
-            print 'Please specify the correct previous release on the command line'
+        if not ask("Was %s the previous release?" % (
+                   decomposed['prevVersion'])):
+            print('Please specify the correct previous release'
+                  'on the command line')
             sys.exit(1)
 
         makeRelease(
@@ -156,13 +178,15 @@ def decomposeVersion(version):
     m = re.compile('(\d+)\.(\d+)\.(\d+)$').match(version)
     if m is not None:
         ret['major'] = m.group(1) + "." + m.group(2)
-        ret['branch'] = 'tags/' + m.group(1) + '.' + m.group(2) + '.' + m.group(3)
+        ret['branch'] = ('tags/' + m.group(1) + '.' + m.group(2)
+                         + '.' + m.group(3))
         if int(m.group(3)) == 0:
             ret['prevVersion'] = None
         else:
             newMinor = str(int(m.group(3)) - 1)
             ret['prevVersion'] = ret['major'] + '.' + newMinor
-            ret['prevBranch'] = 'tags/' + m.group(1) + '.' + m.group(2) + '.' + newMinor
+            ret['prevBranch'] = ('tags/' + m.group(1) + '.' + m.group(2)
+                                 + '.' + newMinor)
         return ret
 
     m = re.compile('(\d+)\.(\d+)\.(\d+)([A-Za-z]+)(\d+)$').match(version)
@@ -170,13 +194,16 @@ def decomposeVersion(version):
         return None
 
     ret['major'] = m.group(1) + "." + m.group(2)
-    ret['branch'] = ('tags/' + m.group(1) + '.' + m.group(2) + '.' + m.group(3) + m.group(4) + m.group(5))
+    ret['branch'] = ('tags/' + m.group(1) + '.' + m.group(2) + '.'
+                     + m.group(3) + m.group(4) + m.group(5))
     if int(m.group(5)) == 0:
         ret['prevVersion'] = None
     else:
         newMinor = str(int(m.group(5)) - 1)
-        ret['prevVersion'] = ret['major'] + "." + m.group(3) + m.group(4) + newMinor
-        ret['prevBranch'] = ('tags/' + m.group(1) + '.' + m.group(2) + '.' + m.group(3) + m.group(4) + newMinor)
+        ret['prevVersion'] = (ret['major'] + "." + m.group(3)
+                              + m.group(4) + newMinor)
+        ret['prevBranch'] = ('tags/' + m.group(1) + '.' + m.group(2)
+                             + '.' + m.group(3) + m.group(4) + newMinor)
     return ret
 
 
@@ -199,7 +226,8 @@ def hashfile(fileName, algorithm):
 def getGit(repo, dir, label):
     if (os.path.exists(dir)):
         print "Updating " + label + " in " + dir + "..."
-        proc = subprocess.Popen(['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
+        proc = subprocess.Popen(
+            ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
     else:
         print "Cloning " + label + " into " + dir + "..."
         proc = subprocess.Popen(['git', 'clone', '-q', repo, dir])
@@ -213,8 +241,9 @@ def patchExport(patch, dir, gitRoot):
     os.chdir(dir)
     print "Applying patch " . patch
 
-    # git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
-    proc = subprocess.Popen(['git', 'fetch', gitRoot + '/core', patch, '&&', 'git', 'cherry-pick', 'FETCH_HEAD'])
+    # git fetch the reference from Gerrit and cherry-pick it
+    proc = subprocess.Popen(['git', 'fetch', gitRoot + '/core', patch,
+                             '&&', 'git', 'cherry-pick', 'FETCH_HEAD'])
 
     if proc.wait() != 0:
         print "git patch failed, exiting"
@@ -242,7 +271,8 @@ def export(tag, dir, gitRoot):
 
 
 def exportExtension(branch, extension, dir, gitRoot):
-    getGit(gitRoot + '/extensions/' + extension + '.git', dir + '/extensions/' + extension, extension)
+    getGit(gitRoot + '/extensions/' + extension + '.git',
+           dir + '/extensions/' + extension, extension)
     print "Done"
 
 
@@ -255,14 +285,26 @@ def makePatch(patchFileName, dir1, dir2, type):
         dir2 += '/languages/messages'
     else:
         print "Generating normal patch file..."
-        excludedExtensions = ['messages', '*.png', '*.jpg', '*.xcf', '*.gif', '*.svg', '*.tiff', '*.zip', '*.xmp', '.git*']
+        excludedExtensions = [
+            'messages',
+            '*.png',
+            '*.jpg',
+            '*.xcf',
+            '*.gif',
+            '*.svg',
+            '*.tiff',
+            '*.zip',
+            '*.xmp',
+            '.git*',
+        ]
         for ext in excludedExtensions:
             args.extend(['-x', ext])
 
     args.extend([dir1, dir2])
     print ' '.join(args)
     diffProc = subprocess.Popen(args, stdout=subprocess.PIPE)
-    gzipProc = subprocess.Popen(['gzip', '-9'], stdin=diffProc.stdout, stdout=patchFile)
+    gzipProc = subprocess.Popen(['gzip', '-9'], stdin=diffProc.stdout,
+                                stdout=patchFile)
 
     diffStatus = diffProc.wait()
     gzipStatus = gzipProc.wait()
@@ -278,7 +320,17 @@ def makePatch(patchFileName, dir1, dir2, type):
 
 
 def getVersionExtensions(version, extensions=[]):
-    coreExtensions = ['ConfirmEdit', 'Gadgets', 'Nuke', 'ParserFunctions', 'PdfHandler', 'Renameuser', 'SpamBlacklist', 'Vector', 'WikiEditor']
+    coreExtensions = [
+        'ConfirmEdit',
+        'Gadgets',
+        'Nuke',
+        'ParserFunctions',
+        'PdfHandler',
+        'Renameuser',
+        'SpamBlacklist',
+        'Vector',
+        'WikiEditor',
+    ]
     newExtensions = [
         'Cite',
         'ImageMap',
@@ -288,9 +340,17 @@ def getVersionExtensions(version, extensions=[]):
         'Poem',
         'InputBox',
         'LocalisationUpdate',
-        'SyntaxHighlight_GeSHi'
+        'SyntaxHighlight_GeSHi',
     ]
-    oldCoreExtensions = ['ConfirmEdit', 'Gadgets', 'Nuke', 'ParserFunctions', 'Renameuser', 'Vector', 'WikiEditor']
+    oldCoreExtensions = [
+        'ConfirmEdit',
+        'Gadgets',
+        'Nuke',
+        'ParserFunctions',
+        'Renameuser',
+        'Vector',
+        'WikiEditor',
+    ]
 
     # Export extensions for inclusion
     if version > '1.21':
@@ -306,13 +366,15 @@ def getVersionExtensions(version, extensions=[]):
 def makeTarFile(package, file, dir, rootDir, argAdd=[]):
     # Generate the .tar.gz file
     outFile = open(dir + '/' + file + '.tar.gz', 'w')
-    args = ['tar', '--format=gnu', '--exclude-vcs', '--exclude-from', rootDir + '/tarignore']
+    args = ['tar', '--format=gnu', '--exclude-vcs',
+            '--exclude-from', rootDir + '/tarignore']
     args += argAdd
     args += ['-c', package]
     print ' '.join(args)
     exit
     tarProc = subprocess.Popen(args, stdout=subprocess.PIPE)
-    gzipProc = subprocess.Popen(['gzip', '-9'], stdin=tarProc.stdout, stdout=outFile)
+    gzipProc = subprocess.Popen(['gzip', '-9'], stdin=tarProc.stdout,
+                                stdout=outFile)
 
     if tarProc.wait() != 0 or gzipProc.wait() != 0:
         print "tar/gzip failed, exiting"
@@ -323,7 +385,8 @@ def makeTarFile(package, file, dir, rootDir, argAdd=[]):
     return targz
 
 
-def makeRelease(version, branch, dir, gitRoot, prevVersion=None, prevBranch=None, extensions=[]):
+def makeRelease(version, branch, dir, gitRoot, prevVersion=None,
+                prevBranch=None, extensions=[]):
     if not os.path.exists('build'):
         os.mkdir('build')
     if not os.path.exists('uploads'):
@@ -351,7 +414,8 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None, prevBranch=None
 
     # Generate the .tar.gz files
     outFiles = []
-    outFiles.append(makeTarFile(package, 'mediawiki-core-' + version, dir, rootDir, extExclude))
+    outFiles.append(makeTarFile(package, 'mediawiki-core-' + version, dir,
+                                rootDir, extExclude))
     outFiles.append(makeTarFile(package, package, dir, rootDir))
 
     # Patch
@@ -362,7 +426,8 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None, prevBranch=None
         for ext in getVersionExtensions(prevVersion, extensions):
             exportExtension(branch, ext, prevDir, gitRoot)
 
-        makePatch(dir + '/' + package + '.patch.gz', prevDir, package, 'normal')
+        makePatch(dir + '/' + package + '.patch.gz',
+                  prevDir, package, 'normal')
         outFiles.append(package + '.patch.gz')
         print package + '.patch.gz written'
         haveI18n = False
@@ -394,7 +459,8 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None, prevBranch=None
     # Write email template
     print
     print "Full release notes:"
-    url = 'https://git.wikimedia.org/blob/mediawiki%2Fcore.git/' + branch + '/RELEASE-NOTES'
+    url = ('https://git.wikimedia.org/blob/mediawiki%2Fcore.git/'
+           + branch + '/RELEASE-NOTES')
     if dir > '1.17':
         url += '-' + dir
 
@@ -402,26 +468,32 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None, prevBranch=None
     print 'https://www.mediawiki.org/wiki/Release_notes/' + dir
     print
     print
-    print '**********************************************************************'
+    print '*' * 70
 
     print 'Download:'
-    print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + package + '.tar.gz'
+    print ('http://download.wikimedia.org/mediawiki/'
+           + dir + '/' + package + '.tar.gz')
     print
 
     if prevVersion is not None:
         if haveI18n:
-            print "Patch to previous version (" + prevVersion + "), without interface text:"
-            print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + package + '.patch.gz'
+            print ("Patch to previous version (" + prevVersion
+                   + "), without interface text:")
+            print ('http://download.wikimedia.org/mediawiki/'
+                   + dir + '/' + package + '.patch.gz')
             print "Interface text changes:"
-            print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + i18nPatch
+            print ('http://download.wikimedia.org/mediawiki/'
+                   + dir + '/' + i18nPatch)
         else:
             print "Patch to previous version (" + prevVersion + "):"
-            print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + package + '.patch.gz'
+            print ('http://download.wikimedia.org/mediawiki/'
+                   + dir + '/' + package + '.patch.gz')
         print
 
     print 'GPG signatures:'
     for fileName in outFiles:
-        print 'http://download.wikimedia.org/mediawiki/' + dir + '/' + fileName + '.sig'
+        print ('http://download.wikimedia.org/mediawiki/'
+               + dir + '/' + fileName + '.sig')
     print
 
     print 'Public keys:'
