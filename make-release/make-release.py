@@ -4,15 +4,10 @@
 """
 Helper to generate a MediaWiki tarball.
 
-example:
-  ./make-release 1.19.0
-  ./make-release  # takes a snapshot
-
 If the previous version is not given, it will be derived from the next version,
-and you will be prompted to confirm that the version number is correct. To
-always answer "yes", use the --yes option.
+and you will be prompted to confirm that the version number is correct.
 
-Use --no-previous to disable the diff to previous entirely.
+If no arguments are given, a snapshot is created.
 """
 
 import argparse
@@ -22,11 +17,6 @@ import re
 import subprocess
 import sys
 import time
-
-
-def dieUsage():
-    print __doc__
-    sys.exit(1)
 
 
 def main():
@@ -60,20 +50,20 @@ def main():
     ]
 
     # No version specified, assuming a snapshot release
-    if options.nextversion is None:
+    if options.version is None:
         makeRelease(
             version='snapshot-' + time.strftime('%Y%m%d', time.gmtime()),
-            branch='trunk',
+            branch=options.branch,
             dir='snapshots',
+            rootDir=options.buildroot,
+            destDir=options.destDir,
             gitRoot=options.gitroot)
         return 0
 
-    decomposed = decomposeVersion(options.nextversion)
+    decomposed = decomposeVersion(options.version)
     if decomposed is None:
-        print 'Invalid version number "%s"' % (options.nextversion)
+        print 'Invalid version number "%s"' % (options.version)
         return 1
-
-    version = decomposed['major']
 
     if options.smw:
         # Other extensions for inclusion
@@ -84,18 +74,21 @@ def main():
         # Given the previous version on the command line
         makeRelease(
             extensions=extensions,
-            version=options.nextversion,
+            version=options.version,
             prevVersion=options.previousversion,
             prevBranch=versionToBranch(options.previousversion),
             branch=decomposed['branch'],
             dir=decomposed['major'],
+            rootDir=options.buildroot,
+            destDir=options.destDir,
             gitRoot=options.gitroot)
         return 0
 
+    noPrevious = False
     if decomposed['prevVersion'] is None:
         if not ask("No previous release found. Do you want to make a release"
-                   "with no patch?"):
-            print('Please specify the correct previous release'
+                   "with no patch?", skip=options.yes):
+            print('Please specify the correct previous release '
                   'on the command line')
             return 1
         else:
@@ -104,24 +97,28 @@ def main():
     if noPrevious:
         makeRelease(
             extensions=extensions,
-            version=options.nextversion,
+            version=options.version,
             branch=decomposed['branch'],
             dir=decomposed['major'],
+            rootDir=options.buildroot,
+            destDir=options.destDir,
             gitRoot=options.gitroot)
     else:
         if not ask("Was %s the previous release?" % (
-                   decomposed['prevVersion'])):
-            print('Please specify the correct previous release'
+                   decomposed['prevVersion']), skip=options.yes):
+            print('Please specify the correct previous release '
                   'on the command line')
             return 1
 
         makeRelease(
             extensions=extensions,
-            version=options.nextversion,
+            version=options.version,
+            branch=decomposed['branch'],
             prevVersion=decomposed['prevVersion'],
             prevBranch=decomposed['prevBranch'],
-            branch=decomposed['branch'],
-            dir=decomposed['major'],
+            dir=options.buildroot,
+            rootDir=options.buildroot,
+            destDir=options.destDir,
             gitRoot=options.gitroot)
     return 0
 
@@ -135,7 +132,7 @@ def parse_args():
 
     # Positional arguments:
     parser.add_argument(
-        'nextversion', nargs='?',
+        'version', nargs='?',
         help='version you are about to release')
     parser.add_argument(
         'previousversion', nargs='?',
@@ -143,27 +140,47 @@ def parse_args():
 
     # Optional arguments:
     parser.add_argument(
-        '--yes', dest='yes', action='store_true',
+        '-y', '--yes', dest='yes', action='store_true',
         help='answer yes to any question'
     )
     parser.add_argument(
-        '--no-previous', dest='no-previous', action='store_true',
+        '--no-previous', dest='no_previous', action='store_true',
         help='disable the diff with previous version'
-    )
-    parser.add_argument(
-        '--git-root', dest='gitroot',
-        default='ssh://gerrit.wikimedia.org:29418/mediawiki',
-        help='base git URL to fetch projects from (defaults to Gerrit)'
     )
     parser.add_argument(
         '--smw', dest='smw', action='store_true',
         help='include the SemanticMediaWiki bundle'
     )
+    parser.add_argument(
+        '--git-root', dest='gitRoot',
+        default='ssh://gerrit.wikimedia.org:29418/mediawiki',
+        help='base git URL to fetch projects from (defaults to Gerrit)'
+    )
+    parser.add_argument(
+        '--build', dest='buildroot',
+        default=os.getcwd(),
+        help='where the build should happen (defaults to pwd)'
+    )
+    parser.add_argument(
+        '--branch', dest='branch',
+        default='master',
+        help='which branch to use (defaults to master for snapshot)'
+    )
+    parser.add_argument(
+        '--destDir', dest='destDir',
+        default='/usr/local/share/make-release',
+        help='where the tarignore (and other files necessary to '
+        'create a tarball) files are stored.  (defaults to '
+        '/usr/local/share/make-release)'
+    )
 
     return parser.parse_args()
 
 
-def ask(question):
+def ask(question, skip=False):
+    if skip:
+        return True
+
     while True:
         print question + ' [y/n] ',
         response = sys.stdin.readline()
@@ -255,8 +272,9 @@ def patchExport(patch, dir, gitRoot):
     print "Done"
 
 
-def export(tag, dir, gitRoot):
-    getGit(gitRoot + '/core.git', dir, "core")
+def export(tag, module, gitRoot, exportDir):
+    dir = exportDir + '/' + module
+    getGit(gitRoot + '/core', dir, "core")
 
     os.chdir(dir)
 
@@ -273,7 +291,7 @@ def export(tag, dir, gitRoot):
 
 
 def exportExtension(branch, extension, dir, gitRoot):
-    getGit(gitRoot + '/extensions/' + extension + '.git',
+    getGit(gitRoot + '/extensions/' + extension,
            dir + '/extensions/' + extension, extension)
     print "Done"
 
@@ -366,15 +384,16 @@ def getVersionExtensions(version, extensions=[]):
     return list(set(extensions))
 
 
-def makeTarFile(package, file, dir, rootDir, argAdd=[]):
+def makeTarFile(package, file, dir, rootDir, scriptDir, argAdd=[]):
     # Generate the .tar.gz file
-    outFile = open(dir + '/' + file + '.tar.gz', 'w')
-    args = ['tar', '--format=gnu', '--exclude-vcs',
-            '--exclude-from', rootDir + '/tarignore']
+    filename = dir + '/' + file + '.tar.gz'
+    outFile = open(filename, "w")
+    args = ['tar', '--format=gnu', '--exclude-vcs', '--exclude-from',
+            scriptDir + '/tarignore']
     args += argAdd
     args += ['-c', package]
-    print ' '.join(args)
-    exit
+
+    print "Creating " + filename
     tarProc = subprocess.Popen(args, stdout=subprocess.PIPE)
     gzipProc = subprocess.Popen(['gzip', '-9'], stdin=tarProc.stdout,
                                 stdout=outFile)
@@ -388,14 +407,26 @@ def makeTarFile(package, file, dir, rootDir, argAdd=[]):
     return targz
 
 
-def makeRelease(version, branch, dir, gitRoot, prevVersion=None,
-                prevBranch=None, extensions=[]):
-    if not os.path.exists('build'):
-        os.mkdir('build')
-    if not os.path.exists('uploads'):
-        os.mkdir('uploads')
-    rootDir = os.getcwd()
-    os.chdir('build')
+def makeRelease(version, branch, dir, gitRoot, destDir, prevVersion=None,
+                prevBranch=None, extensions=[], rootDir=None):
+    if rootDir is None:
+        rootDir = os.getcwd()
+
+    if not os.path.exists(rootDir):
+        print 'Creating ' + rootDir
+        os.mkdir(rootDir)
+
+    buildDir = rootDir + '/build'
+    uploadDir = rootDir + '/uploads'
+
+    if not os.path.exists(buildDir):
+        print 'Creating build dir: ' + buildDir
+        os.mkdir(buildDir)
+    if not os.path.exists(uploadDir):
+        print 'Creating uploads dir: ' + uploadDir
+        os.mkdir(uploadDir)
+
+    os.chdir(buildDir)
 
     if not os.path.exists(dir):
         os.mkdir(dir)
@@ -403,7 +434,7 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None,
     package = 'mediawiki-' + version
 
     # Export the target
-    export(branch, package, gitRoot)
+    export(branch, package, gitRoot, buildDir)
 
     patchRevisions = []
     for patch in patchRevisions:
@@ -418,13 +449,13 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None,
     # Generate the .tar.gz files
     outFiles = []
     outFiles.append(makeTarFile(package, 'mediawiki-core-' + version, dir,
-                                rootDir, extExclude))
-    outFiles.append(makeTarFile(package, package, dir, rootDir))
+                                rootDir, destDir, extExclude))
+    outFiles.append(makeTarFile(package, package, dir, rootDir, destDir))
 
     # Patch
     if prevVersion is not None:
         prevDir = 'mediawiki-' + prevVersion
-        export(prevBranch, prevDir, gitRoot)
+        export(prevBranch, prevDir, gitRoot, buildDir)
 
         for ext in getVersionExtensions(prevVersion, extensions):
             exportExtension(branch, ext, prevDir, gitRoot)
@@ -452,7 +483,7 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None,
         uploadFiles.append(dir + '/' + fileName + '.sig')
 
     # Generate upload tarball
-    args = ['tar', 'cf', '../uploads/upload-' + version + '.tar']
+    args = ['tar', 'cf', uploadDir + '/upload-' + version + '.tar']
     args.extend(uploadFiles)
     proc = subprocess.Popen(args)
     if proc.wait() != 0:
@@ -507,4 +538,4 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None,
     return 0
 
 if __name__ == '__main__':
-    sys.exist(main())
+    sys.exit(main())
