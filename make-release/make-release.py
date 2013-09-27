@@ -158,6 +158,11 @@ def parse_args():
         '/usr/local/share/make-release)'
     )
     parser.add_argument(
+        '--dont-sign', dest='sign', action='store_false',
+        default=True,
+        help='skip gpg signing'
+    )
+    parser.add_argument(
         '--tar-command', dest='tar_command',
         default='tar',
         help='path to tar, we are expecting a GNU tar. (defaults to tar)'
@@ -478,13 +483,14 @@ class MakeRelease(object):
         # Sign
         uploadFiles = []
         for fileName in outFiles:
-            proc = subprocess.Popen([
-                'gpg', '--detach-sign', dir + '/' + fileName])
-            if proc.wait() != 0:
-                print "gpg failed, exiting"
-                sys.exit(1)
+            if options.sign:
+                proc = subprocess.Popen([
+                    'gpg', '--detach-sign', dir + '/' + fileName])
+                if proc.wait() != 0:
+                    print "gpg failed, exiting"
+                    sys.exit(1)
+                uploadFiles.append(dir + '/' + fileName + '.sig')
             uploadFiles.append(dir + '/' + fileName)
-            uploadFiles.append(dir + '/' + fileName + '.sig')
 
         # Generate upload tarball
         tar = self.options.tar_command
