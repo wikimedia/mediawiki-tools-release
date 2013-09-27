@@ -388,11 +388,17 @@ class MakeRelease(object):
     def makeTarFile(self, package, file, dir, argAdd=[]):
         tar = self.options.tar_command
 
-        # Generate the .tar.gz file
+        tarignore = self.options.destDir + '/tarignore'
+        if not os.path.isfile(tarignore):
+            "Tarignore %s not found, IGNORING." % tarignore
+            tarignore = None
+
+       # Generate the .tar.gz file
         filename = dir + '/' + file + '.tar.gz'
         outFile = open(filename, "w")
-        args = [tar, '--format=gnu', '--exclude-vcs', '--exclude-from',
-                self.options.destDir + '/tarignore']
+        args = [tar, '--format=gnu', '--exclude-vcs']
+        if tarignore:
+            args += ['--exclude-from', tarignore]
         args += argAdd
         args += ['-c', package]
 
