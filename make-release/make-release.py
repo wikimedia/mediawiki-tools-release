@@ -258,7 +258,7 @@ def getGit(repo, dir, label):
 
 def patchExport(patch, dir, gitRoot):
     os.chdir(dir)
-    print "Applying patch " . patch
+    print "Applying patch %s" % patch
 
     # git fetch the reference from Gerrit and cherry-pick it
     proc = subprocess.Popen(['git', 'fetch', gitRoot + '/core', patch,
