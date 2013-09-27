@@ -136,6 +136,11 @@ def parse_args():
         help='base git URL to fetch projects from (defaults to Gerrit)'
     )
     parser.add_argument(
+        '--git-root-ext', dest='gitrootext',
+        default='ssh://gerrit.wikimedia.org:29418/mediawiki',
+        help='base git URL to fetch extensions from (defaults to git-root)'
+    )
+    parser.add_argument(
         '--build', dest='buildroot',
         default=os.getcwd(),
         help='where the build should happen (defaults to pwd)'
@@ -320,7 +325,11 @@ class MakeRelease(object):
         print "Done"
 
     def exportExtension(self, branch, extension, dir):
-        self.getGit(self.options.gitroot + '/extensions/' + extension,
+        gitroot = self.options.gitroot
+        if self.options.gitrootext:
+            gitroot = self.options.gitrootext
+
+        self.getGit(gitroot + '/extensions/' + extension,
                     dir + '/extensions/' + extension, extension)
         print "Done"
 
