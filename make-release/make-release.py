@@ -30,6 +30,7 @@ def dieUsage():
 
 
 def main():
+    " return value should be usable as an exit code"
     options = parse_args()
 
     extensions = []
@@ -65,12 +66,12 @@ def main():
             branch='trunk',
             dir='snapshots',
             gitRoot=options.gitroot)
-        return
+        return 0
 
     decomposed = decomposeVersion(options.nextversion)
     if decomposed is None:
         print 'Invalid version number "%s"' % (options.nextversion)
-        sys.exit(1)  # FIXME: return 1
+        return 1
 
     version = decomposed['major']
 
@@ -89,14 +90,14 @@ def main():
             branch=decomposed['branch'],
             dir=decomposed['major'],
             gitRoot=options.gitroot)
-        return
+        return 0
 
     if decomposed['prevVersion'] is None:
         if not ask("No previous release found. Do you want to make a release"
                    "with no patch?"):
             print('Please specify the correct previous release'
                   'on the command line')
-            sys.exit(1)
+            return 1
         else:
             noPrevious = True
 
@@ -112,7 +113,7 @@ def main():
                    decomposed['prevVersion'])):
             print('Please specify the correct previous release'
                   'on the command line')
-            sys.exit(1)
+            return 1
 
         makeRelease(
             extensions=extensions,
@@ -122,6 +123,7 @@ def main():
             branch=decomposed['branch'],
             dir=decomposed['major'],
             gitRoot=options.gitroot)
+    return 0
 
 
 def parse_args():
@@ -453,8 +455,8 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None,
     args.extend(uploadFiles)
     proc = subprocess.Popen(args)
     if proc.wait() != 0:
-        print "Failed to generate upload.tar, exiting"
-        sys.exit(1)
+        print "Failed to generate upload.tar"
+        return 1
 
     # Write email template
     print
@@ -501,6 +503,7 @@ def makeRelease(version, branch, dir, gitRoot, prevVersion=None,
     print
 
     os.chdir('..')
+    return 0
 
 if __name__ == '__main__':
-    main()
+    sys.exist(main())
