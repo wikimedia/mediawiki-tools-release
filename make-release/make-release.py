@@ -70,40 +70,6 @@ def getVersionExtensions(version, extensions=[]):
     return list(set(extensions))
 
 
-def decomposeVersion(version):
-    ret = {}
-    m = re.compile('(\d+)\.(\d+)\.(\d+)$').match(version)
-    if m is not None:
-        ret['major'] = m.group(1) + "." + m.group(2)
-        ret['branch'] = ('tags/' + m.group(1) + '.' + m.group(2)
-                         + '.' + m.group(3))
-        if int(m.group(3)) == 0:
-            ret['prevVersion'] = None
-        else:
-            newMinor = str(int(m.group(3)) - 1)
-            ret['prevVersion'] = ret['major'] + '.' + newMinor
-            ret['prevBranch'] = ('tags/' + m.group(1) + '.' + m.group(2)
-                                 + '.' + newMinor)
-        return ret
-
-    m = re.compile('(\d+)\.(\d+)\.(\d+)([A-Za-z]+)(\d+)$').match(version)
-    if m is None:
-        return None
-
-    ret['major'] = m.group(1) + "." + m.group(2)
-    ret['branch'] = ('tags/' + m.group(1) + '.' + m.group(2) + '.'
-                     + m.group(3) + m.group(4) + m.group(5))
-    if int(m.group(5)) == 0:
-        ret['prevVersion'] = None
-    else:
-        newMinor = str(int(m.group(5)) - 1)
-        ret['prevVersion'] = (ret['major'] + "." + m.group(3)
-                              + m.group(4) + newMinor)
-        ret['prevBranch'] = ('tags/' + m.group(1) + '.' + m.group(2)
-                             + '.' + m.group(3) + m.group(4) + newMinor)
-    return ret
-
-
 def versionToBranch(version):
     return 'tags/' + version
 
@@ -190,12 +156,80 @@ def parse_args():
     return parser.parse_args()
 
 
+class MwVersion(object):
+    "Abstract out a MediaWiki version"
+
+    def __init__(self, version):
+        decomposed = self.decomposeVersion(version)
+
+        self.raw = version
+        self.major = decomposed.get('major', None)
+        self.branch = decomposed.get('branch', None)
+        self.prev_version = decomposed.get('prevVersion', None)
+        self.prev_branch = decomposed.get('prevBranch', None)
+
+    def __repr__(self):
+        if self.raw is None:
+            return "<MwVersion Null (snapshot?)>"
+
+        return "<MwVersion %s major: %s (prev: %s), branch: %s (prev: %s)>" % (
+            self.raw,
+            self.major, self.prev_version,
+            self.branch, self.prev_branch)
+
+    def decomposeVersion(self, version):
+        '''Split a version number to branch / major
+
+        Whenever a version is recognized, a dict is returned with keys:
+            major, branch, prevVersion and prevBranch
+
+        Default: {}
+        '''
+
+        ret = {}
+        if version is None:
+            return ret
+
+        m = re.compile('(\d+)\.(\d+)\.(\d+)$').match(version)
+        if m is not None:
+            ret['major'] = m.group(1) + "." + m.group(2)
+            ret['branch'] = ('tags/' + m.group(1) + '.' + m.group(2)
+                             + '.' + m.group(3))
+            if int(m.group(3)) == 0:
+                ret['prevVersion'] = None
+            else:
+                newMinor = str(int(m.group(3)) - 1)
+                ret['prevVersion'] = ret['major'] + '.' + newMinor
+                ret['prevBranch'] = ('tags/' + m.group(1) + '.' + m.group(2)
+                                     + '.' + newMinor)
+            return ret
+
+        m = re.compile('(\d+)\.(\d+)\.(\d+)([A-Za-z]+)(\d+)$').match(version)
+        if m is None:
+            return ret
+
+        ret['major'] = m.group(1) + "." + m.group(2)
+        ret['branch'] = ('tags/' + m.group(1) + '.' + m.group(2) + '.'
+                         + m.group(3) + m.group(4) + m.group(5))
+        if int(m.group(5)) == 0:
+            ret['prevVersion'] = None
+        else:
+            newMinor = str(int(m.group(5)) - 1)
+            ret['prevVersion'] = (ret['major'] + "." + m.group(3)
+                                  + m.group(4) + newMinor)
+            ret['prevBranch'] = ('tags/' + m.group(1) + '.' + m.group(2)
+                                 + '.' + m.group(3) + m.group(4) + newMinor)
+        return ret
+
+
 class MakeRelease(object):
     "Surprisingly: do a MediaWiki release"
 
     options = None
+    version = None  # MwVersion object
 
     def __init__(self, options):
+        self.version = MwVersion(options.version)
         self.options = options
 
     def main(self):
@@ -210,18 +244,19 @@ class MakeRelease(object):
         bundles = config.get('bundles')
         smwExtensions = bundles.get('smw')
 
+        print "Doing release for %s" % self.version
+
+        if self.version.branch is None:
+            print "No branch, assuming '%s'. Override with --branch." % (
+                  options.branch)
+            self.version.branch = options.branch
+
         # No version specified, assuming a snapshot release
         if options.version is None:
             self.makeRelease(
                 version='snapshot-' + time.strftime('%Y%m%d', time.gmtime()),
-                branch=options.branch,
                 dir='snapshots')
             return 0
-
-        decomposed = decomposeVersion(options.version)
-        if decomposed is None:
-            print 'Invalid version number "%s"' % (options.version)
-            return 1
 
         if options.smw:
             # Other extensions for inclusion
@@ -233,14 +268,11 @@ class MakeRelease(object):
             self.makeRelease(
                 extensions=extensions,
                 version=options.version,
-                prevVersion=options.previousversion,
-                prevBranch=versionToBranch(options.previousversion),
-                branch=decomposed['branch'],
-                dir=decomposed['major'])
+                dir=self.version.major)
             return 0
 
         noPrevious = False
-        if decomposed['prevVersion'] is None:
+        if self.version.prev_version is None:
             if not self.ask("No previous release found. Do you want to make a "
                             "release with no patch?"):
                 print('Please specify the correct previous release '
@@ -253,11 +285,10 @@ class MakeRelease(object):
             self.makeRelease(
                 extensions=extensions,
                 version=options.version,
-                branch=decomposed['branch'],
-                dir=decomposed['major'])
+                dir=self.version.major)
         else:
             if not self.ask("Was %s the previous release?" %
-                            decomposed['prevVersion']):
+                            self.version.prev_version):
                 print('Please specify the correct previous release '
                       'on the command line')
                 return 1
@@ -265,9 +296,6 @@ class MakeRelease(object):
             self.makeRelease(
                 extensions=extensions,
                 version=options.version,
-                branch=decomposed['branch'],
-                prevVersion=decomposed['prevVersion'],
-                prevBranch=decomposed['prevBranch'],
                 dir=options.buildroot)
         return 0
 
@@ -415,10 +443,14 @@ class MakeRelease(object):
         print filename + ' written'
         return filename
 
-    def makeRelease(self, version, branch, dir, prevVersion=None,
-                    prevBranch=None, extensions=[]):
+    def makeRelease(self, version, dir, extensions=[]):
 
         rootDir = self.options.buildroot
+
+        # variables related to the version
+        branch = self.version.branch
+        #prevBranch = self.version.prev_branch
+        prevVersion = self.version.prev_version
 
         if rootDir is None:
             rootDir = os.getcwd()
@@ -476,7 +508,8 @@ class MakeRelease(object):
         # Patch
         if prevVersion is not None:
             prevDir = 'mediawiki-' + prevVersion
-            self.export(prevBranch, prevDir, buildDir)
+            self.export(versionToBranch(prevVersion),
+                        prevDir, buildDir)
 
             for ext in getVersionExtensions(prevVersion, extensions):
                 self.exportExtension(branch, ext, prevDir)
