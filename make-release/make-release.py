@@ -362,7 +362,8 @@ def getVersionExtensions(version, extensions=[]):
     elif version > '1.17':
         extensions += oldCoreExtensions
 
-    return extensions
+    # Return uniq elements (order not preserved)
+    return list(set(extensions))
 
 
 def makeTarFile(package, file, dir, rootDir, argAdd=[]):
