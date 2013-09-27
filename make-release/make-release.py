@@ -230,7 +230,7 @@ class MakeRelease(object):
         noPrevious = False
         if decomposed['prevVersion'] is None:
             if not self.ask("No previous release found. Do you want to make a"
-                            "release with no patch?", skip=options.yes):
+                            "release with no patch?"):
                 print('Please specify the correct previous release '
                       'on the command line')
                 return 1
@@ -247,8 +247,8 @@ class MakeRelease(object):
                 destDir=options.destDir,
                 gitRoot=options.gitroot)
         else:
-            if not self.ask("Was %s the previous release?" % (
-                            decomposed['prevVersion']), skip=options.yes):
+            if not self.ask("Was %s the previous release?" %
+                            decomposed['prevVersion']):
                 print('Please specify the correct previous release '
                       'on the command line')
                 return 1
@@ -265,8 +265,8 @@ class MakeRelease(object):
                 gitRoot=options.gitroot)
         return 0
 
-    def ask(self, question, skip=False):
-        if skip:
+    def ask(self, question):
+        if self.options.yes:
             return True
 
         while True:
