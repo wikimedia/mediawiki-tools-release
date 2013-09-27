@@ -197,10 +197,7 @@ class MakeRelease(object):
             self.makeRelease(
                 version='snapshot-' + time.strftime('%Y%m%d', time.gmtime()),
                 branch=options.branch,
-                dir='snapshots',
-                rootDir=options.buildroot,
-                destDir=options.destDir,
-                gitRoot=options.gitroot)
+                dir='snapshots')
             return 0
 
         decomposed = decomposeVersion(options.version)
@@ -221,10 +218,7 @@ class MakeRelease(object):
                 prevVersion=options.previousversion,
                 prevBranch=versionToBranch(options.previousversion),
                 branch=decomposed['branch'],
-                dir=decomposed['major'],
-                rootDir=options.buildroot,
-                destDir=options.destDir,
-                gitRoot=options.gitroot)
+                dir=decomposed['major'])
             return 0
 
         noPrevious = False
@@ -242,10 +236,7 @@ class MakeRelease(object):
                 extensions=extensions,
                 version=options.version,
                 branch=decomposed['branch'],
-                dir=decomposed['major'],
-                rootDir=options.buildroot,
-                destDir=options.destDir,
-                gitRoot=options.gitroot)
+                dir=decomposed['major'])
         else:
             if not self.ask("Was %s the previous release?" %
                             decomposed['prevVersion']):
@@ -259,10 +250,7 @@ class MakeRelease(object):
                 branch=decomposed['branch'],
                 prevVersion=decomposed['prevVersion'],
                 prevBranch=decomposed['prevBranch'],
-                dir=options.buildroot,
-                rootDir=options.buildroot,
-                destDir=options.destDir,
-                gitRoot=options.gitroot)
+                dir=options.buildroot)
         return 0
 
     def ask(self, question):
@@ -292,7 +280,10 @@ class MakeRelease(object):
             print "git clone failed, exiting"
             sys.exit(1)
 
-    def patchExport(self, patch, dir, gitRoot):
+    def patchExport(self, patch, dir):
+
+        gitRoot = self.options.gitroot
+
         os.chdir(dir)
         print "Applying patch %s" % patch
 
@@ -307,7 +298,10 @@ class MakeRelease(object):
         os.chdir('..')
         print "Done"
 
-    def export(self, tag, module, gitRoot, exportDir):
+    def export(self, tag, module, exportDir):
+
+        gitRoot = self.options.gitroot
+
         dir = exportDir + '/' + module
         self.getGit(gitRoot + '/core', dir, "core")
 
@@ -324,8 +318,8 @@ class MakeRelease(object):
         os.chdir('..')
         print "Done"
 
-    def exportExtension(self, branch, extension, dir, gitRoot):
-        self.getGit(gitRoot + '/extensions/' + extension,
+    def exportExtension(self, branch, extension, dir):
+        self.getGit(self.options.gitroot + '/extensions/' + extension,
                     dir + '/extensions/' + extension, extension)
         print "Done"
 
@@ -371,12 +365,13 @@ class MakeRelease(object):
         print "Done"
         return diffStatus == 1
 
-    def makeTarFile(self, package, file, dir, rootDir, scriptDir, argAdd=[]):
+    def makeTarFile(self, package, file, dir, argAdd=[]):
+
         # Generate the .tar.gz file
         filename = dir + '/' + file + '.tar.gz'
         outFile = open(filename, "w")
         args = ['tar', '--format=gnu', '--exclude-vcs', '--exclude-from',
-                scriptDir + '/tarignore']
+                self.options.destDir + '/tarignore']
         args += argAdd
         args += ['-c', package]
 
@@ -393,9 +388,11 @@ class MakeRelease(object):
         print targz + ' written'
         return targz
 
-    def makeRelease(self, version, branch, dir, gitRoot, destDir,
-                    prevVersion=None, prevBranch=None, extensions=[],
-                    rootDir=None):
+    def makeRelease(self, version, branch, dir, prevVersion=None,
+                    prevBranch=None, extensions=[]):
+
+        rootDir = self.options.buildroot
+
         if rootDir is None:
             rootDir = os.getcwd()
 
@@ -421,15 +418,15 @@ class MakeRelease(object):
         package = 'mediawiki-' + version
 
         # Export the target
-        self.export(branch, package, gitRoot, buildDir)
+        self.export(branch, package, buildDir)
 
         patchRevisions = []
         for patch in patchRevisions:
-            self.patchExport(patch, package, gitRoot)
+            self.patchExport(patch, package)
 
         extExclude = []
         for ext in getVersionExtensions(version, extensions):
-            self.exportExtension(branch, ext, package, gitRoot)
+            self.exportExtension(branch, ext, package)
             extExclude.append("--exclude")
             extExclude.append("extensions/" + ext)
 
@@ -437,17 +434,17 @@ class MakeRelease(object):
         outFiles = []
         outFiles.append(
             self.makeTarFile(package, 'mediawiki-core-' + version, dir,
-                             rootDir, destDir, extExclude))
+                             rootDir, extExclude))
         outFiles.append(
-            self.makeTarFile(package, package, dir, rootDir, destDir))
+            self.makeTarFile(package, package, dir, rootDir))
 
         # Patch
         if prevVersion is not None:
             prevDir = 'mediawiki-' + prevVersion
-            self.export(prevBranch, prevDir, gitRoot, buildDir)
+            self.export(prevBranch, prevDir, buildDir)
 
             for ext in getVersionExtensions(prevVersion, extensions):
-                self.exportExtension(branch, ext, prevDir, gitRoot)
+                self.exportExtension(branch, ext, prevDir)
 
             self.makePatch(
                 dir + '/' + package + '.patch.gz', prevDir, package, 'normal')
