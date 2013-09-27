@@ -152,7 +152,7 @@ def parse_args():
         help='include the SemanticMediaWiki bundle'
     )
     parser.add_argument(
-        '--git-root', dest='gitRoot',
+        '--git-root', dest='gitroot',
         default='ssh://gerrit.wikimedia.org:29418/mediawiki',
         help='base git URL to fetch projects from (defaults to Gerrit)'
     )
