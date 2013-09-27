@@ -101,11 +101,70 @@ def versionToBranch(version):
     return 'tags/' + version
 
 
+def parse_args():
+    """Parse command line arguments and return options"""
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    # Positional arguments:
+    parser.add_argument(
+        'version', nargs='?',
+        help='version you are about to release')
+    parser.add_argument(
+        'previousversion', nargs='?',
+        help='version that came before')
+
+    # Optional arguments:
+    parser.add_argument(
+        '-y', '--yes', dest='yes', action='store_true',
+        help='answer yes to any question'
+    )
+    parser.add_argument(
+        '--no-previous', dest='no_previous', action='store_true',
+        help='disable the diff with previous version'
+    )
+    parser.add_argument(
+        '--smw', dest='smw', action='store_true',
+        help='include the SemanticMediaWiki bundle'
+    )
+    parser.add_argument(
+        '--git-root', dest='gitroot',
+        default='ssh://gerrit.wikimedia.org:29418/mediawiki',
+        help='base git URL to fetch projects from (defaults to Gerrit)'
+    )
+    parser.add_argument(
+        '--build', dest='buildroot',
+        default=os.getcwd(),
+        help='where the build should happen (defaults to pwd)'
+    )
+    parser.add_argument(
+        '--branch', dest='branch',
+        default='master',
+        help='which branch to use (defaults to master for snapshot)'
+    )
+    parser.add_argument(
+        '--destDir', dest='destDir',
+        default='/usr/local/share/make-release',
+        help='where the tarignore (and other files necessary to '
+        'create a tarball) files are stored.  (defaults to '
+        '/usr/local/share/make-release)'
+    )
+
+    return parser.parse_args()
+
+
 class MakeRelease(object):
+    "Surprisingly: do a MediaWiki release"
+
+    options = None
+
+    def __init__(self, options):
+        self.options = options
 
     def main(self):
         " return value should be usable as an exit code"
-        options = self.parse_args()
 
         extensions = []
         smwExtensions = [
@@ -205,59 +264,6 @@ class MakeRelease(object):
                 destDir=options.destDir,
                 gitRoot=options.gitroot)
         return 0
-
-    def parse_args(self):
-        """Parse command line arguments and returns options"""
-        parser = argparse.ArgumentParser(
-            description=__doc__,
-            formatter_class=argparse.RawDescriptionHelpFormatter,
-        )
-
-        # Positional arguments:
-        parser.add_argument(
-            'version', nargs='?',
-            help='version you are about to release')
-        parser.add_argument(
-            'previousversion', nargs='?',
-            help='version that came before')
-
-        # Optional arguments:
-        parser.add_argument(
-            '-y', '--yes', dest='yes', action='store_true',
-            help='answer yes to any question'
-        )
-        parser.add_argument(
-            '--no-previous', dest='no_previous', action='store_true',
-            help='disable the diff with previous version'
-        )
-        parser.add_argument(
-            '--smw', dest='smw', action='store_true',
-            help='include the SemanticMediaWiki bundle'
-        )
-        parser.add_argument(
-            '--git-root', dest='gitroot',
-            default='ssh://gerrit.wikimedia.org:29418/mediawiki',
-            help='base git URL to fetch projects from (defaults to Gerrit)'
-        )
-        parser.add_argument(
-            '--build', dest='buildroot',
-            default=os.getcwd(),
-            help='where the build should happen (defaults to pwd)'
-        )
-        parser.add_argument(
-            '--branch', dest='branch',
-            default='master',
-            help='which branch to use (defaults to master for snapshot)'
-        )
-        parser.add_argument(
-            '--destDir', dest='destDir',
-            default='/usr/local/share/make-release',
-            help='where the tarignore (and other files necessary to '
-            'create a tarball) files are stored.  (defaults to '
-            '/usr/local/share/make-release)'
-        )
-
-        return parser.parse_args()
 
     def ask(self, question, skip=False):
         if skip:
@@ -523,5 +529,6 @@ class MakeRelease(object):
         return 0
 
 if __name__ == '__main__':
-    app = MakeRelease()
+    options = parse_args()
+    app = MakeRelease(options)
     sys.exit(app.main())
