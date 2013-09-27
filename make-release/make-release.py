@@ -11,7 +11,6 @@ If no arguments are given, a snapshot is created.
 """
 
 import argparse
-import hashlib
 import os
 import re
 import subprocess
@@ -228,18 +227,6 @@ def decomposeVersion(version):
 
 def versionToBranch(version):
     return 'tags/' + version
-
-
-def hashfile(fileName, algorithm):
-    f = open(fileName, 'r')
-    hash = hashlib.new(algorithm)
-    while True:
-        buf = f.read(16384)
-        if buf == '':
-            break
-        hash.update(buf)
-    f.close()
-    return hash.hexdigest()
 
 
 def getGit(repo, dir, label):
