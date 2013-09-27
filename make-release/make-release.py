@@ -157,6 +157,11 @@ def parse_args():
         'create a tarball) files are stored.  (defaults to '
         '/usr/local/share/make-release)'
     )
+    parser.add_argument(
+        '--tar-command', dest='tar_command',
+        default='tar',
+        help='path to tar, we are expecting a GNU tar. (defaults to tar)'
+    )
 
     return parser.parse_args()
 
@@ -376,11 +381,12 @@ class MakeRelease(object):
         return diffStatus == 1
 
     def makeTarFile(self, package, file, dir, argAdd=[]):
+        tar = self.options.tar_command
 
         # Generate the .tar.gz file
         filename = dir + '/' + file + '.tar.gz'
         outFile = open(filename, "w")
-        args = ['tar', '--format=gnu', '--exclude-vcs', '--exclude-from',
+        args = [tar, '--format=gnu', '--exclude-vcs', '--exclude-from',
                 self.options.destDir + '/tarignore']
         args += argAdd
         args += ['-c', package]
@@ -481,7 +487,8 @@ class MakeRelease(object):
             uploadFiles.append(dir + '/' + fileName + '.sig')
 
         # Generate upload tarball
-        args = ['tar', 'cf', uploadDir + '/upload-' + version + '.tar']
+        tar = self.options.tar_command
+        args = [tar, 'cf', uploadDir + '/upload-' + version + '.tar']
         args.extend(uploadFiles)
         proc = subprocess.Popen(args)
         if proc.wait() != 0:
