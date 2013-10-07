@@ -120,6 +120,12 @@ class MakeExtensionBranches {
 				echo "Skipping $extRepo: Creating branch failed (exit code: $exitcode)\n";
 				continue;
 			}
+
+			# Intermediate commit & fixes
+			$this->fixGitReview( $branchName );
+			$this->execWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
+
+			# Final push to repo for this extension
 			$this->execWriteCmd( 'git', 'push', 'origin', "$branchName:refs/heads/$branchName" );
 		}
 
@@ -174,6 +180,12 @@ class MakeExtensionBranches {
 			$this->error( $args[0] . " exit with status $ret\n" );
 		}
 		return trim( $output );
+	}
+
+	protected function fixGitReview( $branchName ) {
+		$s = file_get_contents( ".gitreview" );
+		$s = str_replace( "defaultbranch=master", "defaultbranch={$branchName}", $s );
+		file_put_contents( ".gitreview", $s );
 	}
 
 	/**
