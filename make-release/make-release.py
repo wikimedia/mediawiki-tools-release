@@ -40,6 +40,7 @@ def getVersionExtensions(version, extensions=[]):
         'InputBox',
         'LocalisationUpdate',
         'SyntaxHighlight_GeSHi',
+        'SimpleAntiSpam',
     ]
     oldCoreExtensions = [
         'ConfirmEdit',
