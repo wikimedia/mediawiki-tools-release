@@ -460,9 +460,9 @@ class MakeRelease(object):
         outFiles = []
         outFiles.append(
             self.makeTarFile(package, 'mediawiki-core-' + version, dir,
-                             rootDir, extExclude))
+                             extExclude))
         outFiles.append(
-            self.makeTarFile(package, package, dir, rootDir))
+            self.makeTarFile(package, package, dir))
 
         # Patch
         if prevVersion is not None:
