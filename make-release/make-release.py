@@ -489,8 +489,13 @@ class MakeRelease(object):
         uploadFiles = []
         for fileName in outFiles:
             if options.sign:
-                proc = subprocess.Popen([
-                    'gpg', '--detach-sign', dir + '/' + fileName])
+                try:
+                    proc = subprocess.Popen([
+                        'gpg', '--detach-sign', dir + '/' + fileName])
+                except OSError, e:
+                    print "gpg failed, does it exist? Skip with --dont-sign."
+                    print "Error %s: %s" % (e.errno, e.strerror)
+                    sys.exit(1)
                 if proc.wait() != 0:
                     print "gpg failed, exiting"
                     sys.exit(1)
