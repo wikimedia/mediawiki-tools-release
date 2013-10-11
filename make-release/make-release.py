@@ -113,7 +113,7 @@ def read_config(conffile=None):
         print "Configuration file not found: %s" % conffile
         sys.exit(1)
 
-    return yaml.load(open('make-release.yaml'))
+    return yaml.load(open(conffile))
 
 
 def parse_args():
