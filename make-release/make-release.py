@@ -153,7 +153,7 @@ def parse_args():
     )
     parser.add_argument(
         '--git-root-ext', dest='gitrootext',
-        default='ssh://gerrit.wikimedia.org:29418/mediawiki',
+        default=None,
         help='base git URL to fetch extensions from (defaults to git-root)'
     )
     parser.add_argument(
