@@ -1,0 +1,17 @@
+<phpunit
+	colors="true"
+
+	strict="true"
+	verbose="true"
+
+	stopOnError="true"
+	stopOnFailure="true"
+	stopOnIncomplete="true"
+	stopOnSkipped="true"
+	>
+	<testsuites>
+		<testsuite name="tarball">
+			<file>testReleaseTarball.php</file>
+		</testsuite>
+	</testsuites>
+</phpunit>
