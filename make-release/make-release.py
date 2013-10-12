@@ -238,7 +238,7 @@ class MakeRelease(object):
 
         noPrevious = False
         if decomposed['prevVersion'] is None:
-            if not self.ask("No previous release found. Do you want to make a"
+            if not self.ask("No previous release found. Do you want to make a "
                             "release with no patch?"):
                 print('Please specify the correct previous release '
                       'on the command line')
@@ -342,8 +342,8 @@ class MakeRelease(object):
                     dir + '/extensions/' + extension, extension)
         print "Done"
 
-    def makePatch(self, patchFileName, dir1, dir2, type):
-        patchFile = open(patchFileName, 'w')
+    def makePatch(self, destDir, patchFileName, dir1, dir2, type):
+        patchFile = open(destDir + "/" + patchFileName, 'w')
         args = ['diff', '-Nruw']
         if type == 'i18n':
             print "Generating i18n patch file..."
@@ -384,7 +384,7 @@ class MakeRelease(object):
         print "Done"
         return diffStatus == 1
 
-    def makeTarFile(self, package, file, dir, argAdd=[]):
+    def makeTarFile(self, package, targetDir, dir, argAdd=[]):
         tar = self.options.tar_command
 
         tarignore = self.options.destDir + '/tarignore'
@@ -393,14 +393,13 @@ class MakeRelease(object):
             tarignore = None
 
         # Generate the .tar.gz file
-        filename = dir + '/' + file + '.tar.gz'
-        outFile = open(filename, "w")
-        args = [tar, '--format=gnu', '--exclude-vcs']
+        filename = package + '.tar.gz'
+        outFile = open(dir + '/' + filename, "w")
+        args = [tar, '--format=gnu', '--exclude-vcs', '-C', dir]
         if tarignore:
             args += ['--exclude-from', tarignore]
         args += argAdd
-        args += ['-c', package]
-
+        args += ['-c', targetDir]
         print "Creating " + filename
         tarProc = subprocess.Popen(args, stdout=subprocess.PIPE)
         gzipProc = subprocess.Popen(['gzip', '-9'], stdin=tarProc.stdout,
@@ -410,9 +409,8 @@ class MakeRelease(object):
             print "tar/gzip failed, exiting"
             sys.exit(1)
         outFile.close()
-        targz = file + '.tar.gz'
-        print targz + ' written'
-        return targz
+        print filename + ' written'
+        return filename
 
     def makeRelease(self, version, branch, dir, prevVersion=None,
                     prevBranch=None, extensions=[]):
@@ -459,10 +457,18 @@ class MakeRelease(object):
         # Generate the .tar.gz files
         outFiles = []
         outFiles.append(
-            self.makeTarFile(package, 'mediawiki-core-' + version, dir,
-                             extExclude))
+            self.makeTarFile(
+                package='mediawiki-core-' + version,
+                targetDir=package,
+                dir=buildDir,
+                argAdd=extExclude)
+        )
         outFiles.append(
-            self.makeTarFile(package, package, dir))
+            self.makeTarFile(
+                package=package,
+                targetDir=package,
+                dir=buildDir)
+        )
 
         # Patch
         if prevVersion is not None:
@@ -473,14 +479,14 @@ class MakeRelease(object):
                 self.exportExtension(branch, ext, prevDir)
 
             self.makePatch(
-                dir + '/' + package + '.patch.gz', prevDir, package, 'normal')
+                buildDir, package + '.patch.gz', prevDir, package, 'normal')
             outFiles.append(package + '.patch.gz')
             print package + '.patch.gz written'
             haveI18n = False
             if os.path.exists(package + '/languages/messages'):
                 i18nPatch = 'mediawiki-i18n-' + version + '.patch.gz'
                 if (self.makePatch(
-                        dir + '/' + i18nPatch, prevDir, package, 'i18n')):
+                        buildDir, i18nPatch, prevDir, package, 'i18n')):
                     outFiles.append(i18nPatch)
                     print i18nPatch + ' written'
                     haveI18n = True
@@ -499,12 +505,13 @@ class MakeRelease(object):
                 if proc.wait() != 0:
                     print "gpg failed, exiting"
                     sys.exit(1)
-                uploadFiles.append(dir + '/' + fileName + '.sig')
-            uploadFiles.append(dir + '/' + fileName)
+                uploadFiles.append(fileName + '.sig')
+            uploadFiles.append(fileName)
 
         # Generate upload tarball
         tar = self.options.tar_command
-        args = [tar, 'cf', uploadDir + '/upload-' + version + '.tar']
+        args = [tar, '-C', buildDir,
+                '-cf', uploadDir + '/upload-' + version + '.tar']
         args.extend(uploadFiles)
         proc = subprocess.Popen(args)
         if proc.wait() != 0:
