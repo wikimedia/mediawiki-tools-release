@@ -63,6 +63,9 @@ def getVersionExtensions(version, extensions=[]):
     elif version > '1.17':
         extensions += oldCoreExtensions
 
+    if version > '1.22':
+        extensions.remove('Vector')
+
     # Return uniq elements (order not preserved)
     return list(set(extensions))
 
