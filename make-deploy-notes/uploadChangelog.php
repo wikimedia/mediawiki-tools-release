@@ -21,7 +21,7 @@
  */
 
 if ( count( $argv ) !== 2 ) {
-	print "usage: $argv[0] wmf/1.22wmf6\n";
+	print "usage: $argv[0] wmf/1.23wmf1\n";
 	exit(1);
 }
 
