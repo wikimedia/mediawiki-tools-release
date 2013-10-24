@@ -29,7 +29,7 @@ $version = $argv[1];
 $previousVersion = getPreviousVersion( $version );
 
 if ( $previousVersion === null ) {
-	print "usage: $argv[0] wmf/1.22wmf6\n";
+	print "usage: $argv[0] wmf/1.23wmf1\n";
 	exit(1);
 }
 
@@ -60,7 +60,7 @@ function getPreviousVersion( $input ) {
 	list( $major, $minor ) = $majorMinor;
 	if ( $minor === 1 ) {
 		$major--;
-		$minor = 12;
+		$minor = 22;
 	} else {
 		$minor--;
 	}
