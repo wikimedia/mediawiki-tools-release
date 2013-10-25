@@ -49,12 +49,11 @@ $maker->start();
 
 class MakeExtensionBranches {
 
-	protected $codeDir, $buildDir;
+	protected $codeDir;
 	protected $conf, $opts;
 
 	public function __construct( $opts ) {
 		$this->codeDir = __DIR__;
-		$this->buildDir = sys_get_temp_dir() . '/make-extension-branches';
 
 		require "{$this->codeDir}/default.conf";
 		if ( file_exists( "{$this->codeDir}/local.conf" ) ) {
@@ -81,22 +80,37 @@ class MakeExtensionBranches {
 
 	public function start() {
 		$this->setup();
-		$this->setupBuildDirectory();
+		if ( !$this->conf->reuseDir ) {
+			$this->setupBuildDirectory( $this->conf->buildDir );
+		}
 
 		$branchName = $this->opts->branchName;
 		foreach ( $this->conf->extRepos as $extRepo ) {
 			// Move back to the build dir in each loop,
 			// otherwise we'll get build/AntiBot/CategoryTree/.. instead of build/AntiBot, build/CategoryTree, ..
-			$this->chdir( $this->buildDir );
+			$this->chdir( $this->conf->buildDir );
 
 			if ( $extRepo === 'mediawiki/extensions' ) {
 				// Skip the meta repository
 				continue;
 			}
+			$name = substr( $extRepo, strlen( "mediawiki/extensions/" ) );
 			echo "... $extRepo\n";
 			$url = str_replace( '{repository}', $extRepo, $this->conf->extRepoUrlFormat );
-			$name = basename( $extRepo );
-			$this->execCmd( 'git', 'clone', '-q', $url, '-b', 'master', $name );
+			if ( file_exists( $name ) ) {
+				if ( !$this->conf->reuseDir ) {
+					echo "$name already exists.  Can't continue.";
+					exit(1);
+				} elseif ( !is_dir( "$name/.git" ) ) {
+					echo "$name is not a git repo.  Can't continue.";
+					exit(1);
+				}
+			}
+
+			if ( !$this->conf->reuseDir || !file_exists( $name ) ) {
+				$this->execCmd( 'git', 'clone', '-q', $url, '-b', 'master', $name );
+			}
+
 			$this->chdir( $name );
 
 			$out = $exitcode = null;
@@ -117,8 +131,10 @@ class MakeExtensionBranches {
 			$this->execCmd( 'git', 'checkout', '-q', $commit );
 			exec( 'git branch ' . escapeshellarg( $branchName ) . ' 2>&1', $out, $exitcode );
 			if ( $exitcode != 0 ) {
-				echo "Skipping $extRepo: Creating branch failed (exit code: $exitcode)\n";
-				continue;
+				if ( $exitcode != 128 || !$this->conf->reuseDir ) {
+					echo "Skipping $extRepo: Creating branch failed (exit code: $exitcode)\n";
+					continue;
+				}
 			}
 
 			# Intermediate commit & fixes
@@ -132,12 +148,12 @@ class MakeExtensionBranches {
 		echo "Done!\n";
 	}
 
-	protected function setupBuildDirectory() {
-		if ( is_dir( $this->buildDir ) ) {
-			$this->execCmd( 'rm', '-rf', '--', $this->buildDir );
+	protected function setupBuildDirectory( $buildDir ) {
+		if ( is_dir( $buildDir ) ) {
+			$this->execCmd( 'rm', '-rf', '--', $buildDir );
 		}
-		if ( !mkdir( $this->buildDir ) ) {
-			$this->error( "Unable to create directory {$this->buildDir}" );
+		if ( !mkdir( $buildDir ) ) {
+			$this->error( "Unable to create directory {$buildDir}" );
 		}
 	}
 
