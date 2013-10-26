@@ -108,7 +108,7 @@ class MakeExtensionBranches {
 			}
 
 			if ( !$this->conf->reuseDir || !file_exists( $name ) ) {
-				$this->execCmd( 'git', 'clone', '-q', $url, '-b', 'master', $name );
+				$this->execCmd( 'git', 'clone', '-q', $url, $name );
 			}
 
 			$this->chdir( $name );
@@ -120,7 +120,11 @@ class MakeExtensionBranches {
 				echo "Skipping $extRepo: Branch exists already\n";
 				continue;
 			}
-			$commit = $this->execReadCmd( 'git', 'rev-list', '-n', '1', '--before', $this->opts->branchDate, 'master' );
+			$commit = false;
+			if( array_filter( $this->getBranches(), function($b) { return $b === "master" || $b === "* master"; } ) ) {
+				list( $exitcode, $commit ) = $this->execReadCmd( 'git', 'rev-list', '-n', '1', '--before',
+					$this->opts->branchDate, 'master' );
+			}
 			if ( !$commit ) {
 				echo "Skipping $extRepo: Repo does not have a commit before the branch date\n";
 				continue;
@@ -128,8 +132,12 @@ class MakeExtensionBranches {
 			if ( $this->conf->verbose ) {
 				echo "... $extRepo: Branching $branchName at $commit\n";
 			}
+			$match = array_filter( $this->getBranches(), function($l) use ($branchName) { return trim( $l ) === $branchName; } );
+			if ( count( $match ) ) {
+				$this->execWriteCmd( 'git', 'branch', '-D', $branchName );
+			}
 			$this->execCmd( 'git', 'checkout', '-q', $commit );
-			exec( 'git branch ' . escapeshellarg( $branchName ) . ' 2>&1', $out, $exitcode );
+			$exitcode = $this->execWriteCmd( 'git', 'branch', $branchName );
 			if ( $exitcode != 0 ) {
 				if ( $exitcode != 128 || !$this->conf->reuseDir ) {
 					echo "Skipping $extRepo: Creating branch failed (exit code: $exitcode)\n";
@@ -138,8 +146,12 @@ class MakeExtensionBranches {
 			}
 
 			# Intermediate commit & fixes
-			$this->fixGitReview( $branchName );
-			$this->execWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
+			if( $this->fixGitReview( $branchName, $name ) ) {
+				$this->execWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
+			} else {
+				echo "Trouble with $name\n";
+				exit;
+			}
 
 			# Final push to repo for this extension
 			$this->execWriteCmd( 'git', 'push', 'origin', "$branchName:refs/heads/$branchName" );
@@ -174,34 +186,66 @@ class MakeExtensionBranches {
 		$cmd = implode( ' ', array_map( 'escapeshellarg', $args ) );
 		if ( $this->conf->verbose ) {
 			echo "[exec] $cmd\n";
+			if( ob_get_contents() ) {
+				ob_clean();
+			}
 		}
 		$ret = null;
 		passthru( $cmd, $ret );
 		if ( $ret ) {
+			$cont = ob_get_contents();
 			$this->error( $args[0] . " exit with status $ret\n" );
+			if( $cont ) {
+				ob_clean();
+				echo $cont;
+			}
+			exit(1);
 		}
+		return $ret;
 	}
 
 	protected function execReadCmd( /*...*/ ) {
-		$cmd = implode( ' ', array_map( 'escapeshellarg', func_get_args() ) );
-		if ( $this->conf->verbose ) {
-			echo "[exec] $cmd\n";
-		}
-		$ret = null;
+		$args = func_get_args();
 		ob_start();
-		passthru( $cmd, $ret );
+		$ret = call_user_func_array( array( $this, 'execCmd' ), $args );
 		$output = ob_get_contents();
 		ob_end_clean();
-		if ( $ret ) {
-			$this->error( $args[0] . " exit with status $ret\n" );
-		}
-		return trim( $output );
+		return array( $ret, trim( $output ) );
 	}
 
-	protected function fixGitReview( $branchName ) {
+	protected function fixGitReview( $branchName, $project ) {
+		if ( !file_exists( ".gitreview" ) ) {
+			$review = array();
+			$review[] = "[gerrit]";
+			$review[] = "host=gerrit.wikimedia.org";
+			$review[] = "port=29418";
+			$review[] = "project=mediawiki/extensions/$project.git";
+			$review[] = "defaultbranch=$branchName";
+			$review[] = "defaultrebase=0";
+
+			echo "No .gitreview! Creating...\n";
+			$ret = file_put_contents( ".gitreview", implode( "\n", $review ) );
+			if ( $ret === false ) {
+				$err = error_get_last();
+				$this->error( "Error writing .gitreview: {$err['message']}\n" );
+				return false;
+			}
+
+			$this->execCmd( "git", "add", ".gitreview" );
+			return true;
+		}
+		echo "Fixing .gitreview\n";
+
 		$s = file_get_contents( ".gitreview" );
 		$s = str_replace( "defaultbranch=master", "defaultbranch={$branchName}", $s );
-		file_put_contents( ".gitreview", $s );
+		$ret = file_put_contents( ".gitreview", $s );
+		if ( $ret === false ) {
+			$err = error_get_last();
+			$this->error( "Error writing .gitreview: {$err['message']}\n" );
+			return false;
+		}
+		$this->execCmd( "git", "add", '-f', ".gitreview" );
+		return true;
 	}
 
 	/**
@@ -219,6 +263,10 @@ class MakeExtensionBranches {
 
 	protected function error( $msg ) {
 		fwrite( STDERR, "$msg\n" );
-		exit( 1 );
+	}
+
+	protected function getBranches( ) {
+		list( $exitcode, $output ) = $this->execReadCmd( 'git', 'branch', '-a' );
+		return array_map( "trim", explode( "\n", $output ) );
 	}
 }
