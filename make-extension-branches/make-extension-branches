@@ -32,7 +32,7 @@ if ( php_sapi_name() !== 'cli' ) {
 
 $self = basename( __FILE__ );
 
-if ( count( $argv ) < 2 ) {
+if ( count( $argv ) < 3 ) {
 	echo
 		"usage: $self <branch-name> '<branch-date>'\n"
 		. "\n"
