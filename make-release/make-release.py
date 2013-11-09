@@ -387,7 +387,7 @@ class MakeRelease(object):
         print "Done"
         return diffStatus == 1
 
-    def makeTarFile(self, package, targetDir, dir, argAdd=[]):
+    def makeTarFile(self, package, targetDir, tarFileDir, argAdd=[]):
         tar = self.options.tar_command
 
         tarignore = self.options.destDir + '/tarignore'
@@ -397,8 +397,8 @@ class MakeRelease(object):
 
         # Generate the .tar.gz file
         filename = package + '.tar.gz'
-        outFile = open(dir + '/' + filename, "w")
-        args = [tar, '--format=gnu', '--exclude-vcs', '-C', dir]
+        outFile = open(tarFileDir + '/' + filename, "w")
+        args = [tar, '--format=gnu', '--exclude-vcs', '-C', tarFileDir]
         if tarignore:
             args += ['--exclude-from', tarignore]
         args += argAdd
@@ -459,18 +459,19 @@ class MakeRelease(object):
 
         # Generate the .tar.gz files
         outFiles = []
+        resultDir = buildDir + '/' + dir
         outFiles.append(
             self.makeTarFile(
                 package='mediawiki-core-' + version,
-                targetDir=package,
-                dir=buildDir,
+                targetDir=buildDir + '/' + package,
+                tarFileDir=resultDir,
                 argAdd=extExclude)
         )
         outFiles.append(
             self.makeTarFile(
                 package=package,
-                targetDir=package,
-                dir=buildDir)
+                targetDir=buildDir + '/' + package,
+                tarFileDir=resultDir)
         )
 
         # Patch
@@ -482,14 +483,14 @@ class MakeRelease(object):
                 self.exportExtension(branch, ext, prevDir)
 
             self.makePatch(
-                buildDir, package + '.patch.gz', prevDir, package, 'normal')
+                resultDir, package + '.patch.gz', prevDir, package, 'normal')
             outFiles.append(package + '.patch.gz')
             print package + '.patch.gz written'
             haveI18n = False
             if os.path.exists(package + '/languages/messages'):
                 i18nPatch = 'mediawiki-i18n-' + version + '.patch.gz'
                 if (self.makePatch(
-                        buildDir, i18nPatch, prevDir, package, 'i18n')):
+                        resultDir, i18nPatch, prevDir, package, 'i18n')):
                     outFiles.append(i18nPatch)
                     print i18nPatch + ' written'
                     haveI18n = True
@@ -500,7 +501,7 @@ class MakeRelease(object):
             if options.sign:
                 try:
                     proc = subprocess.Popen([
-                        'gpg', '--detach-sign', dir + '/' + fileName])
+                        'gpg', '--detach-sign', resultDir + '/' + fileName])
                 except OSError, e:
                     print "gpg failed, does it exist? Skip with --dont-sign."
                     print "Error %s: %s" % (e.errno, e.strerror)
@@ -513,7 +514,7 @@ class MakeRelease(object):
 
         # Generate upload tarball
         tar = self.options.tar_command
-        args = [tar, '-C', buildDir,
+        args = [tar, '-C', resultDir,
                 '-cf', uploadDir + '/upload-' + version + '.tar']
         args.extend(uploadFiles)
         proc = subprocess.Popen(args)
