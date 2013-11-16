@@ -11,6 +11,7 @@ If no arguments are given, a snapshot is created.
 """
 
 import argparse
+import logging
 import os
 import re
 import subprocess
@@ -103,6 +104,17 @@ def parse_args():
         help='version that came before')
 
     # Optional arguments:
+
+    log_options = parser.add_mutually_exclusive_group()
+    log_options.add_argument(
+        '--debug', dest='log_level',
+        action='store_const', const=logging.DEBUG,
+        help='Print out internal processing')
+    log_options.add_argument(
+        '-q', '--quiet', dest='log_level',
+        action='store_const', const=logging.WARNING,
+        help='Only shows up warning and errors')
+
     parser.add_argument(
         '-y', '--yes', dest='yes', action='store_true',
         help='answer yes to any question'
@@ -603,5 +615,10 @@ class MakeRelease(object):
 
 if __name__ == '__main__':
     options = parse_args()
+
+    if options.log_level is None:
+        options.log_level = logging.INFO
+
+    logging.basicConfig(level=options.log_level, stream=sys.stderr)
     app = MakeRelease(options)
     sys.exit(app.main())
