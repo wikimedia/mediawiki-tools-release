@@ -326,6 +326,14 @@ class MakeRelease(object):
             print 'Please type "y" for yes or "n" for no'
 
     def getGit(self, repo, dir, label):
+        if os.path.exists(repo):
+            print "Updating local %s" % repo
+            proc = subprocess.Popen(['git', 'remote', 'update'],
+                                    cwd=repo)
+            if proc.wait() != 0:
+                print "Could not update local repository %s" % repo
+                sys.exit(1)
+
         if (os.path.exists(dir)):
             print "Updating " + label + " in " + dir + "..."
             proc = subprocess.Popen(
