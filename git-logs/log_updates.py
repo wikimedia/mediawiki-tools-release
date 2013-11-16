@@ -10,7 +10,7 @@ DEPENDENCY_URL = '//gerrit.wikimedia.org/r/#q,%s,n,z'
 STORY_URL = '//wikimedia.mingle.thoughtworks.com/projects/mobile/cards/%s'
 BUG_URL = '//bugzilla.wikimedia.org/show_bug.cgi?id=%s'
 headings = ["dependencies", "stories", "bugs", "qa", "hygiene", "i18n",
-            "regressions"]
+            "regressions", "other"]
 
 
 def info(msg):
@@ -67,7 +67,25 @@ def grep_change_log_file(f_name):
     for heading in headings:
         log[heading] = []
     f = open(f_name, 'r')
-    for line in f:
+    commits = f.read().split('\ncommit')
+    f.close()
+
+    for commit in commits:
+        grep_commit(log, '\ncommit'+commit)
+    f = open(f_name, 'r')
+    log["raw"] = f.read()
+    f.close()
+    return log
+
+
+def grep_commit(log, commit):
+    ignored_lines = 0
+    lines = commit.split('\n')
+    commit_lines = len(lines)
+    # split the entire commit into multiple lines
+    # as it may match different buckets
+    for line in lines:
+        line = line.strip()
         if re.findall(r"(?i)Story ([0-9]*)[^:]*:", line):
             matches = re.findall(r"(?i)Story ([0-9]*)[^:]*:", line)
             if len(matches) == 1:
@@ -78,7 +96,9 @@ def grep_change_log_file(f_name):
             matches = re.findall(r"(?i)Bug: ([0-9]*)", line)
             if len(matches) == 1:
                 url = BUG_URL % matches[0]
-                line = '[%s %s]' % (url, line.strip())
+                line = '[%s %s]\n' % (url, line.strip())
+            line = '%s\n' % line.strip()
+            line += '<pre>%s</pre>\n' % commit
             log["bugs"].append(line)
         elif re.findall(r"(?i)QA", line):
             log["qa"].append(line)
@@ -87,6 +107,8 @@ def grep_change_log_file(f_name):
         elif re.findall(r"(?i)Hygiene", line):
             log["hygiene"].append(line)
         elif re.findall(r"(?i)i18n|Localisation updates from", line):
+            line = '%s\n' % line.strip()
+            line += '<pre>%s</pre>\n' % commit
             log["i18n"].append(line)
         elif re.findall(r"(?i)Dependency", line):
             matches = re.findall(r"(?i)Dependency: (.*)", line)
@@ -94,9 +116,11 @@ def grep_change_log_file(f_name):
                 url = DEPENDENCY_URL % matches[0]
                 line = '[%s %s]' % (url, line.strip())
             log["dependencies"].append(line)
-    f = open(f_name, 'r')
-    log["raw"] = f.read()
-    f.close()
+        else:
+            ignored_lines += 1
+    # If all the lines were ignored it didn't go into a bucket
+    if commit_lines == ignored_lines:
+        log["other"].append('<pre>%s</pre>\n' % commit)
     return log
 
 
@@ -107,9 +131,12 @@ def get_wiki_text(log):
         if len(log[heading]) > 0:
             out += '== %s ==\n\n' % heading.capitalize()
             for commit in log[heading]:
-                out += '* %s\n' % commit
+                if '<pre>' not in commit:
+                    out += '* %s\n' % commit
+                else:
+                    out += commit
     out += '== Raw git log ==\n\n'
-    out += log["raw"]
+    out += '<pre>%s</pre>' % log["raw"]
     return out
 
 
