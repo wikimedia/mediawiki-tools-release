@@ -17,6 +17,9 @@ class FakeVersion(makerelease.MwVersion):
         self.prev_version = None
         self.prev_branch = None
 
+        self.phase = None
+        self.cycle = None
+
         self.__dict__.update(attributes)
 
 
@@ -58,6 +61,8 @@ class TestMwVersion(unittest.TestCase):
             'raw': '1.22.0rc0',
             'major': '1.22',
             'branch': 'tags/1.22.0rc0',
+            'phase': 'rc',
+            'cycle': '0',
             })
         self.assertMwVersionEqual(expected, observed)
 
@@ -67,6 +72,8 @@ class TestMwVersion(unittest.TestCase):
             'raw': '1.22.0rc0',
             'major': '1.22',
             'branch': 'tags/1.22.0rc0',
+            'phase': 'rc',
+            'cycle': '0',
             })
         self.assertMwVersionEqual(expected, observed)
 
@@ -77,6 +84,8 @@ class TestMwVersion(unittest.TestCase):
             'branch': 'tags/1.22.0rc1',
             'prev_branch': 'tags/1.22.0rc0',
             'prev_version': '1.22.0rc0',
+            'phase': 'rc',
+            'cycle': '1',
             })
         self.assertMwVersionEqual(expected, observed)
 

@@ -180,6 +180,10 @@ class MwVersion(object):
         self.prev_version = decomposed.get('prevVersion', None)
         self.prev_branch = decomposed.get('prevBranch', None)
 
+        # alpha / beta / rc ..
+        self.phase = decomposed.get('phase', None)
+        self.cycle = decomposed.get('cycle', None)
+
     def __repr__(self):
         if self.raw is None:
             return "<MwVersion Null (snapshot?)>"
@@ -193,7 +197,17 @@ class MwVersion(object):
         '''Split a version number to branch / major
 
         Whenever a version is recognized, a dict is returned with keys:
-            major, branch, prevVersion and prevBranch
+            - major (ie 1.22)
+            - minor
+            - branch
+            - prevVersion
+            - prevBranch
+
+        When one or more letters are found after the minor version we consider
+        it a software development phase (ex: alpha, beta, rc) with incremental
+        cycles. Hence we will expose:
+            - phase
+            - cycle
 
         Default: {}
         '''
@@ -202,35 +216,41 @@ class MwVersion(object):
         if version is None:
             return ret
 
-        m = re.compile('(\d+)\.(\d+)\.(\d+)$').match(version)
-        if m is not None:
-            ret['major'] = m.group(1) + "." + m.group(2)
-            ret['branch'] = ('tags/' + m.group(1) + '.' + m.group(2)
-                             + '.' + m.group(3))
-            if int(m.group(3)) == 0:
-                ret['prevVersion'] = None
-            else:
-                newMinor = str(int(m.group(3)) - 1)
-                ret['prevVersion'] = ret['major'] + '.' + newMinor
-                ret['prevBranch'] = ('tags/' + m.group(1) + '.' + m.group(2)
-                                     + '.' + newMinor)
-            return ret
+        m = re.compile(r"""
+            (?P<major>\d+\.\d+)
+            \.
+            (?P<minor>\d+)
+            (?:
+                (?P<phase>[A-Za-z]+)
+                (?P<cycle>\d+)
+            )?
+        """, re.X).match(version)
 
-        m = re.compile('(\d+)\.(\d+)\.(\d+)([A-Za-z]+)(\d+)$').match(version)
         if m is None:
             return ret
 
-        ret['major'] = m.group(1) + "." + m.group(2)
-        ret['branch'] = ('tags/' + m.group(1) + '.' + m.group(2) + '.'
-                         + m.group(3) + m.group(4) + m.group(5))
-        if int(m.group(5)) == 0:
+        # Clear out unneed phase/cycle
+        ret = dict((k, v) for k, v in m.groupdict().iteritems()
+                   if v is not None)
+
+        ret['branch'] = 'tags/%s.%s%s%s' % (
+            ret['major'],
+            ret['minor'],
+            ret.get('phase', ''),
+            ret.get('cycle', '')
+        )
+
+        last = m.group(m.lastindex)
+        if int(last) == 0:
             ret['prevVersion'] = None
-        else:
-            newMinor = str(int(m.group(5)) - 1)
-            ret['prevVersion'] = (ret['major'] + "." + m.group(3)
-                                  + m.group(4) + newMinor)
-            ret['prevBranch'] = ('tags/' + m.group(1) + '.' + m.group(2)
-                                 + '.' + m.group(3) + m.group(4) + newMinor)
+            return ret
+
+        bits = [d if d is not None else '' for d in m.groups()]
+        bits[m.lastindex - 1] = str(int(bits[m.lastindex - 1]) - 1)
+
+        ret['prevVersion'] = '%s.%s%s%s' % tuple(bits)
+        ret['prevBranch'] = 'tags/' + ret['prevVersion']
+
         return ret
 
 
