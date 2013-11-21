@@ -6,6 +6,9 @@ import re
 import sys
 import getopt
 
+DEPENDENCY_URL = '//gerrit.wikimedia.org/r/#q,%s,n,z'
+STORY_URL = '//wikimedia.mingle.thoughtworks.com/projects/mobile/cards/%s'
+BUG_URL = '//bugzilla.wikimedia.org/show_bug.cgi?id=%s'
 headings = ["dependencies", "stories", "bugs", "qa", "hygiene", "i18n",
             "regressions"]
 
@@ -66,8 +69,16 @@ def grep_change_log_file(f_name):
     f = open(f_name, 'r')
     for line in f:
         if re.findall(r"(?i)Story ([0-9]*)[^:]*:", line):
+            matches = re.findall(r"(?i)Story ([0-9]*)[^:]*:", line)
+            if len(matches) == 1:
+                url = STORY_URL % matches[0]
+                line = '[%s %s]' % (url, line.strip())
             log["stories"].append(line)
-        elif re.findall(r"(?i)Bug", line):
+        elif re.findall(r"(?i)Bug:", line):
+            matches = re.findall(r"(?i)Bug: ([0-9]*)", line)
+            if len(matches) == 1:
+                url = BUG_URL % matches[0]
+                line = '[%s %s]' % (url, line.strip())
             log["bugs"].append(line)
         elif re.findall(r"(?i)QA", line):
             log["qa"].append(line)
@@ -78,6 +89,10 @@ def grep_change_log_file(f_name):
         elif re.findall(r"(?i)i18n|Localisation updates from", line):
             log["i18n"].append(line)
         elif re.findall(r"(?i)Dependency", line):
+            matches = re.findall(r"(?i)Dependency: (.*)", line)
+            if len(matches) == 1:
+                url = DEPENDENCY_URL % matches[0]
+                line = '[%s %s]' % (url, line.strip())
             log["dependencies"].append(line)
     f = open(f_name, 'r')
     log["raw"] = f.read()
