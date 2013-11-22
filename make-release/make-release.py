@@ -533,7 +533,7 @@ class MakeRelease(object):
             if options.sign:
                 try:
                     proc = subprocess.Popen([
-                        'gpg', '--detach-sign', dir + '/' + fileName])
+                        'gpg', '--detach-sign', buildDir + '/' + fileName])
                 except OSError, e:
                     print "gpg failed, does it exist? Skip with --dont-sign."
                     print "Error %s: %s" % (e.errno, e.strerror)
