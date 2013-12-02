@@ -2,6 +2,10 @@
 	colors="true"
 
 	strict="true"
+	timeoutForSmallTests="1800"
+	timeoutForMediumTests="1800"
+	timeoutForLargeTests="1800"
+
 	verbose="true"
 
 	stopOnError="true"
