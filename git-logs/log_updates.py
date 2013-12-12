@@ -128,8 +128,9 @@ def get_wiki_text(log):
     info("Generating wikitext ...")
     out = ''
     for heading in headings:
-        if len(log[heading]) > 0:
-            out += '== %s ==\n\n' % heading.capitalize()
+        changes = len(log[heading])
+        if changes > 0:
+            out += '== %s (%s) ==\n\n' % (heading.capitalize(), changes)
             for commit in log[heading]:
                 if '<pre>' not in commit:
                     out += '* %s\n' % commit
