@@ -23,7 +23,7 @@ $obj->execute( $clonePath );
 class MakeWmfBranch {
 	var $dryRun;
 	var $newVersion, $oldVersion, $buildDir;
-	var $normalExtensions, $specialExtensions, $branchedExtensions, $patches;
+	var $specialExtensions, $branchedExtensions, $patches;
 	var $baseRepoPath, $anonRepoPath;
 	var $noisy;
 
@@ -40,9 +40,8 @@ class MakeWmfBranch {
 
 		$this->dryRun = $dryRun;
 		$this->buildDir = $buildDir;
-		$this->normalExtensions = $normalExtensions;
-		$this->specialExtensions = $specialExtensions;
 		$this->branchedExtensions = $branchedExtensions;
+		$this->specialExtensions = $specialExtensions;
 		$this->noisy = $noisy;
 		$this->patches = $patches;
 		$this->baseRepoPath = $baseRepoPath;
@@ -168,7 +167,7 @@ class MakeWmfBranch {
 
 		# Add extension submodules
 		foreach (
-			array_merge( $this->normalExtensions, array_keys( $this->specialExtensions ), $this->branchedExtensions )
+			array_merge( array_keys( $this->specialExtensions ), $this->branchedExtensions )
 				as $name ) {
 			if( in_array( $name, $this->branchedExtensions ) ) {
 				$this->runCmd( 'git', 'submodule', 'add', '-b', $newVersion, '-q',
