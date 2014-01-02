@@ -56,11 +56,20 @@ class MakeWmfBranch {
 		}
 		$encArgs = array_map( 'escapeshellarg', $args );
 		$cmd = implode( ' ', $encArgs );
-		echo "$cmd\n";
-		passthru( $cmd, $ret );
-		if ( $ret ) {
-			$this->croak( $args[0] . " exit with status $ret\n" );
-		}
+
+		$attempts = 0;
+		do {
+			echo "$cmd\n";
+			passthru( $cmd, $ret );
+
+			if ( !$ret ) {
+				// It worked!
+				return;
+			}
+			echo "sleeping for 5s\n";
+			sleep( 5 );
+		} while ( ++$attempts <= 5 );
+		$this->croak( $args[0] . " exit with status $ret\n" );
 	}
 
 	function runWriteCmd( /*...*/ ) {
