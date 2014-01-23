@@ -119,6 +119,7 @@ class MakeWmfBranch {
 			$newVersion = $this->branchPrefix . $this->newVersion;
 
 			$this->runCmd( 'git', 'branch', $newVersion );
+			$this->runCmd( 'git', 'checkout', '-q', '-b', $newVersion );
 
 			$this->fixGitReview();
 			$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$newVersion} branch" );
