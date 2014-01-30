@@ -118,7 +118,6 @@ class MakeWmfBranch {
 			$this->chdir( "$ext" );
 			$newVersion = $this->branchPrefix . $this->newVersion;
 
-			$this->runCmd( 'git', 'branch', $newVersion );
 			$this->runCmd( 'git', 'checkout', '-q', '-b', $newVersion );
 
 			$this->fixGitReview();
