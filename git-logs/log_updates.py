@@ -12,10 +12,12 @@ STORY_URL = '//wikimedia.mingle.thoughtworks.com/projects/mobile/cards/%s'
 BUG_URL = '//bugzilla.wikimedia.org/show_bug.cgi?id=%s'
 headings = ["dependencies", "stories", "bugs", "qa", "hygiene", "i18n",
             "regressions", "other"]
+DEBUG = False
 
 
 def info(msg):
-    print "[INFO] %s" % msg
+    if DEBUG:
+        print "[INFO] %s" % msg
 
 
 def get_commit_range(repodir, commit=None):
@@ -148,12 +150,14 @@ if __name__ == '__main__':
     commit = None
     output_filename = None
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "c:o:")
+        opts, args = getopt.getopt(sys.argv[1:], "c:o:v")
         for opt, arg in opts:
             if opt == '-c':
                 commit = arg
             elif opt == '-o':
                 output_filename = arg
+            elif opt == '-v':
+                DEBUG = True
     except getopt.GetoptError:
         pass
     f_name = generate_change_log('.', commit)
