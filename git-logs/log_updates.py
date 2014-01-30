@@ -5,6 +5,7 @@ from datetime import date
 import re
 import sys
 import getopt
+import os
 
 DEPENDENCY_URL = '//gerrit.wikimedia.org/r/#q,%s,n,z'
 STORY_URL = '//wikimedia.mingle.thoughtworks.com/projects/mobile/cards/%s'
@@ -155,6 +156,12 @@ if __name__ == '__main__':
         pass
     f_name = generate_change_log('.', commit)
     log = grep_change_log_file(f_name)
+    # cleanup, remove changelog file
+    # @TODO is there any reason to keep this around?
+    # perhaps make this a tmpfile
+    info("Deleting %s..." % f_name)
+    os.remove(f_name)
+    info("Done.")
     wikitext = get_wiki_text(log)
     if output_filename:
         info("Saving to %s ...\n" % output_filename)
