@@ -18,20 +18,22 @@ def info(msg):
     print "[INFO] %s" % msg
 
 
-def get_initial_commit(repodir, the_commit=None):
-    if not the_commit:
+def get_commit_range(repodir, commit=None):
+    if not commit:
         prompt = 'Enter commit number or <ENTER> for last-update: '
-        the_commit = raw_input(prompt)
-    if len(the_commit) == 0:
-        the_commit = latest_commit(repodir)
+        commit = raw_input(prompt)
+    if len(commit) == 0:
+        commit = latest_commit(repodir)
     else:
-        info('Using %s as the initial commit.' % the_commit)
-    return the_commit
+        info('Using %s as the initial commit.' % commit)
+    if len(commit.split('..')) < 2:
+        commit = '%s..' % commit
+    return commit
 
 
 def latest_commit(repodir):
     info("Aquiring latest commit number...")
-    cmd = ['git', 'log', '--max-count=1']
+    cmd = ['git', 'log', '--max-count=1', '--no-merges']
     last_log_output = check_output(cmd)
     m = re.search('commit\s+([a-z0-9]+).*', last_log_output)
     last_commit = m.group(1)
@@ -39,9 +41,9 @@ def latest_commit(repodir):
     return last_commit
 
 
-def get_log_since(last_updated, repodir):
+def get_log_from_range(commit_range):
     info("Getting latest delta logs ...")
-    cmd = ['git', 'log', '--no-merges', "%s.." % last_updated]
+    cmd = ['git', 'log', '--no-merges', "%s" % commit_range]
     log = check_output(cmd)
     return log
 
@@ -55,8 +57,8 @@ def output_change_log(f_name, change_log):
 
 
 def generate_change_log(repodir, commit=None):
-    last_updated = get_initial_commit(repodir, commit)
-    change_log = get_log_since(last_updated, repodir)
+    commit_range = get_commit_range(repodir, commit)
+    change_log = get_log_from_range(commit_range)
 
     f_name = 'ChangeLogs_%s.txt' % date.today().isoformat()
     output_change_log(f_name, change_log)
