@@ -24,7 +24,7 @@ class MakeWmfBranch {
 	var $dryRun;
 	var $newVersion, $oldVersion, $buildDir;
 	var $specialExtensions, $branchedExtensions, $patches;
-	var $baseRepoPath;
+	var $baseRepoPath, $anonRepoPath;
 	var $noisy;
 
 	function __construct( $newVersion, $oldVersion ) {
@@ -45,6 +45,7 @@ class MakeWmfBranch {
 		$this->noisy = $noisy;
 		$this->patches = $patches;
 		$this->baseRepoPath = $baseRepoPath;
+		$this->anonRepoPath = $anonRepoPath;
 		$this->branchPrefix = $branchPrefix;
 	}
 
@@ -179,10 +180,10 @@ class MakeWmfBranch {
 				as $name ) {
 			if( in_array( $name, $this->branchedExtensions ) ) {
 				$this->runCmd( 'git', 'submodule', 'add', '-b', $newVersion, '-q',
-					"{$this->baseRepoPath}/extensions/{$name}.git", "extensions/$name" );
+					"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
 			} else {
 				$this->runCmd( 'git', 'submodule', 'add', '-q',
-					"{$this->baseRepoPath}/extensions/{$name}.git", "extensions/$name" );
+					"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
 			}
 			if( isset( $preservedRefs[$name] ) ) {
 				$this->chdir( "extensions/$name" );
