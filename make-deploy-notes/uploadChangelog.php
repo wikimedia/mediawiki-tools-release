@@ -36,7 +36,7 @@ if ( $previousVersion === null ) {
 $escVer = escapeshellarg( $version );
 $escPrevVer = escapeshellarg( $previousVersion );
 
-$output = shell_exec( "php -f ./make-deploy-notes {$escPrevVer} {$escVer}" );
+$output = shell_exec( 'php -f ' . __DIR__ . "/make-deploy-notes {$escPrevVer} {$escVer}" );
 
 if ( stripos( $output, "array\n(" ) !== false ) {
 	// Broken output, don't upload
@@ -44,7 +44,7 @@ if ( stripos( $output, "array\n(" ) !== false ) {
 	return;
 }
 
-require_once( 'botclasses.php' );
+require_once( __DIR__ . '/botclasses.php' );
 $wiki = new wikipedia( 'https://www.mediawiki.org/w/api.php' );
 
 $wiki->login( '', '' );
