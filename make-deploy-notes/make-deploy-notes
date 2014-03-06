@@ -107,7 +107,7 @@ function useful_git_log( $oldRev, $newRev, $ext = null ) {
 }
 
 function full_git_log_as_array( $oldRev, $newRev ) {
-	$command = "git log --cherry-pick --right-only --no-merges $oldRev..$newRev";
+	$command = "git log --format=medium --cherry-pick --right-only --no-merges $oldRev..$newRev";
 	try {
 		$output = capture_output( $command );
 	} catch( ExecException $e ) {
