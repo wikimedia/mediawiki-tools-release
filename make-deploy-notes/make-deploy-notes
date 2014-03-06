@@ -95,12 +95,14 @@ function useful_git_log( $oldRev, $newRev, $ext = null ) {
 				$bugs[] = $issueRes[2];
 			}
 		}
-		$baseLogEntry = "{{git|" . substr( $commit['hash'], 1, 8 ) . "}} - ";
 		// Trim down to the first bit
 		$subject = trim( ltrim( trim( $subject ), '-' ) );
 		$subject = preg_replace( "/    .+$/i", '', $subject );
-		$bugs = $bugs ? " (bug " . implode( ", bug ", $bugs ) . ")" : '';
-		$gitLog[] = $baseLogEntry . $subject . $bugs;
+		$gitLog[] = array(
+			'hash' => substr( $commit['hash'], 1, 8 ),
+			'subject' => $subject,
+			'bugs' => $bugs,
+		);
 	}
 	chdir( $gitDir );
 	return $gitLog;
@@ -165,15 +167,23 @@ function filter_git_output( $logoutput ) {
 		'(Updat(e|ing) )? ?.*? to (master|head|[0-9a-f]{5,40}|production tip)', // Update foo to master
 		'Bump .*? for deployment',
 	);
-	foreach ( $logoutput as $line ) {
+	foreach ( $logoutput as $record ) {
 		foreach( $skipLines as $skip ) {
-			if ( preg_match( '/' . $skip . '/i', $line ) ) {
+			if ( preg_match( '/' . $skip . '/i', $record['subject'] ) ) {
 				continue 2;
 			}
 		}
-		$line = preg_replace( '/bug:?\s*(\d+)/i', '{{bugzilla|$1}}', $line );
-		$line = htmlspecialchars( $line );
-		$retval .= "* $line\n";
+
+		$retval .= "* {{git|{$record['hash']}}} - <nowiki>";
+		$retval .= htmlspecialchars( $record['subject'] ) . "</nowiki>";
+		if ( $record['bugs'] ) {
+			$retval .= " (";
+			$retval .= implode( ", ", array_map( function( $b ) {
+				return "{{bugzilla|{$b}}}";
+			}, $record['bugs'] ) );
+			$retval .= ")";
+		}
+		$retval .= "\n";
 	}
 	return $retval;
 }
