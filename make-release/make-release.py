@@ -66,6 +66,7 @@ def getVersionExtensions(version, extensions=[]):
 
     if version > '1.22':
         extensions.remove('Vector')
+        extensions.remove('SimpleAntiSpam')
 
     # Return uniq elements (order not preserved)
     return list(set(extensions))
