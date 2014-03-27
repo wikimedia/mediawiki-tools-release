@@ -71,7 +71,7 @@ def getVersionExtensions(version, extensions=[]):
     return list(set(extensions))
 
 
-def versionToBranch(version):
+def versionToTag(version):
     return 'tags/' + version
 
 
@@ -177,8 +177,10 @@ class MwVersion(object):
         self.raw = version
         self.major = decomposed.get('major', None)
         self.branch = decomposed.get('branch', None)
+        self.tag = decomposed.get('tag', None)
         self.prev_version = decomposed.get('prevVersion', None)
         self.prev_branch = decomposed.get('prevBranch', None)
+        self.prev_tag = decomposed.get('prevTag', None)
 
         # alpha / beta / rc ..
         self.phase = decomposed.get('phase', None)
@@ -188,10 +190,14 @@ class MwVersion(object):
         if self.raw is None:
             return "<MwVersion Null (snapshot?)>"
 
-        return "<MwVersion %s major: %s (prev: %s), branch: %s (prev: %s)>" % (
+        return """
+<MwVersion %s major: %s (prev: %s), tag: %s (prev: %s), branch: %s>
+        """ % (
             self.raw,
             self.major, self.prev_version,
-            self.branch, self.prev_branch)
+            self.tag, self.prev_tag,
+            self.branch
+        )
 
     def decomposeVersion(self, version):
         '''Split a version number to branch / major
@@ -200,8 +206,9 @@ class MwVersion(object):
             - major (ie 1.22)
             - minor
             - branch
+            - tag
             - prevVersion
-            - prevBranch
+            - prevTag
 
         When one or more letters are found after the minor version we consider
         it a software development phase (ex: alpha, beta, rc) with incremental
@@ -217,7 +224,7 @@ class MwVersion(object):
             return ret
 
         m = re.compile(r"""
-            (?P<major>\d+\.\d+)
+            (?P<major>(?P<major1>\d+)\.(?P<major2>\d+))
             \.
             (?P<minor>\d+)
             (?:
@@ -233,7 +240,14 @@ class MwVersion(object):
         ret = dict((k, v) for k, v in m.groupdict().iteritems()
                    if v is not None)
 
-        ret['branch'] = 'tags/%s.%s%s%s' % (
+        ret['branch'] = 'REL%s_%s' % (
+            ret['major1'],
+            ret['major2'],
+        )
+        del ret['major1']
+        del ret['major2']
+
+        ret['tag'] = 'tags/%s.%s%s%s' % (
             ret['major'],
             ret['minor'],
             ret.get('phase', ''),
@@ -245,11 +259,13 @@ class MwVersion(object):
             ret['prevVersion'] = None
             return ret
 
-        bits = [d if d is not None else '' for d in m.groups()]
+        bits = [d for d in m.groups('')]
         bits[m.lastindex - 1] = str(int(bits[m.lastindex - 1]) - 1)
+        del bits[1]
+        del bits[1]
 
         ret['prevVersion'] = '%s.%s%s%s' % tuple(bits)
-        ret['prevBranch'] = 'tags/' + ret['prevVersion']
+        ret['prevTag'] = 'tags/' + ret['prevVersion']
 
         return ret
 
@@ -548,7 +564,7 @@ class MakeRelease(object):
         # Patch
         if prevVersion is not None:
             prevDir = 'mediawiki-' + prevVersion
-            self.export(versionToBranch(prevVersion),
+            self.export(versionToTag(prevVersion),
                         prevDir, buildDir)
 
             for ext in getVersionExtensions(prevVersion, extensions):
