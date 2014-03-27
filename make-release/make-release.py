@@ -362,7 +362,8 @@ class MakeRelease(object):
                     return False
             print 'Please type "y" for yes or "n" for no'
 
-    def getGit(self, repo, dir, label):
+    def getGit(self, repo, dir, label, branch):
+        oldDir = os.getcwd()
         if os.path.exists(repo):
             print "Updating local %s" % repo
             proc = subprocess.Popen(['git', 'remote', 'update'],
@@ -382,6 +383,18 @@ class MakeRelease(object):
         if proc.wait() != 0:
             print "git clone failed, exiting"
             sys.exit(1)
+
+        os.chdir(dir)
+
+        if branch != 'trunk':
+            print "Checking out %s in %s..." % (branch, dir)
+            proc = subprocess.Popen(['git', 'checkout', branch])
+
+            if proc.wait() != 0:
+                print "git checkout failed, exiting"
+                sys.exit(1)
+
+        os.chdir(oldDir)
 
     def patchExport(self, patch, dir):
 
@@ -406,19 +419,8 @@ class MakeRelease(object):
         gitRoot = self.options.gitroot
 
         dir = exportDir + '/' + module
-        self.getGit(gitRoot + '/core', dir, "core")
+        self.getGit(gitRoot + '/core', dir, "core", tag)
 
-        os.chdir(dir)
-
-        if tag != 'trunk':
-            print "Checking out %s..." % (tag)
-            proc = subprocess.Popen(['git', 'checkout', tag])
-
-            if proc.wait() != 0:
-                print "git checkout failed, exiting"
-                sys.exit(1)
-
-        os.chdir('..')
         print "Done"
 
     def exportExtension(self, branch, extension, dir):
@@ -427,7 +429,7 @@ class MakeRelease(object):
             gitroot = self.options.gitrootext
 
         self.getGit(gitroot + '/extensions/' + extension,
-                    dir + '/extensions/' + extension, extension)
+                    dir + '/extensions/' + extension, extension, branch)
         print "Done"
 
     def makePatch(self, destDir, patchFileName, dir1, dir2, type):
@@ -506,6 +508,7 @@ class MakeRelease(object):
 
         # variables related to the version
         branch = self.version.branch
+        tag = self.version.tag
         #prevBranch = self.version.prev_branch
         prevVersion = self.version.prev_version
 
@@ -534,7 +537,7 @@ class MakeRelease(object):
         package = 'mediawiki-' + version
 
         # Export the target
-        self.export(branch, package, buildDir)
+        self.export(tag, package, buildDir)
 
         patchRevisions = []
         for patch in patchRevisions:
