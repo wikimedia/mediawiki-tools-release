@@ -180,7 +180,6 @@ class MwVersion(object):
         self.branch = decomposed.get('branch', None)
         self.tag = decomposed.get('tag', None)
         self.prev_version = decomposed.get('prevVersion', None)
-        self.prev_branch = decomposed.get('prevBranch', None)
         self.prev_tag = decomposed.get('prevTag', None)
 
         # alpha / beta / rc ..
@@ -505,7 +504,6 @@ class MakeRelease(object):
         # variables related to the version
         branch = self.version.branch
         tag = self.version.tag
-        #prevBranch = self.version.prev_branch
         prevVersion = self.version.prev_version
 
         if rootDir is None:

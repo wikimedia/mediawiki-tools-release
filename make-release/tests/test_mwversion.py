@@ -14,8 +14,9 @@ class FakeVersion(makerelease.MwVersion):
         self.raw = None
         self.major = None
         self.branch = None
+        self.tag = None
         self.prev_version = None
-        self.prev_branch = None
+        self.prev_tag = None
 
         self.phase = None
         self.cycle = None
@@ -40,7 +41,8 @@ class TestMwVersion(unittest.TestCase):
         expected = FakeVersion({
             'raw': '1.22.0',
             'major': '1.22',
-            'branch': 'tags/1.22.0',
+            'branch': 'REL1_22',
+            'tag': 'tags/1.22.0',
             })
         self.assertMwVersionEqual(expected, observed)
 
@@ -49,8 +51,9 @@ class TestMwVersion(unittest.TestCase):
         expected = FakeVersion({
             'raw': '1.22.1',
             'major': '1.22',
-            'branch': 'tags/1.22.1',
-            'prev_branch': 'tags/1.22.0',
+            'branch': 'REL1_22',
+            'tag': 'tags/1.22.1',
+            'prev_tag': 'tags/1.22.0',
             'prev_version': '1.22.0',
             })
         self.assertMwVersionEqual(expected, observed)
@@ -60,7 +63,8 @@ class TestMwVersion(unittest.TestCase):
         expected = FakeVersion({
             'raw': '1.22.0rc0',
             'major': '1.22',
-            'branch': 'tags/1.22.0rc0',
+            'branch': 'REL1_22',
+            'tag': 'tags/1.22.0rc0',
             'phase': 'rc',
             'cycle': '0',
             })
@@ -71,7 +75,8 @@ class TestMwVersion(unittest.TestCase):
         expected = FakeVersion({
             'raw': '1.22.0rc0',
             'major': '1.22',
-            'branch': 'tags/1.22.0rc0',
+            'branch': 'REL1_22',
+            'tag': 'tags/1.22.0rc0',
             'phase': 'rc',
             'cycle': '0',
             })
@@ -81,8 +86,9 @@ class TestMwVersion(unittest.TestCase):
         expected = FakeVersion({
             'raw': '1.22.0rc1',
             'major': '1.22',
-            'branch': 'tags/1.22.0rc1',
-            'prev_branch': 'tags/1.22.0rc0',
+            'branch': 'REL1_22',
+            'tag': 'tags/1.22.0rc1',
+            'prev_tag': 'tags/1.22.0rc0',
             'prev_version': '1.22.0rc0',
             'phase': 'rc',
             'cycle': '1',
