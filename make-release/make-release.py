@@ -474,20 +474,16 @@ class MakeRelease(object):
         print "Done"
         return diffStatus == 1
 
-    def makeTarFile(self, package, targetDir, dir, argAdd=[]):
+    def makeTarFile(self, package, targetDir, dir, tarOpts, argAdd=[]):
         tar = self.options.tar_command
-
-        tarignore = self.options.destDir + '/tarignore'
-        if not os.path.isfile(tarignore):
-            "Tarignore %s not found, IGNORING." % tarignore
-            tarignore = None
 
         # Generate the .tar.gz file
         filename = package + '.tar.gz'
         outFile = open(dir + '/' + filename, "w")
         args = [tar, '--format=gnu', '--exclude-vcs', '-C', dir]
-        if tarignore:
-            args += ['--exclude-from', tarignore]
+        if tarOpts.get("ignore"):
+            for patt in tarOpts.get("ignore"):
+                args += ['--exclude', patt]
         args += argAdd
         args += ['-c', targetDir]
         print "Creating " + filename
@@ -556,12 +552,14 @@ class MakeRelease(object):
                 package='mediawiki-core-' + version,
                 targetDir=package,
                 dir=buildDir,
+                tarOpts=config.get("tar"),
                 argAdd=extExclude)
         )
         outFiles.append(
             self.makeTarFile(
                 package=package,
                 targetDir=package,
+                tarOpts=config.get("tar"),
                 dir=buildDir)
         )
 

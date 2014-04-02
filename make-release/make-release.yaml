@@ -22,3 +22,13 @@ bundles:
         - SemanticWatchlist
         - Validator
         - Widgets
+tar:
+  ignore:
+    - "*~"
+    - ".js*"
+    - ".git*"
+    - testsuite
+    - tests
+    - "*.xcf"
+    - "#*#"
+    - ".#*"
