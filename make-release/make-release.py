@@ -165,6 +165,11 @@ def parse_args():
         default='tar',
         help='path to tar, we are expecting a GNU tar. (defaults to tar)'
     )
+    parser.add_argument(
+        '--offline', dest='offline',
+        default=False, action='store_true',
+        help='Do not perform actions (e.g. git pull) that require the network'
+    )
 
     return parser.parse_args()
 
@@ -227,8 +232,8 @@ class MwVersion(object):
             (?P<major>(?P<major1>\d+)\.(?P<major2>\d+))
             \.
             (?P<minor>\d+)
-            (?:
-                (?P<phase>[A-Za-z]+)
+            (?:-?
+                (?P<phase>[A-Za-z]+)\.?
                 (?P<cycle>\d+)
             )?
         """, re.X).match(version)
@@ -247,24 +252,48 @@ class MwVersion(object):
         del ret['major1']
         del ret['major2']
 
-        ret['tag'] = 'tags/%s.%s%s%s' % (
-            ret['major'],
-            ret['minor'],
-            ret.get('phase', ''),
-            ret.get('cycle', '')
-        )
+        # Special case for when we switched to semantic versioning
+        if(ret['major'] <= '1.22' or
+           (ret['major'] == '1.23' and
+            ret['minor'] == '0' and
+            (ret['phase'] == 'rc' and
+             ret['cycle'] == '0'))):
+            ret['tag'] = 'tags/%s.%s%s%s' % (
+                ret['major'],
+                ret['minor'],
+                ret.get('phase', ''),
+                ret.get('cycle', '')
+            )
+        else:
+            ret['tag'] = 'tags/%s.%s-%s.%s' % (
+                ret['major'],
+                ret['minor'],
+                ret.get('phase', ''),
+                ret.get('cycle', '')
+            )
 
         last = m.group(m.lastindex)
         if int(last) == 0:
             ret['prevVersion'] = None
+            ret['prevTag'] = None
             return ret
 
         bits = [d for d in m.groups('')]
-        bits[m.lastindex - 1] = str(int(bits[m.lastindex - 1]) - 1)
+        last = m.lastindex - 3
         del bits[1]
         del bits[1]
 
-        ret['prevVersion'] = '%s.%s%s%s' % tuple(bits)
+        bits[last] = str(int(bits[last]) - 1)
+
+        if(bits[0] <= '1.22' or
+           (bits[0] == '1.23' and
+            bits[1] == '0' and
+            (bits[2] == 'rc' and
+             bits[3] == '0'))):
+            ret['prevVersion'] = '%s.%s%s%s' % tuple(bits)
+        else:
+            ret['prevVersion'] = '%s.%s-%s.%s' % tuple(bits)
+
         ret['prevTag'] = 'tags/' + ret['prevVersion']
 
         return ret
@@ -371,21 +400,22 @@ class MakeRelease(object):
                 print "Could not update local repository %s" % repo
                 sys.exit(1)
 
-        if (os.path.exists(dir)):
-            print "Updating " + label + " in " + dir + "..."
-            proc = subprocess.Popen(
-                ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
-        else:
-            print "Cloning " + label + " into " + dir + "..."
-            proc = subprocess.Popen(['git', 'clone', '-q', repo, dir])
+        if not self.options.offline:
+            if (os.path.exists(dir)):
+                print "Updating " + label + " in " + dir + "..."
+                proc = subprocess.Popen(
+                    ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
+            else:
+                print "Cloning " + label + " into " + dir + "..."
+                proc = subprocess.Popen(['git', 'clone', '-q', repo, dir])
 
-        if proc.wait() != 0:
-            print "git clone failed, exiting"
-            sys.exit(1)
+            if proc.wait() != 0:
+                print "git clone failed, exiting"
+                sys.exit(1)
 
         os.chdir(dir)
 
-        if branch != 'trunk':
+        if branch != 'master' and branch is not None:
             print "Checking out %s in %s..." % (branch, dir)
             proc = subprocess.Popen(['git', 'checkout', branch])
 

@@ -99,3 +99,43 @@ class TestMwVersion(unittest.TestCase):
         observed = makerelease.MwVersion('1.22')
         expected = FakeVersion({'raw': '1.22'})
         self.assertMwVersionEqual(expected, observed)
+
+    def test_special_case_1(self):
+        observed = makerelease.MwVersion('1.23.0rc0')
+        expected = FakeVersion({
+            'raw': '1.23.0rc0',
+            'major': '1.23',
+            'branch': 'REL1_23',
+            'tag': 'tags/1.23.0rc0',
+            'phase': 'rc',
+            'cycle': '0',
+            })
+        self.assertMwVersionEqual(expected, observed)
+
+    def test_special_case_2(self):
+        observed = makerelease.MwVersion('1.23.0-rc.1')
+        expected = FakeVersion({
+            'raw': '1.23.0-rc.1',
+            'major': '1.23',
+            'branch': 'REL1_23',
+            'tag': 'tags/1.23.0-rc.1',
+            'prev_tag': 'tags/1.23.0rc0',
+            'prev_version': '1.23.0rc0',
+            'phase': 'rc',
+            'cycle': '1',
+            })
+        self.assertMwVersionEqual(expected, observed)
+
+    def test_special_case_3(self):
+        observed = makerelease.MwVersion('1.23.0-rc.2')
+        expected = FakeVersion({
+            'raw': '1.23.0-rc.2',
+            'major': '1.23',
+            'branch': 'REL1_23',
+            'tag': 'tags/1.23.0-rc.2',
+            'prev_tag': 'tags/1.23.0-rc.1',
+            'prev_version': '1.23.0-rc.1',
+            'phase': 'rc',
+            'cycle': '2',
+            })
+        self.assertMwVersionEqual(expected, observed)
