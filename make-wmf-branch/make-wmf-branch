@@ -23,7 +23,7 @@ $obj->execute( $clonePath );
 class MakeWmfBranch {
 	var $dryRun;
 	var $newVersion, $oldVersion, $buildDir;
-	var $specialExtensions, $branchedExtensions, $patches;
+	var $specialExtensions, $branchedExtensions, $branchedSkins, $patches;
 	var $baseRepoPath, $anonRepoPath;
 	var $noisy;
 
@@ -41,6 +41,7 @@ class MakeWmfBranch {
 		$this->dryRun = $dryRun;
 		$this->buildDir = $buildDir;
 		$this->branchedExtensions = $branchedExtensions;
+		$this->branchedSkins = $branchedSkins;
 		$this->specialExtensions = $specialExtensions;
 		$this->noisy = $noisy;
 		$this->patches = $patches;
@@ -97,7 +98,8 @@ class MakeWmfBranch {
 
 	function execute( $clonePath ) {
 		$this->setupBuildDirectory();
-		$this->branchExtensions();
+		$this->branchExtensionsOrSkins( 'extensions' );
+		$this->branchExtensionsOrSkins( 'skins' );
 		$this->branchWmf( $clonePath );
 	}
 
@@ -112,9 +114,10 @@ class MakeWmfBranch {
 		$this->chdir( $this->buildDir );
 	}
 
-	function branchExtensions() {
-		foreach( $this->branchedExtensions as $ext ) {
-			$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/extensions/{$ext}.git", $ext );
+	function branchExtensionsOrSkins( $type  ) {
+		$thingsToBranch = $type == 'skins' ? $this->branchedSkins : $this->branchedExtensions;
+		foreach( $thingsToBranch as $ext ) {
+			$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/{$type}/{$ext}.git", $ext );
 			$this->chdir( "$ext" );
 			$newVersion = $this->branchPrefix . $this->newVersion;
 
@@ -192,6 +195,13 @@ class MakeWmfBranch {
 				$this->chdir( "../.." );
 			}
 		}
+
+		# Add skin submodules
+		foreach ( $this->branchedSkins as $name ) {
+			$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
+				"{$this->anonRepoPath}/skins/{$name}.git", "skins/$name" );
+		}
+
 		# Fix $wgVersion
 		$this->fixVersion( "includes/DefaultSettings.php" );
 
