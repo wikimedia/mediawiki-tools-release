@@ -98,8 +98,13 @@ class MakeWmfBranch {
 
 	function execute( $clonePath ) {
 		$this->setupBuildDirectory();
-		$this->branchExtensionsOrSkins( 'extensions' );
-		$this->branchExtensionsOrSkins( 'skins' );
+		foreach( $this->branchedExtensions as $ext ) {
+			$this->branchRepo( "extensions/{$ext}" );
+		}
+		foreach( $this->branchedSkins as $skin ) {
+			$this->branchRepo( "skins/{$skin}" );
+		}
+		$this->branchRepo( 'core/vendor' );
 		$this->branchWmf( $clonePath );
 	}
 
@@ -114,21 +119,19 @@ class MakeWmfBranch {
 		$this->chdir( $this->buildDir );
 	}
 
-	function branchExtensionsOrSkins( $type  ) {
-		$thingsToBranch = $type == 'skins' ? $this->branchedSkins : $this->branchedExtensions;
-		foreach( $thingsToBranch as $ext ) {
-			$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/{$type}/{$ext}.git", $ext );
-			$this->chdir( "$ext" );
-			$newVersion = $this->branchPrefix . $this->newVersion;
+	function branchRepo( $path  ) {
+		$repo = basename( $path );
+		$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/{$path}.git", $repo );
+		$this->chdir( $repo );
+		$newVersion = $this->branchPrefix . $this->newVersion;
 
-			$this->runCmd( 'git', 'checkout', '-q', '-b', $newVersion );
+		$this->runCmd( 'git', 'checkout', '-q', '-b', $newVersion );
 
-			$this->fixGitReview();
-			$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$newVersion} branch" );
+		$this->fixGitReview();
+		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$newVersion} branch" );
 
-			$this->runWriteCmd( 'git', 'push', 'origin', $newVersion );
-			$this->chdir( $this->buildDir );
-		}
+		$this->runWriteCmd( 'git', 'push', 'origin', $newVersion );
+		$this->chdir( $this->buildDir );
 	}
 
 	function branchWmf( $clonePath ) {
@@ -201,6 +204,10 @@ class MakeWmfBranch {
 			$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
 				"{$this->anonRepoPath}/skins/{$name}.git", "skins/$name" );
 		}
+
+		# Add vendor submodule
+		$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
+			"{$this->anonRepoPath}/core/vendor.git", 'vendor' );
 
 		# Fix $wgVersion
 		$this->fixVersion( "includes/DefaultSettings.php" );
