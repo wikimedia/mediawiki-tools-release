@@ -47,7 +47,7 @@ class ReleaseTarballTestCase extends PHPUnit_Framework_TestCase {
 		# remove install dir
 		if ( file_exists( self::$basePath ) && is_dir( self::$basePath ) ) {
 			# There seems to be a handle on the language files immediately after
-			# install, so let's wait a bit
+			# install, so lets wait a bit
 			sleep(1);
 
 			$cmd = 'rm -r ' . escapeshellarg( self::$basePath );

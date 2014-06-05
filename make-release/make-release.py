@@ -233,7 +233,7 @@ class MwVersion(object):
             \.
             (?P<minor>\d+)
             (?:-?
-                (?P<phase>[A-Za-z]+)\.?
+                (?P<phase>[A-Za-z]+)?\.?
                 (?P<cycle>\d+)
             )?
         """, re.X).match(version)
@@ -252,28 +252,34 @@ class MwVersion(object):
         del ret['major1']
         del ret['major2']
 
-        # Special case for when we switched to semantic versioning
-        if(ret['major'] <= '1.22' or
-           (ret['major'] == '1.23' and
-            ret['minor'] == '0' and
-            (ret['phase'] == 'rc' and
-             ret['cycle'] == '0'))):
-            ret['tag'] = 'tags/%s.%s%s%s' % (
+        try:
+            # Special case for when we switched to semantic versioning
+            if(ret['major'] <= '1.22' or
+               (ret['major'] == '1.23' and
+                ret['minor'] == '0' and
+                (ret['phase'] == 'rc' and
+                 ret['cycle'] == '0'))):
+                ret['tag'] = 'tags/%s.%s%s%s' % (
+                    ret['major'],
+                    ret['minor'],
+                    ret.get('phase', ''),
+                    ret.get('cycle', '')
+                )
+            else:
+                ret['tag'] = 'tags/%s.%s-%s.%s' % (
+                    ret['major'],
+                    ret['minor'],
+                    ret.get('phase', ''),
+                    ret.get('cycle', '')
+                )
+        except KeyError:
+            ret['tag'] = 'tags/%s.%s' % (
                 ret['major'],
-                ret['minor'],
-                ret.get('phase', ''),
-                ret.get('cycle', '')
-            )
-        else:
-            ret['tag'] = 'tags/%s.%s-%s.%s' % (
-                ret['major'],
-                ret['minor'],
-                ret.get('phase', ''),
-                ret.get('cycle', '')
+                ret['minor']
             )
 
         last = m.group(m.lastindex)
-        if int(last) == 0:
+        if last != '' and int(last) == 0:
             ret['prevVersion'] = None
             ret['prevTag'] = None
             return ret
