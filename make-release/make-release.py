@@ -265,12 +265,17 @@ class MwVersion(object):
                     ret.get('phase', ''),
                     ret.get('cycle', '')
                 )
-            else:
+            elif('phase' in ret):
                 ret['tag'] = 'tags/%s.%s-%s.%s' % (
                     ret['major'],
                     ret['minor'],
                     ret.get('phase', ''),
                     ret.get('cycle', '')
+                )
+            else:
+                ret['tag'] = 'tags/%s.%s' % (
+                    ret['major'],
+                    ret['minor'],
                 )
         except KeyError:
             ret['tag'] = 'tags/%s.%s' % (
@@ -297,8 +302,10 @@ class MwVersion(object):
             (bits[2] == 'rc' and
              bits[3] == '0'))):
             ret['prevVersion'] = '%s.%s%s%s' % tuple(bits)
-        else:
+        elif('phase' in ret):
             ret['prevVersion'] = '%s.%s-%s.%s' % tuple(bits)
+        else:
+            ret['prevVersion'] = '%s.%s' % (bits[0], bits[1])
 
         ret['prevTag'] = 'tags/' + ret['prevVersion']
 
