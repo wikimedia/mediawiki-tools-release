@@ -33,7 +33,9 @@ function capture_output( $command ) {
 	$output = array();
 	exec( $command, $output, $status );
 	if( $status != 0 ) {
-		throw new ExecException( "Error in command: $command\nDirectory: $cwd\nStatus: $status\nOutput: ".print_r($output)."\n" );
+		throw new ExecException( "Error in command: $command\nDirectory: $cwd\nStatus: $status\nOutput: "
+			. print_r( $output) . "\n"
+		);
 	}
 	return $output;
 }
@@ -199,13 +201,13 @@ function filter_git_output( $logoutput ) {
 		}
 
 		$retval .= "* {{git|{$record['hash']}}} - <nowiki>";
-		$retval .= htmlspecialchars( $record['subject'] ) . "</nowiki>";
+		$retval .= htmlspecialchars( $record['subject'] ) . '</nowiki>';
 		if ( $record['bugs'] ) {
-			$retval .= " (";
+			$retval .= ' (';
 			$retval .= implode( ", ", array_map( function( $b ) {
 				return "{{bugzilla|{$b}}}";
 			}, $record['bugs'] ) );
-			$retval .= ")";
+			$retval .= ')';
 		}
 		$retval .= "\n";
 	}
@@ -222,10 +224,10 @@ function get_all_extension_change_markup( $oldbranch, $newbranch ) {
 	$extrecords = get_extension_versions( $oldbranch, $newbranch );
 	foreach ( $extrecords as $extrecord ) {
 		if( !array_key_exists( 'oldrev', $extrecord ) ) {
-			$retval .= get_change_log( $extrecord['name'], "** Newly deployed extension" );
+			$retval .= get_change_log( $extrecord['name'], '** Newly deployed extension' );
 			continue;
 		} elseif( !array_key_exists( 'newrev', $extrecord ) ) {
-			$logoutput = useful_git_log( $extrecord['oldrev'], "HEAD", $extrecord['name'] );
+			$logoutput = useful_git_log( $extrecord['oldrev'], 'HEAD', $extrecord['name'] );
 		} else {
 			$logoutput = useful_git_log( $extrecord['oldrev'], $extrecord['newrev'], $extrecord['name'] );
 		}
