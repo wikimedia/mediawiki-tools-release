@@ -1,16 +1,20 @@
 #!/usr/bin/env php
 <?php
 
+/**
+ * Class ExecException
+ */
 class ExecException extends Exception {}
 
 /**
- * get_args - validation on the command line arguments
+ * Validation on the command line arguments
+ * @param array $argv
+ * @return array
  */
 function get_args( $argv ) {
 	if ( count( $argv ) == 3 ) {
 		return array( $argv[1], $argv[2] );
-	}
-	else {
+	} else {
 		print "usage: $argv[0] oldbranch newbranch\n";
 		print "  example: $argv[0] gerrit/wmf/1.20wmf2 gerrit/wmf/1.20wmf3\n";
 		exit(1);
@@ -18,8 +22,11 @@ function get_args( $argv ) {
 }
 
 /**
- * capture_output - wrapper around exec to throw more useful exception when
- *  things go sideways
+ * Wrapper around exec to throw more useful exception when
+ * things go sideways
+ * @param string $command
+ * @throws ExecException
+ * @return array
  */
 function capture_output( $command ) {
 	$cwd = getcwd();
@@ -32,8 +39,11 @@ function capture_output( $command ) {
 }
 
 /**
- * get_extension_versions - get a list of records, one for each extension.  Each
- *   record contains "name", "oldrev", and "newrev"
+ * Get a list of records, one for each extension.
+ *  Each record contains "name", "oldrev", and "newrev"
+ * @param string $oldbranch
+ * @param string $newbranch
+ * @return array
  */
 function get_extension_versions( $oldbranch, $newbranch ) {
 	$retval = array();
@@ -67,6 +77,11 @@ function get_extension_versions( $oldbranch, $newbranch ) {
 
 /**
  * Fetch an array of the change's subject for a given path, along with a bug number.
+ * @param string $oldRev
+ * @param string $newRev
+ * @param null|string $ext
+ * @throws Exception
+ * @return array
  */
 function useful_git_log( $oldRev, $newRev, $ext = null ) {
 	$gitDir = getcwd();
@@ -108,6 +123,12 @@ function useful_git_log( $oldRev, $newRev, $ext = null ) {
 	return $gitLog;
 }
 
+/**
+ * @param string $oldRev
+ * @param string $newRev
+ * @return array
+ * @throws Exception
+ */
 function full_git_log_as_array( $oldRev, $newRev ) {
 	$command = "git log --format=medium --cherry-pick --right-only --no-merges $oldRev..$newRev";
 	try {
@@ -134,15 +155,15 @@ function full_git_log_as_array( $oldRev, $newRev ) {
 			}
 			continue;
 		}
-		if( !empty( $commit ) ) {
-		    array_push($history, $commit);
-		}
 	}
 	return $history;
 }
 
 /**
- * git_extension_diff_output - git command for getting the diff list for extensions.
+ * git command for getting the diff list for extensions.
+ * @param string $oldbranch
+ * @param string $newbranch
+ * @return string
  */
 function git_extension_diff_output( $oldbranch, $newbranch ) {
 	return shell_exec( "git diff $oldbranch $newbranch extensions" );
@@ -151,12 +172,15 @@ function git_extension_diff_output( $oldbranch, $newbranch ) {
 /**
  * filter_git_output - perform any extra functions needed prior to posting to
  *  a wiki page (sanitization, making obvious removals, linking bugs, etc)
+ * @param array $logoutput
+ * @return string
  */
 function filter_git_output( $logoutput ) {
 	$retval = '';
 	if ( !$logoutput ) {
 		return $retval;
 	}
+
 	$skipLines = array(
 		'Localisation updates from',
 		'COMMITMSG', // Fix for escaping fail leaving a commit summary of $COMMITMSG
@@ -189,28 +213,39 @@ function filter_git_output( $logoutput ) {
 }
 
 /**
- *
+ * @param string $oldbranch
+ * @param string $newbranch
+ * @return string
  */
 function get_all_extension_change_markup( $oldbranch, $newbranch ) {
 	$retval = '';
 	$extrecords = get_extension_versions( $oldbranch, $newbranch );
 	foreach ( $extrecords as $extrecord ) {
 		if( !array_key_exists( 'oldrev', $extrecord ) ) {
-			$logoutput = array( "** Newly deployed extension" );
-		}
-		elseif( !array_key_exists( 'newrev', $extrecord ) ) {
+			$retval .= get_change_log( $extrecord['name'], "** Newly deployed extension" );
+			continue;
+		} elseif( !array_key_exists( 'newrev', $extrecord ) ) {
 			$logoutput = useful_git_log( $extrecord['oldrev'], "HEAD", $extrecord['name'] );
-		}
-		else {
+		} else {
 			$logoutput = useful_git_log( $extrecord['oldrev'], $extrecord['newrev'], $extrecord['name'] );
 		}
 		$changes = filter_git_output( $logoutput );
 		if( $changes != "" ) {
-			$retval .= '=== ' . $extrecord['name'] . " ===\n";
-			$retval .= $changes;
+			$retval .= get_change_log( $extrecord['name'], $changes );
 		}
 	}
 	return $retval;
+}
+
+/**
+ * Gets a final change log entry
+ *
+ * @param string $name
+ * @param string $changes
+ * @return string
+ */
+function get_change_log( $name, $changes ) {
+	return '=== ' . $name . " ===\n" . $changes;
 }
 
 /**
@@ -220,6 +255,7 @@ function get_all_extension_change_markup( $oldbranch, $newbranch ) {
  *   -> Get list of extensions (get_extension_versions)
  *   -> On each extension:
  *      ->  Get changes and filter (get_cherry_log_output_extension + filter_git_output)
+ * @param array $argv
  */
 function main( $argv ) {
 	list( $oldbranch, $newbranch ) = get_args( $argv );
