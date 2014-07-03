@@ -224,7 +224,7 @@ function get_all_extension_change_markup( $oldbranch, $newbranch ) {
 	$extrecords = get_extension_versions( $oldbranch, $newbranch );
 	foreach ( $extrecords as $extrecord ) {
 		if( !array_key_exists( 'oldrev', $extrecord ) ) {
-			$retval .= get_change_log( $extrecord['name'], '** Newly deployed extension' );
+			$retval .= get_change_log( $extrecord['name'], "** Newly deployed extension\n" );
 			continue;
 		} elseif( !array_key_exists( 'newrev', $extrecord ) ) {
 			$logoutput = useful_git_log( $extrecord['oldrev'], 'HEAD', $extrecord['name'] );
