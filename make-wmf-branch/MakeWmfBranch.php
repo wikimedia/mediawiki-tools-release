@@ -84,7 +84,7 @@ class MakeWmfBranch {
 		foreach( $this->branchedSkins as $skin ) {
 			$this->branchRepo( "skins/{$skin}" );
 		}
-		$this->branchRepo( 'core/vendor' );
+		$this->branchRepo( 'vendor' );
 		$this->branchWmf( $clonePath );
 	}
 
@@ -187,7 +187,7 @@ class MakeWmfBranch {
 
 		# Add vendor submodule
 		$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
-			"{$this->anonRepoPath}/core/vendor.git", 'vendor' );
+			"{$this->anonRepoPath}/vendor.git", 'vendor' );
 
 		# Fix $wgVersion
 		$this->fixVersion( "includes/DefaultSettings.php" );
