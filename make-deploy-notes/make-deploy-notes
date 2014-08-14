@@ -89,7 +89,12 @@ function get_submodule_versions( $oldbranch, $newbranch, $type ) {
  */
 function useful_git_log( $oldRev, $newRev, $type = null, $name = null ) {
 	$gitDir = getcwd();
-	$myDir = $type && $name ? "$gitDir/$type/$name" : $gitDir;
+	if ( $name ) {
+		$myDir = $type ? "$gitDir/$type/$name" : "$gitDir/$name";
+	} else {
+		$myDir = $gitDir;
+	}
+
 	if( !is_dir( $myDir ) ) {
 		return "";
 	}
@@ -269,10 +274,16 @@ function get_change_log( $name, $changes ) {
 function main( $argv ) {
 	list( $oldbranch, $newbranch ) = get_args( $argv );
 	print "== Core changes ==\n";
-	$coreoutput = useful_git_log( $oldbranch, $newbranch );
-	print filter_git_output( $coreoutput );
+	print filter_git_output( useful_git_log( $oldbranch, $newbranch ) );
+
+	print "=== Vendor ===\n";
+	$vendorVer = get_submodule_versions( $oldbranch, $newbranch, 'vendor' );
+	$vendorVer = $vendorVer[0];
+	print filter_git_output( useful_git_log( $vendorVer['oldrev'], $vendorVer['newrev'], null, 'vendor' ) );
+
 	print "== Extensions ==\n";
 	print get_all_submodule_change_markup( $oldbranch, $newbranch, 'extensions' );
+
 	print "== Skins ==\n";
 	print get_all_submodule_change_markup( $oldbranch, $newbranch, 'skins' );
 }
