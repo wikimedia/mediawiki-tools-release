@@ -41,18 +41,19 @@ function capture_output( $command ) {
 }
 
 /**
- * Get a list of records, one for each extension.
+ * Get a list of records, one for each submodule.
  *  Each record contains "name", "oldrev", and "newrev"
  * @param string $oldbranch
  * @param string $newbranch
+ * @param string $type extensions or skins
  * @return array
  */
-function get_extension_versions( $oldbranch, $newbranch ) {
+function get_submodule_versions( $oldbranch, $newbranch, $type ) {
 	$retval = array();
 	$extrecord = array();
-	foreach ( explode( "\n", git_extension_diff_output( $oldbranch, $newbranch ) ) as $line ) {
+	foreach ( explode( "\n", git_submodule_diff_output( $oldbranch, $newbranch, $type ) ) as $line ) {
 		#diff --git a/extensions/AbuseFilter b/extensions/AbuseFilter
-		if( preg_match( '!^diff --git a/extensions/([^\. ]+) b/extensions/([^\. ]+)!', $line, $matches ) ) {
+		if( preg_match( "!^diff --git a/$type/([^\. ]+) b/$type/([^\. ]+)!", $line, $matches ) ) {
 			if ( $matches[1] === 'README' ) {
 				continue;
 			}
@@ -81,13 +82,14 @@ function get_extension_versions( $oldbranch, $newbranch ) {
  * Fetch an array of the change's subject for a given path, along with a bug number.
  * @param string $oldRev
  * @param string $newRev
- * @param null|string $ext
+ * @parma null|string $type
+ * @param null|string $name
  * @throws Exception
  * @return array
  */
-function useful_git_log( $oldRev, $newRev, $ext = null ) {
+function useful_git_log( $oldRev, $newRev, $type = null, $name = null ) {
 	$gitDir = getcwd();
-	$myDir = $ext ? "$gitDir/extensions/$ext" : $gitDir;
+	$myDir = $type && $name ? "$gitDir/$type/$name" : $gitDir;
 	if( !is_dir( $myDir ) ) {
 		return "";
 	}
@@ -136,7 +138,9 @@ function full_git_log_as_array( $oldRev, $newRev ) {
 	try {
 		$output = capture_output( $command );
 	} catch( ExecException $e ) {
-		throw new Exception( "Problem with command: $command\n******** LIKELY CAUSE: you need to run 'git fetch --all' in an extension directory" );
+		throw new Exception( "Problem with command: $command\n"
+			. "******** LIKELY CAUSE: you need to run 'git fetch --all' in a sub directory"
+		);
 	}
 	$history = array();
 	foreach( $output as $line ) {
@@ -165,10 +169,11 @@ function full_git_log_as_array( $oldRev, $newRev ) {
  * git command for getting the diff list for extensions.
  * @param string $oldbranch
  * @param string $newbranch
+ * @param string $type
  * @return string
  */
-function git_extension_diff_output( $oldbranch, $newbranch ) {
-	return shell_exec( "git diff $oldbranch $newbranch extensions" );
+function git_submodule_diff_output( $oldbranch, $newbranch, $type ) {
+	return shell_exec( "git diff $oldbranch $newbranch $type" );
 }
 
 /**
@@ -217,19 +222,21 @@ function filter_git_output( $logoutput ) {
 /**
  * @param string $oldbranch
  * @param string $newbranch
+ * @param string $type
  * @return string
  */
-function get_all_extension_change_markup( $oldbranch, $newbranch ) {
+function get_all_submodule_change_markup( $oldbranch, $newbranch, $type ) {
 	$retval = '';
-	$extrecords = get_extension_versions( $oldbranch, $newbranch );
+	$extrecords = get_submodule_versions( $oldbranch, $newbranch, $type );
 	foreach ( $extrecords as $extrecord ) {
 		if( !array_key_exists( 'oldrev', $extrecord ) ) {
-			$retval .= get_change_log( $extrecord['name'], "** Newly deployed extension\n" );
+			$printType = $type === 'extensions' ? 'extension' : 'skin';
+			$retval .= get_change_log( $extrecord['name'], "* Newly deployed $printType\n" );
 			continue;
 		} elseif( !array_key_exists( 'newrev', $extrecord ) ) {
-			$logoutput = useful_git_log( $extrecord['oldrev'], 'HEAD', $extrecord['name'] );
+			$logoutput = useful_git_log( $extrecord['oldrev'], 'HEAD', $type, $extrecord['name'] );
 		} else {
-			$logoutput = useful_git_log( $extrecord['oldrev'], $extrecord['newrev'], $extrecord['name'] );
+			$logoutput = useful_git_log( $extrecord['oldrev'], $extrecord['newrev'], $type, $extrecord['name'] );
 		}
 		$changes = filter_git_output( $logoutput );
 		if( $changes != "" ) {
@@ -265,7 +272,9 @@ function main( $argv ) {
 	$coreoutput = useful_git_log( $oldbranch, $newbranch );
 	print filter_git_output( $coreoutput );
 	print "== Extensions ==\n";
-	print get_all_extension_change_markup( $oldbranch, $newbranch );
+	print get_all_submodule_change_markup( $oldbranch, $newbranch, 'extensions' );
+	print "== Skins ==\n";
+	print get_all_submodule_change_markup( $oldbranch, $newbranch, 'skins' );
 }
 
 main( $argv );
