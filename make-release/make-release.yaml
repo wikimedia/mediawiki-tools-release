@@ -1,28 +1,48 @@
-# vim: set et ts=4 sw=4:
+# vim: set et ts=4 sw=4: -*- mode: yaml-mode; yaml-indent-offset: 4 -*-
 bundles:
-    smw:
-        - AdminLinks
-        - ApprovedRevs
-        - Arrays
-        - DataTransfer,
-        - ExternalData
-        - HeaderTabs
-        - Maps
-        - PageSchemas
-        - ReplaceText
-        - SemanticCompoundQueries
-        - SemanticDrilldown,
-        - SemanticForms,
-        - SemanticFormsInputs,
-        - SemanticImageInput
-        - SemanticInternalObjects
-        - SemanticMaps
-        - SemanticMediaWiki
-        - SemanticResultFormats
-        - SemanticTasks
-        - SemanticWatchlist
-        - Validator
-        - Widgets
+  smw:
+    - AdminLinks
+    - ApprovedRevs
+    - Arrays
+    - DataTransfer,
+    - ExternalData
+    - HeaderTabs
+    - Maps
+    - PageSchemas
+    - ReplaceText
+    - SemanticCompoundQueries
+    - SemanticDrilldown,
+    - SemanticForms,
+    - SemanticFormsInputs,
+    - SemanticImageInput
+    - SemanticInternalObjects
+    - SemanticMaps
+    - SemanticMediaWiki
+    - SemanticResultFormats
+    - SemanticTasks
+    - SemanticWatchlist
+    - Validator
+    - Widgets
+diff:
+  ignore:
+    - "*~"
+    - ".js*"
+    - ".git*"
+    - testsuite
+    - tests
+    - "*.xcf"
+    - "#*#"
+    - ".#*"
+    - .travis.yml
+    - messages
+    - "*.png"
+    - "*.jpg"
+    - "*.xcf"
+    - "*.gif"
+    - "*.svg"
+    - "*.tiff"
+    - "*.zip"
+    - "*.xmp"
 tar:
   ignore:
     - "*~"

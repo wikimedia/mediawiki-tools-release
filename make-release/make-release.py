@@ -481,20 +481,8 @@ class MakeRelease(object):
             dir2 += '/languages/messages'
         else:
             print "Generating normal patch file..."
-            excludedExtensions = [
-                'messages',
-                '*.png',
-                '*.jpg',
-                '*.xcf',
-                '*.gif',
-                '*.svg',
-                '*.tiff',
-                '*.zip',
-                '*.xmp',
-                '.git*',
-            ]
-            for ext in excludedExtensions:
-                args.extend(['-x', ext])
+            for excl in self.config['diff']['ignore']:
+                args.extend(['-x', excl])
 
         args.extend([dir1, dir2])
         print ' '.join(args)
