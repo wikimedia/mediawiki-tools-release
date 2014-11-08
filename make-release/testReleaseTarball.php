@@ -110,6 +110,8 @@ class ReleaseTarballTestCase extends PHPUnit_Framework_TestCase {
 				.' --dbtype=sqlite'
 				//Put SQLite file in MW install path
 				.' --dbpath=' . escapeshellarg( self::$basePath )
+				//Put required DB name in
+				.' --dbname=tmp'
 				//admin pass
 				.' --pass=releaseTest'
 				//name
