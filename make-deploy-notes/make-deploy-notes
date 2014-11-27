@@ -109,13 +109,13 @@ function useful_git_log( $oldRev, $newRev, $type = null, $name = null ) {
 		foreach( $lines as $line ) {
 			if( $first ) {
 				$first = false;
-				if( preg_match( "/\(?(Bug|RT)\s*(\d+)\)?\s*(.+)/i", $line, $issueRes ) ) {
+				if( preg_match( "/\(?(Bug|RT)\s*(T?\d+)\)?\s*(.+)/i", $line, $issueRes ) ) {
 					$bugs[] = $issueRes[2];
 					$subject = $issueRes[3];
 				} else {
 					$subject = $line;
 				}
-			} elseif( preg_match( "/(Bug|RT):\s*(\d+)/i", $line, $issueRes ) ) {
+			} elseif( preg_match( "/(Bug|RT):\s*(T?\d+)/i", $line, $issueRes ) ) {
 				$bugs[] = $issueRes[2];
 			}
 		}
@@ -215,7 +215,7 @@ function filter_git_output( $logoutput ) {
 		if ( $record['bugs'] ) {
 			$retval .= ' (';
 			$retval .= implode( ", ", array_map( function( $b ) {
-				return "{{bugzilla|{$b}}}";
+				return "{{phabricator|{$b}}}";
 			}, $record['bugs'] ) );
 			$retval .= ')';
 		}
