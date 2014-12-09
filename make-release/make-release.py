@@ -19,8 +19,6 @@ import sys
 import time
 import yaml
 
-config = {}
-
 
 def getVersionExtensions(version, extensions=[]):
     coreExtensions = [
@@ -76,17 +74,6 @@ def versionToTag(version):
     return 'tags/' + version
 
 
-def read_config(conffile=None):
-    if conffile is None:
-        conffile = 'make-release.yaml'
-
-    if not os.path.isfile(conffile):
-        print "Configuration file not found: %s" % conffile
-        sys.exit(1)
-
-    return yaml.load(open(conffile))
-
-
 def parse_args():
     """Parse command line arguments and return options"""
     parser = argparse.ArgumentParser(
@@ -94,7 +81,12 @@ def parse_args():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    parser.add_argument('--conf', help='specify the configuration file')
+    parser.add_argument(
+        '--conf', dest='conffile',
+        default=os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'make-release.yaml'),
+        help='specify the configuration file')
 
     # Positional arguments:
     parser.add_argument(
@@ -317,22 +309,24 @@ class MakeRelease(object):
 
     options = None
     version = None  # MwVersion object
+    config = None
 
     def __init__(self, options):
         self.version = MwVersion(options.version)
         self.options = options
 
+        if not os.path.isfile(self.options.conffile):
+            print "Configuration file not found: %s" % self.options.conffile
+            sys.exit(1)
+
+        # TODO we should validate the YAML configuration file
+        self.config = yaml.load(open(self.options.conffile))
+
     def main(self):
         " return value should be usable as an exit code"
 
-        global config  # yeah globals are evil. We know.
-        config = read_config(options.conf)
-
-        # TODO we should validate the YAML configuration file
-
         extensions = []
-        bundles = config.get('bundles')
-        smwExtensions = bundles.get('smw')
+        bundles = self.config.get('bundles', {})
 
         print "Doing release for %s" % self.version
 
@@ -349,6 +343,10 @@ class MakeRelease(object):
             return 0
 
         if options.smw:
+            smwExtensions = bundles.get('smw', None)
+            if smwExtensions is None:
+                raise Exception("No SMW extensions given.")
+
             # Other extensions for inclusion
             for ext in smwExtensions:
                 extensions.append(ext)
@@ -516,15 +514,15 @@ class MakeRelease(object):
         print "Done"
         return diffStatus == 1
 
-    def makeTarFile(self, package, targetDir, dir, tarOpts, argAdd=[]):
+    def makeTarFile(self, package, targetDir, dir, argAdd=[]):
         tar = self.options.tar_command
 
         # Generate the .tar.gz file
         filename = package + '.tar.gz'
         outFile = open(dir + '/' + filename, "w")
         args = [tar, '--format=gnu', '--exclude-vcs', '-C', dir]
-        if tarOpts.get("ignore"):
-            for patt in tarOpts.get("ignore"):
+        if self.config.get('tar', {}).get('ignore', []):
+            for patt in self.config['tar']['ignore']:
                 args += ['--exclude', patt]
         args += argAdd
         args += ['-c', targetDir]
@@ -593,14 +591,12 @@ class MakeRelease(object):
                 package='mediawiki-core-' + version,
                 targetDir=package,
                 dir=buildDir,
-                tarOpts=config.get("tar"),
                 argAdd=extExclude)
         )
         outFiles.append(
             self.makeTarFile(
                 package=package,
                 targetDir=package,
-                tarOpts=config.get("tar"),
                 dir=buildDir)
         )
 
