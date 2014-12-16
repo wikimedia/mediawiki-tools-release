@@ -33,7 +33,10 @@ diff:
     - "*.xcf"
     - "#*#"
     - ".#*"
+    - ".rubocop*"
     - .travis.yml
+    - package.json
+    - Gemfile
     - messages
     - "*.png"
     - "*.jpg"
@@ -48,9 +51,12 @@ tar:
     - "*~"
     - ".js*"
     - ".git*"
+    - ".rubocop*"
     - testsuite
     - tests
     - "*.xcf"
     - "#*#"
     - ".#*"
     - .travis.yml
+    - package.json
+    - Gemfile
