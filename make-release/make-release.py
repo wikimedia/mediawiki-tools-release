@@ -108,6 +108,11 @@ def parse_args():
         default=False, action='store_true',
         help='Do not perform actions (e.g. git pull) that require the network'
     )
+    parser.add_argument(
+        '--composer', dest='composer',
+        default='composer',
+        help='Location to composer executable, defaults to `composer`'
+    )
 
     return parser.parse_args()
 
@@ -410,6 +415,21 @@ class MakeRelease(object):
 
         os.chdir(oldDir)
 
+    def install_composer_dependencies(self, directory):
+        if self.options.offline:
+            logging.warning('Composer dependencies cannot be fetched in offline mode')
+            return
+        cwd = os.getcwd()
+        os.chdir(directory)
+        logging.debug('Installing composer dependencies...')
+        proc = subprocess.Popen([self.options.composer, 'install', '--no-dev'])
+        if proc.wait() != 0:
+            logging.error("Installing composer dependencies failed, exiting")
+            sys.exit(1)
+
+        os.chdir(cwd)
+        logging.info("Fetched external composer dependencies")
+
     def patchExport(self, patch, dir):
 
         gitRoot = self.options.gitroot
@@ -434,6 +454,9 @@ class MakeRelease(object):
 
         dir = exportDir + '/' + module
         self.getGit(gitRoot + '/core', dir, "core", tag)
+        # 1.25+ has composer dependencies.
+        if self.version.major >= '1.25' or self.version.major == 'snapshot':
+            self.install_composer_dependencies(dir)
 
         logging.info('Done with exporting core')
 
