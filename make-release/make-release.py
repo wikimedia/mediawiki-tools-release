@@ -294,7 +294,7 @@ class MwVersion(object):
             (bits[2] == 'rc' and
              bits[3] == '0'))):
             ret['prevVersion'] = '%s.%s%s%s' % tuple(bits)
-        elif('phase' in ret):
+        elif 'phase' in ret:
             ret['prevVersion'] = '%s.%s-%s.%s' % tuple(bits)
         else:
             ret['prevVersion'] = '%s.%s' % (bits[0], bits[1])
@@ -412,7 +412,7 @@ class MakeRelease(object):
                 sys.exit(1)
 
         if not self.options.offline:
-            if (os.path.exists(dir)):
+            if os.path.exists(dir):
                 print "Updating " + label + " in " + dir + "..."
                 proc = subprocess.Popen(
                     ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
