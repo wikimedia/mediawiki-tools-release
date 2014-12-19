@@ -334,7 +334,7 @@ class MakeRelease(object):
         self.options = options
 
         if not os.path.isfile(self.options.conffile):
-            print "Configuration file not found: %s" % self.options.conffile
+            logging.error("Configuration file not found: %s", self.options.conffile)
             sys.exit(1)
 
         with open(self.options.conffile) as f:
@@ -346,11 +346,10 @@ class MakeRelease(object):
         extensions = []
         bundles = self.config.get('bundles', {})
 
-        print "Doing release for %s" % self.version
+        logging.info("Doing release for %s", self.version)
 
         if self.version.branch is None:
-            print "No branch, assuming '%s'. Override with --branch." % (
-                  options.branch)
+            logging.debug("No branch, assuming '%s'. Override with --branch.", options.branch)
             self.version.branch = options.branch
 
         # No version specified, assuming a snapshot release
@@ -381,8 +380,7 @@ class MakeRelease(object):
         if self.version.prev_version is None:
             if not self.ask("No previous release found. Do you want to make a "
                             "release with no patch?"):
-                print('Please specify the correct previous release '
-                      'on the command line')
+                logging.error('Please specify the correct previous release on the command line')
                 return 1
             else:
                 noPrevious = True
@@ -394,8 +392,7 @@ class MakeRelease(object):
         else:
             if not self.ask("Was %s the previous release?" %
                             self.version.prev_version):
-                print('Please specify the correct previous release '
-                      'on the command line')
+                logging.error('Please specify the correct previous release on the command line')
                 return 1
 
             self.makeRelease(
@@ -421,34 +418,34 @@ class MakeRelease(object):
     def getGit(self, repo, dir, label, branch):
         oldDir = os.getcwd()
         if os.path.exists(repo):
-            print "Updating local %s" % repo
+            logging.debug("Updating local %s", repo)
             proc = subprocess.Popen(['git', 'remote', 'update'],
                                     cwd=repo)
             if proc.wait() != 0:
-                print "Could not update local repository %s" % repo
+                logging.error("Could not update local repository %s", repo)
                 sys.exit(1)
 
         if not self.options.offline:
             if os.path.exists(dir):
-                print "Updating " + label + " in " + dir + "..."
+                logging.debug("Updating %s in %s...", label, dir)
                 proc = subprocess.Popen(
                     ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
             else:
-                print "Cloning " + label + " into " + dir + "..."
+                logging.info("Cloning %s into %s...", label, dir)
                 proc = subprocess.Popen(['git', 'clone', repo, dir])
 
             if proc.wait() != 0:
-                print "git clone failed, exiting"
+                logging.error("git clone failed, exiting")
                 sys.exit(1)
 
         os.chdir(dir)
 
         if branch != 'master' and branch is not None:
-            print "Checking out %s in %s..." % (branch, dir)
+            logging.debug("Checking out %s in %s...", branch, dir)
             proc = subprocess.Popen(['git', 'checkout', branch])
 
             if proc.wait() != 0:
-                print "git checkout failed, exiting"
+                logging.error("git checkout failed, exiting")
                 sys.exit(1)
 
         os.chdir(oldDir)
@@ -458,18 +455,18 @@ class MakeRelease(object):
         gitRoot = self.options.gitroot
 
         os.chdir(dir)
-        print "Applying patch %s" % patch
+        logging.debug("Applying patch %s", patch)
 
         # git fetch the reference from Gerrit and cherry-pick it
         proc = subprocess.Popen(['git', 'fetch', gitRoot + '/core', patch,
                                  '&&', 'git', 'cherry-pick', 'FETCH_HEAD'])
 
         if proc.wait() != 0:
-            print "git patch failed, exiting"
+            logging.error("git patch failed, exiting")
             sys.exit(1)
 
         os.chdir('..')
-        print "Done"
+        logging.info('Done with applying patch %s', patch)
 
     def export(self, tag, module, exportDir):
 
@@ -478,7 +475,7 @@ class MakeRelease(object):
         dir = exportDir + '/' + module
         self.getGit(gitRoot + '/core', dir, "core", tag)
 
-        print "Done"
+        logging.info('Done with exporting core')
 
     def exportExtension(self, branch, extension, dir):
         gitroot = self.options.gitroot
@@ -487,22 +484,22 @@ class MakeRelease(object):
 
         self.getGit(gitroot + '/extensions/' + extension,
                     dir + '/extensions/' + extension, extension, branch)
-        print "Done"
+        logging.info('Done with exporting %s', extension)
 
     def makePatch(self, destDir, patchFileName, dir1, dir2, type):
         patchFile = open(destDir + "/" + patchFileName, 'w')
         args = ['diff', '-Nruw']
         if type == 'i18n':
-            print "Generating i18n patch file..."
+            logging.debug("Generating i18n patch file...")
             dir1 += '/languages/messages'
             dir2 += '/languages/messages'
         else:
-            print "Generating normal patch file..."
+            logging.debug("Generating normal patch file...")
             for excl in self.config['diff']['ignore']:
                 args.extend(['-x', excl])
 
         args.extend([dir1, dir2])
-        print ' '.join(args)
+        logging.debug(' '.join(args))
         diffProc = subprocess.Popen(args, stdout=subprocess.PIPE)
         gzipProc = subprocess.Popen(['gzip', '-9'], stdin=diffProc.stdout,
                                     stdout=patchFile)
@@ -511,12 +508,12 @@ class MakeRelease(object):
         gzipStatus = gzipProc.wait()
 
         if diffStatus > 1 or gzipStatus != 0:
-            print "diff failed, exiting"
-            print "diff: " + str(diffStatus)
-            print "gzip: " + str(gzipStatus)
+            logging.error("diff failed, exiting")
+            logging.error("diff: %s", diffStatus)
+            logging.error("gzip: %s", gzipStatus)
             sys.exit(1)
         patchFile.close()
-        print "Done"
+        logging.info('Done with making patch')
         return diffStatus == 1
 
     def makeTarFile(self, package, targetDir, dir, argAdd=[]):
@@ -531,16 +528,16 @@ class MakeRelease(object):
                 args += ['--exclude', patt]
         args += argAdd
         args += ['-c', targetDir]
-        print "Creating " + filename
+        logging.debug("Creating %s", filename)
         tarProc = subprocess.Popen(args, stdout=subprocess.PIPE)
         gzipProc = subprocess.Popen(['gzip', '-9'], stdin=tarProc.stdout,
                                     stdout=outFile)
 
         if tarProc.wait() != 0 or gzipProc.wait() != 0:
-            print "tar/gzip failed, exiting"
+            logging.error("tar/gzip failed, exiting")
             sys.exit(1)
         outFile.close()
-        print filename + ' written'
+        logging.info('%s written', filename)
         return filename
 
     def makeRelease(self, version, dir, extensions=[]):
@@ -556,17 +553,17 @@ class MakeRelease(object):
             rootDir = os.getcwd()
 
         if not os.path.exists(rootDir):
-            print 'Creating ' + rootDir
+            logging.debug('Creating %s', rootDir)
             os.mkdir(rootDir)
 
         buildDir = rootDir + '/build'
         uploadDir = rootDir + '/uploads'
 
         if not os.path.exists(buildDir):
-            print 'Creating build dir: ' + buildDir
+            logging.debug('Creating build dir: %s', buildDir)
             os.mkdir(buildDir)
         if not os.path.exists(uploadDir):
-            print 'Creating uploads dir: ' + uploadDir
+            logging.debug('Creating uploads dir: %s', uploadDir)
             os.mkdir(uploadDir)
 
         os.chdir(buildDir)
@@ -618,13 +615,13 @@ class MakeRelease(object):
             self.makePatch(
                 buildDir, package + '.patch.gz', prevDir, package, 'normal')
             outFiles.append(package + '.patch.gz')
-            print package + '.patch.gz written'
+            logging.debug('%s.patch.gz written', package)
             if os.path.exists(package + '/languages/messages'):
                 i18nPatch = 'mediawiki-i18n-' + version + '.patch.gz'
                 if (self.makePatch(
                         buildDir, i18nPatch, prevDir, package, 'i18n')):
                     outFiles.append(i18nPatch)
-                    print i18nPatch + ' written'
+                    logging.info('%s written', i18nPatch)
                     haveI18n = True
 
         # Sign
@@ -635,11 +632,11 @@ class MakeRelease(object):
                     proc = subprocess.Popen([
                         'gpg', '--detach-sign', buildDir + '/' + fileName])
                 except OSError, e:
-                    print "gpg failed, does it exist? Skip with --dont-sign."
-                    print "Error %s: %s" % (e.errno, e.strerror)
+                    logging.error("gpg failed, does it exist? Skip with --dont-sign.")
+                    logging.error("Error %s: %s", e.errno, e.strerror)
                     sys.exit(1)
                 if proc.wait() != 0:
-                    print "gpg failed, exiting"
+                    logging.error("gpg failed, exiting")
                     sys.exit(1)
                 uploadFiles.append(fileName + '.sig')
             uploadFiles.append(fileName)
@@ -651,7 +648,7 @@ class MakeRelease(object):
         args.extend(uploadFiles)
         proc = subprocess.Popen(args)
         if proc.wait() != 0:
-            print "Failed to generate upload.tar"
+            logging.error("Failed to generate upload.tar")
             return 1
 
         # Write email template
