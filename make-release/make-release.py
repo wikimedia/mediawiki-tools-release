@@ -631,7 +631,7 @@ class MakeRelease(object):
                 try:
                     proc = subprocess.Popen([
                         'gpg', '--detach-sign', buildDir + '/' + fileName])
-                except OSError, e:
+                except OSError as e:
                     logging.error("gpg failed, does it exist? Skip with --dont-sign.")
                     logging.error("Error %s: %s", e.errno, e.strerror)
                     sys.exit(1)
