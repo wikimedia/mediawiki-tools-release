@@ -20,8 +20,20 @@ import time
 import yaml
 
 
-def getVersionExtensions(version, extensions=[]):
-    coreExtensions = [
+def get_extensions_for_version(version, extensions=None):
+    """
+    Get the list of extensions to bundle for the given
+    MediaWiki core version
+
+    :param version: A string like "1.21"
+    :param extensions: Extensions that are already being included
+    :type extensions: list
+    :return: List of extensions to include
+    """
+    if extensions is None:
+        extensions = []
+
+    core_extensions = [
         'ConfirmEdit',
         'Gadgets',
         'Nuke',
@@ -32,7 +44,7 @@ def getVersionExtensions(version, extensions=[]):
         'Vector',
         'WikiEditor',
     ]
-    newExtensions = [
+    new_extensions = [
         'Cite',
         'ImageMap',
         'Interwiki',
@@ -44,7 +56,7 @@ def getVersionExtensions(version, extensions=[]):
         'SyntaxHighlight_GeSHi',
         'SimpleAntiSpam',
     ]
-    oldCoreExtensions = [
+    old_core_extensions = [
         'ConfirmEdit',
         'Gadgets',
         'Nuke',
@@ -56,21 +68,27 @@ def getVersionExtensions(version, extensions=[]):
 
     # Export extensions for inclusion
     if version > '1.21':
-        extensions += coreExtensions + newExtensions
+        extensions += core_extensions + new_extensions
     elif version > '1.20':
-        extensions += coreExtensions
+        extensions += core_extensions
     elif version > '1.17':
-        extensions += oldCoreExtensions
+        extensions += old_core_extensions
 
     if version > '1.22':
         extensions.remove('Vector')
         extensions.remove('SimpleAntiSpam')
 
-    # Return uniq elements (order not preserved)
+    # Return unique elements (order not preserved)
     return list(set(extensions))
 
 
-def versionToTag(version):
+def get_tag_from_version(version):
+    """
+    Get the tag to checkout from git
+
+    :param version: A string like "1.21.0"
+    :return: string
+    """
     return 'tags/' + version
 
 
@@ -566,7 +584,7 @@ class MakeRelease(object):
             self.patchExport(patch, package)
 
         extExclude = []
-        for ext in getVersionExtensions(version, extensions):
+        for ext in get_extensions_for_version(version, extensions):
             self.exportExtension(branch, ext, package)
             extExclude.append("--exclude")
             extExclude.append("extensions/" + ext)
@@ -591,10 +609,10 @@ class MakeRelease(object):
         haveI18n = False
         if not self.options.no_previous and prevVersion is not None:
             prevDir = 'mediawiki-' + prevVersion
-            self.export(versionToTag(prevVersion),
+            self.export(get_tag_from_version(prevVersion),
                         prevDir, buildDir)
 
-            for ext in getVersionExtensions(prevVersion, extensions):
+            for ext in get_extensions_for_version(prevVersion, extensions):
                 self.exportExtension(branch, ext, prevDir)
 
             self.makePatch(
