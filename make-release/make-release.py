@@ -368,8 +368,7 @@ class MakeRelease(object):
                 return 1
             else:
                 noPrevious = True
-
-        if noPrevious:
+        if noPrevious or options.no_previous:
             self.makeRelease(
                 extensions=extensions,
                 version=options.version,
@@ -418,7 +417,7 @@ class MakeRelease(object):
                     ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
             else:
                 print "Cloning " + label + " into " + dir + "..."
-                proc = subprocess.Popen(['git', 'clone', '-q', repo, dir])
+                proc = subprocess.Popen(['git', 'clone', repo, dir])
 
             if proc.wait() != 0:
                 print "git clone failed, exiting"
@@ -589,7 +588,8 @@ class MakeRelease(object):
         )
 
         # Patch
-        if prevVersion is not None:
+        haveI18n = False
+        if not self.options.no_previous and prevVersion is not None:
             prevDir = 'mediawiki-' + prevVersion
             self.export(versionToTag(prevVersion),
                         prevDir, buildDir)
@@ -601,7 +601,6 @@ class MakeRelease(object):
                 buildDir, package + '.patch.gz', prevDir, package, 'normal')
             outFiles.append(package + '.patch.gz')
             print package + '.patch.gz written'
-            haveI18n = False
             if os.path.exists(package + '/languages/messages'):
                 i18nPatch = 'mediawiki-i18n-' + version + '.patch.gz'
                 if (self.makePatch(
