@@ -185,7 +185,7 @@ def parse_args():
 
 
 class MwVersion(object):
-    "Abstract out a MediaWiki version"
+    """Abstract out a MediaWiki version"""
 
     def __init__(self, version):
         decomposed = self.decomposeVersion(version)
@@ -215,7 +215,7 @@ class MwVersion(object):
         )
 
     def decomposeVersion(self, version):
-        '''Split a version number to branch / major
+        """Split a version number to branch / major
 
         Whenever a version is recognized, a dict is returned with keys:
             - major (ie 1.22)
@@ -232,7 +232,7 @@ class MwVersion(object):
             - cycle
 
         Default: {}
-        '''
+        """
 
         ret = {}
         if version is None:
@@ -323,7 +323,7 @@ class MwVersion(object):
 
 
 class MakeRelease(object):
-    "Surprisingly: do a MediaWiki release"
+    """Surprisingly: do a MediaWiki release"""
 
     options = None
     version = None  # MwVersion object
