@@ -337,8 +337,8 @@ class MakeRelease(object):
             print "Configuration file not found: %s" % self.options.conffile
             sys.exit(1)
 
-        # TODO we should validate the YAML configuration file
-        self.config = yaml.load(open(self.options.conffile))
+        with open(self.options.conffile) as f:
+            self.config = yaml.load(f)
 
     def main(self):
         " return value should be usable as an exit code"
