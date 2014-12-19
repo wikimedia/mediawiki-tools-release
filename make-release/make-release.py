@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # vim:sw=4:ts=4:et:
-
+from __future__ import print_function
 """
 Helper to generate a MediaWiki tarball.
 
@@ -406,14 +406,14 @@ class MakeRelease(object):
             return True
 
         while True:
-            print question + ' [y/n] ',
+            print(question + ' [y/n] ')
             response = sys.stdin.readline()
             if len(response) > 0:
                 if response[0].lower() == 'y':
                     return True
                 elif response[0].lower() == 'n':
                     return False
-            print 'Please type "y" for yes or "n" for no'
+            print('Please type "y" for yes or "n" for no')
 
     def getGit(self, repo, dir, label, branch):
         oldDir = os.getcwd()
@@ -652,48 +652,48 @@ class MakeRelease(object):
             return 1
 
         # Write email template
-        print
-        print "Full release notes:"
+        print()
+        print("Full release notes:")
         url = ('https://git.wikimedia.org/blob/mediawiki%2Fcore.git/'
                + branch + '/RELEASE-NOTES')
         if dir > '1.17':
             url += '-' + dir
 
-        print url
-        print 'https://www.mediawiki.org/wiki/Release_notes/' + dir
-        print
-        print
-        print '*' * 70
+        print(url)
+        print('https://www.mediawiki.org/wiki/Release_notes/' + dir)
+        print()
+        print()
+        print('*' * 70)
 
-        print 'Download:'
-        print ('http://download.wikimedia.org/mediawiki/'
-               + dir + '/' + package + '.tar.gz')
-        print
+        print('Download:')
+        print('http://download.wikimedia.org/mediawiki/'
+              + dir + '/' + package + '.tar.gz')
+        print()
 
         if prevVersion is not None:
             if haveI18n:
-                print ("Patch to previous version (" + prevVersion
-                       + "), without interface text:")
-                print ('http://download.wikimedia.org/mediawiki/'
-                       + dir + '/' + package + '.patch.gz')
-                print "Interface text changes:"
-                print ('http://download.wikimedia.org/mediawiki/'
-                       + dir + '/' + i18nPatch)
+                print("Patch to previous version (" + prevVersion
+                      + "), without interface text:")
+                print('http://download.wikimedia.org/mediawiki/'
+                      + dir + '/' + package + '.patch.gz')
+                print("Interface text changes:")
+                print('http://download.wikimedia.org/mediawiki/'
+                      + dir + '/' + i18nPatch)
             else:
-                print "Patch to previous version (" + prevVersion + "):"
-                print ('http://download.wikimedia.org/mediawiki/'
-                       + dir + '/' + package + '.patch.gz')
-            print
+                print("Patch to previous version (" + prevVersion + "):")
+                print('http://download.wikimedia.org/mediawiki/'
+                      + dir + '/' + package + '.patch.gz')
+            print()
 
-        print 'GPG signatures:'
+        print('GPG signatures:')
         for fileName in outFiles:
-            print ('http://download.wikimedia.org/mediawiki/'
-                   + dir + '/' + fileName + '.sig')
-        print
+            print('http://download.wikimedia.org/mediawiki/'
+                  + dir + '/' + fileName + '.sig')
+        print()
 
-        print 'Public keys:'
-        print 'https://www.mediawiki.org/keys/keys.html'
-        print
+        print('Public keys:')
+        print('https://www.mediawiki.org/keys/keys.html')
+        print()
 
         os.chdir('..')
         return 0
