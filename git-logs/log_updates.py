@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 from subprocess import check_output
 from datetime import date
@@ -15,16 +15,6 @@ headings = ["dependencies", "stories", "bugs", "qa", "hygiene", "i18n",
 DEBUG = False
 
 
-def get_input(prompt):
-    """
-    Backwards-compatability for Python 2
-    """
-    if sys.version[0] == 3:
-        return input(prompt)
-    else:
-        return raw_input(prompt)  # noqa
-
-
 def info(msg):
     if DEBUG:
         print("[INFO] %s" % msg)
@@ -33,7 +23,7 @@ def info(msg):
 def get_commit_range(repodir, commit=None):
     if not commit:
         prompt = 'Enter commit number or <ENTER> for last-update: '
-        commit = get_input(prompt)
+        commit = input(prompt)
     if len(commit) == 0:
         commit = latest_commit(repodir)
     else:
@@ -46,7 +36,7 @@ def get_commit_range(repodir, commit=None):
 def latest_commit(repodir):
     info("Aquiring latest commit number...")
     cmd = ['git', 'log', '--max-count=1', '--no-merges']
-    last_log_output = check_output(cmd)
+    last_log_output = check_output(cmd).decode()
     m = re.search('commit\s+([a-z0-9]+).*', last_log_output)
     last_commit = m.group(1)
     info('Using the last commit [%s] as the initial commit.' % last_commit)
@@ -56,7 +46,7 @@ def latest_commit(repodir):
 def get_log_from_range(commit_range):
     info("Getting latest delta logs ...")
     cmd = ['git', 'log', '--no-merges', "%s" % commit_range]
-    log = check_output(cmd)
+    log = check_output(cmd).decode()
     return log
 
 
