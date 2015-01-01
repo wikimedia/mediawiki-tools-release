@@ -78,9 +78,6 @@ def get_extensions_for_version(version, extensions=None):
         extensions.remove('Vector')
         extensions.remove('SimpleAntiSpam')
 
-    if version >= '1.25':
-        extensions.append('CiteThisPage')  # Split from E:Cite, T85126
-
     # Return unique elements (order not preserved)
     return list(set(extensions))
 
