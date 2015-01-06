@@ -5,6 +5,7 @@
 
 
 import unittest
+
 makerelease = __import__('make-release')
 
 
@@ -31,10 +32,11 @@ class TestMwVersion(unittest.TestCase):
         """Compare two object properties"""
         return self.assertDictEqual(expected.__dict__, observed.__dict__)
 
-    def test_master(self):
-        observed = makerelease.MwVersion('master')
-        expected = FakeVersion({'raw': 'master'})
-        self.assertMwVersionEqual(expected, observed)
+    def test_new_snapshot(self):
+        version = makerelease.MwVersion.new_snapshot()
+        self.assertTrue(version.raw.startswith('snapshot-'))
+        self.assertEqual(version.branch, 'master')
+        self.assertEqual(version.major, 'snapshot')
 
     def test_major_version(self):
         observed = makerelease.MwVersion('1.22.0')
@@ -96,9 +98,8 @@ class TestMwVersion(unittest.TestCase):
         self.assertMwVersionEqual(expected, observed)
 
     def test_incomplete_version(self):
-        observed = makerelease.MwVersion('1.22')
-        expected = FakeVersion({'raw': '1.22'})
-        self.assertMwVersionEqual(expected, observed)
+        for version in ['1.22', 'bad', None]:
+            self.assertRaises(ValueError, makerelease.MwVersion, version)
 
     def test_special_case_1(self):
         observed = makerelease.MwVersion('1.23.0rc0')
@@ -139,3 +140,11 @@ class TestMwVersion(unittest.TestCase):
             'cycle': '2',
             })
         self.assertMwVersionEqual(expected, observed)
+
+    def test_tag(self):
+        data = {
+            '1.21.3': 'tags/1.21.3',
+            '1.24.0': 'tags/1.24.0'
+        }
+        for version, tag in data.items():
+            self.assertEqual(tag, makerelease.MwVersion(version).tag)

@@ -6,7 +6,10 @@ import yaml
 
 
 class MakeReleaseYamlTest(unittest.TestCase):
-    fname = os.path.dirname(os.path.dirname(__file__)) + '/make-release.yaml'
+    fname = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        'make-release.yaml'
+    )
 
     def test_valid_syntax(self):
         with open(self.fname) as f:

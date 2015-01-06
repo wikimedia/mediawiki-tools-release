@@ -20,78 +20,6 @@ import time
 import yaml
 
 
-def get_extensions_for_version(version, extensions=None):
-    """
-    Get the list of extensions to bundle for the given
-    MediaWiki core version
-
-    :param version: A string like "1.21"
-    :param extensions: Extensions that are already being included
-    :type extensions: list
-    :return: List of extensions to include
-    """
-    if extensions is None:
-        extensions = []
-
-    core_extensions = [
-        'ConfirmEdit',
-        'Gadgets',
-        'Nuke',
-        'ParserFunctions',
-        'PdfHandler',
-        'Renameuser',
-        'SpamBlacklist',
-        'Vector',
-        'WikiEditor',
-    ]
-    new_extensions = [
-        'Cite',
-        'ImageMap',
-        'Interwiki',
-        'TitleBlacklist',
-        'SpamBlacklist',
-        'Poem',
-        'InputBox',
-        'LocalisationUpdate',
-        'SyntaxHighlight_GeSHi',
-        'SimpleAntiSpam',
-    ]
-    old_core_extensions = [
-        'ConfirmEdit',
-        'Gadgets',
-        'Nuke',
-        'ParserFunctions',
-        'Renameuser',
-        'Vector',
-        'WikiEditor',
-    ]
-
-    # Export extensions for inclusion
-    if version > '1.21':
-        extensions += core_extensions + new_extensions
-    elif version > '1.20':
-        extensions += core_extensions
-    elif version > '1.17':
-        extensions += old_core_extensions
-
-    if version > '1.22':
-        extensions.remove('Vector')
-        extensions.remove('SimpleAntiSpam')
-
-    # Return unique elements (order not preserved)
-    return list(set(extensions))
-
-
-def get_tag_from_version(version):
-    """
-    Get the tag to checkout from git
-
-    :param version: A string like "1.21.0"
-    :return: string
-    """
-    return 'tags/' + version
-
-
 def parse_args():
     """Parse command line arguments and return options"""
     parser = argparse.ArgumentParser(
@@ -201,6 +129,10 @@ class MwVersion(object):
         self.phase = decomposed.get('phase', None)
         self.cycle = decomposed.get('cycle', None)
 
+    @classmethod
+    def new_snapshot(cls):
+        return cls('snapshot-' + time.strftime('%Y%m%d', time.gmtime()))
+
     def __repr__(self):
         if self.raw is None:
             return "<MwVersion Null (snapshot?)>"
@@ -236,7 +168,13 @@ class MwVersion(object):
 
         ret = {}
         if version is None:
-            return ret
+            raise ValueError('Invalid version')
+        if version.startswith('snapshot-'):
+            return {
+                'branch': 'master',
+                'major': 'snapshot',
+                'tag': 'master',
+            }
 
         m = re.compile(r"""
             (?P<major>(?P<major1>\d+)\.(?P<major2>\d+))
@@ -249,7 +187,7 @@ class MwVersion(object):
         """, re.X).match(version)
 
         if m is None:
-            return ret
+            raise ValueError('%s is in the wrong format' % version)
 
         # Clear out unneed phase/cycle
         ret = dict((k, v) for k, v in m.groupdict().iteritems()
@@ -330,15 +268,34 @@ class MakeRelease(object):
     config = None
 
     def __init__(self, options):
-        self.version = MwVersion(options.version)
+        if options.version is None:
+            self.version = MwVersion.new_snapshot()
+        else:
+            self.version = MwVersion(options.version)
         self.options = options
 
         if not os.path.isfile(self.options.conffile):
-            logging.error("Configuration file not found: %s", self.options.conffile)
+            logging.error("Configuration file not found: %s",
+                          self.options.conffile)
             sys.exit(1)
 
         with open(self.options.conffile) as f:
             self.config = yaml.load(f)
+
+    def get_extensions_for_version(self, version, extensions=None):
+        """
+        Get the list of extensions to bundle for the given
+        MediaWiki core version
+
+        :param version: A MWVersion object.
+        :param extensions: Extensions that are already being included
+        :type extensions: list
+        :return: List of extensions to include
+        """
+        if extensions is None:
+            extensions = []
+        return extensions + self.config.get('bundles', {}).get('mediawiki-' +
+                                                               version.major)
 
     def main(self):
         " return value should be usable as an exit code"
@@ -346,16 +303,17 @@ class MakeRelease(object):
         extensions = []
         bundles = self.config.get('bundles', {})
 
-        logging.info("Doing release for %s", self.version)
+        logging.info("Doing release for %s", self.version.raw)
 
         if self.version.branch is None:
-            logging.debug("No branch, assuming '%s'. Override with --branch.", options.branch)
+            logging.debug("No branch, assuming '%s'. Override with --branch.",
+                          options.branch)
             self.version.branch = options.branch
 
         # No version specified, assuming a snapshot release
         if options.version is None:
             self.makeRelease(
-                version='snapshot-' + time.strftime('%Y%m%d', time.gmtime()),
+                version=MwVersion.new_snapshot(),
                 dir='snapshots')
             return 0
 
@@ -372,7 +330,7 @@ class MakeRelease(object):
             # Given the previous version on the command line
             self.makeRelease(
                 extensions=extensions,
-                version=options.version,
+                version=self.version,
                 dir=self.version.major)
             return 0
 
@@ -380,24 +338,26 @@ class MakeRelease(object):
         if self.version.prev_version is None:
             if not self.ask("No previous release found. Do you want to make a "
                             "release with no patch?"):
-                logging.error('Please specify the correct previous release on the command line')
+                logging.error('Please specify the correct previous release ' +
+                              'on the command line')
                 return 1
             else:
                 noPrevious = True
         if noPrevious or options.no_previous:
             self.makeRelease(
                 extensions=extensions,
-                version=options.version,
+                version=self.version,
                 dir=self.version.major)
         else:
             if not self.ask("Was %s the previous release?" %
                             self.version.prev_version):
-                logging.error('Please specify the correct previous release on the command line')
+                logging.error('Please specify the correct previous release ' +
+                              'on the command line')
                 return 1
 
             self.makeRelease(
                 extensions=extensions,
-                version=options.version,
+                version=self.version,
                 dir=options.buildroot)
         return 0
 
@@ -440,7 +400,7 @@ class MakeRelease(object):
 
         os.chdir(dir)
 
-        if branch != 'master' and branch is not None:
+        if branch != 'master':
             logging.debug("Checking out %s in %s...", branch, dir)
             proc = subprocess.Popen(['git', 'checkout', branch])
 
@@ -571,7 +531,7 @@ class MakeRelease(object):
         if not os.path.exists(dir):
             os.mkdir(dir)
 
-        package = 'mediawiki-' + version
+        package = 'mediawiki-' + version.raw
 
         # Export the target
         self.export(tag, package, buildDir)
@@ -581,7 +541,7 @@ class MakeRelease(object):
             self.patchExport(patch, package)
 
         extExclude = []
-        for ext in get_extensions_for_version(version, extensions):
+        for ext in self.get_extensions_for_version(version, extensions):
             self.exportExtension(branch, ext, package)
             extExclude.append("--exclude")
             extExclude.append("extensions/" + ext)
@@ -590,7 +550,7 @@ class MakeRelease(object):
         outFiles = []
         outFiles.append(
             self.makeTarFile(
-                package='mediawiki-core-' + version,
+                package='mediawiki-core-' + version.raw,
                 targetDir=package,
                 dir=buildDir,
                 argAdd=extExclude)
@@ -606,10 +566,12 @@ class MakeRelease(object):
         haveI18n = False
         if not self.options.no_previous and prevVersion is not None:
             prevDir = 'mediawiki-' + prevVersion
-            self.export(get_tag_from_version(prevVersion),
+            prev_mw_version = MwVersion(prevVersion)
+            self.export(prev_mw_version.tag,
                         prevDir, buildDir)
 
-            for ext in get_extensions_for_version(prevVersion, extensions):
+            for ext in self.get_extensions_for_version(MwVersion(prevVersion),
+                                                       extensions):
                 self.exportExtension(branch, ext, prevDir)
 
             self.makePatch(
@@ -617,7 +579,7 @@ class MakeRelease(object):
             outFiles.append(package + '.patch.gz')
             logging.debug('%s.patch.gz written', package)
             if os.path.exists(package + '/languages/messages'):
-                i18nPatch = 'mediawiki-i18n-' + version + '.patch.gz'
+                i18nPatch = 'mediawiki-i18n-' + version.raw + '.patch.gz'
                 if (self.makePatch(
                         buildDir, i18nPatch, prevDir, package, 'i18n')):
                     outFiles.append(i18nPatch)
@@ -632,7 +594,8 @@ class MakeRelease(object):
                     proc = subprocess.Popen([
                         'gpg', '--detach-sign', buildDir + '/' + fileName])
                 except OSError as e:
-                    logging.error("gpg failed, does it exist? Skip with --dont-sign.")
+                    logging.error("gpg failed, does it exist? Skip with " +
+                                  "--dont-sign.")
                     logging.error("Error %s: %s", e.errno, e.strerror)
                     sys.exit(1)
                 if proc.wait() != 0:
@@ -644,7 +607,7 @@ class MakeRelease(object):
         # Generate upload tarball
         tar = self.options.tar_command
         args = [tar, '-C', buildDir,
-                '-cf', uploadDir + '/upload-' + version + '.tar']
+                '-cf', uploadDir + '/upload-' + version.raw + '.tar']
         args.extend(uploadFiles)
         proc = subprocess.Popen(args)
         if proc.wait() != 0:
