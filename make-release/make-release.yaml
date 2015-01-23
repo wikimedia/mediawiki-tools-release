@@ -57,7 +57,25 @@ bundles:
         - TitleBlacklist
         - WikiEditor
     mediawiki-1.24: *mw123
-    mediawiki-snapshot: *mw123
+    mediawiki-1.25: &mw125
+        - Cite
+        - CiteThisPage
+        - ConfirmEdit
+        - Gadgets
+        - ImageMap
+        - InputBox
+        - Interwiki
+        - LocalisationUpdate
+        - Nuke
+        - ParserFunctions
+        - PdfHandler
+        - Poem
+        - Renameuser
+        - SpamBlacklist
+        - SyntaxHighlight_GeSHi
+        - TitleBlacklist
+        - WikiEditor
+    mediawiki-snapshot: *mw125
     smw:
         - AdminLinks
         - ApprovedRevs
