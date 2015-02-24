@@ -640,8 +640,8 @@ class MakeRelease(object):
         # Write email template
         print()
         print("Full release notes:")
-        url = ('https://git.wikimedia.org/blob/mediawiki%2Fcore.git/'
-               + branch + '/RELEASE-NOTES')
+        url = ('https://git.wikimedia.org/blob/mediawiki%2Fcore.git/' +
+               branch + '/RELEASE-NOTES')
         if dir > '1.17':
             url += '-' + dir
 
@@ -652,29 +652,29 @@ class MakeRelease(object):
         print('*' * 70)
 
         print('Download:')
-        print('http://download.wikimedia.org/mediawiki/'
-              + dir + '/' + package + '.tar.gz')
+        print('http://download.wikimedia.org/mediawiki/' +
+              dir + '/' + package + '.tar.gz')
         print()
 
         if prevVersion is not None:
             if haveI18n:
-                print("Patch to previous version (" + prevVersion
-                      + "), without interface text:")
-                print('http://download.wikimedia.org/mediawiki/'
-                      + dir + '/' + package + '.patch.gz')
+                print("Patch to previous version (" + prevVersion +
+                      "), without interface text:")
+                print('http://download.wikimedia.org/mediawiki/' +
+                      dir + '/' + package + '.patch.gz')
                 print("Interface text changes:")
-                print('http://download.wikimedia.org/mediawiki/'
-                      + dir + '/' + i18nPatch)
+                print('http://download.wikimedia.org/mediawiki/' +
+                      dir + '/' + i18nPatch)
             else:
                 print("Patch to previous version (" + prevVersion + "):")
-                print('http://download.wikimedia.org/mediawiki/'
-                      + dir + '/' + package + '.patch.gz')
+                print('http://download.wikimedia.org/mediawiki/' +
+                      dir + '/' + package + '.patch.gz')
             print()
 
         print('GPG signatures:')
         for fileName in outFiles:
-            print('http://download.wikimedia.org/mediawiki/'
-                  + dir + '/' + fileName + '.sig')
+            print('http://download.wikimedia.org/mediawiki/' +
+                  dir + '/' + fileName + '.sig')
         print()
 
         print('Public keys:')
