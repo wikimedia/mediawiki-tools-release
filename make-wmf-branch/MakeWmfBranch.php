@@ -171,16 +171,10 @@ class MakeWmfBranch {
 				$this->runCmd( 'git', 'submodule', 'add', '-q',
 					"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
 			}
-
 			if( isset( $preservedRefs[$name] ) ) {
 				$this->chdir( "extensions/$name" );
 				$this->runCmd( 'git', 'remote', 'update' );
 				$this->runCmd( 'git', 'checkout', '-q', $preservedRefs[$name] );
-
-				if ( $this->branchExists( $preservedRefs[$name] ) ) {
-					$this->runCmd( 'git', 'branch', '-u', 'origin/' . $preservedRefs[$name] );
-				}
-
 				$this->chdir( "../.." );
 			}
 		}
@@ -212,17 +206,6 @@ class MakeWmfBranch {
 		}
 
 		$this->runWriteCmd( 'git', 'push', 'origin', 'wmf/' . $this->newVersion  );
-	}
-
-	function branchExists( $branchName ) {
-		if ( !is_string( $branchName ) ) {
-			return false;
-		}
-
-		$remoteBranch = "origin/$branchName";
-		exec( 'git branch --list -r ' . escapeshellarg( $remoteBranch ), $output,  $res );
-
-		return isset( $output[0] ) && strpos( $output[0], $remoteBranch );
 	}
 
 	function fixVersion( $fileName ) {
