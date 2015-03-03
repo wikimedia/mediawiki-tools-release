@@ -104,8 +104,6 @@ diff:
         - "*~"
         - ".js*"
         - ".git*"
-        - testsuite
-        - tests
         - "*.xcf"
         - "#*#"
         - ".#*"
@@ -128,8 +126,6 @@ tar:
         - ".js*"
         - ".git*"
         - ".rubocop*"
-        - testsuite
-        - tests
         - "*.xcf"
         - "#*#"
         - ".#*"
