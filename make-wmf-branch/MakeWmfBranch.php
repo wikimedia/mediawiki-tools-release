@@ -21,6 +21,7 @@ class MakeWmfBranch {
 		$this->dryRun = $dryRun;
 		$this->buildDir = $buildDir;
 		$this->branchedExtensions = $branchedExtensions;
+		$this->branchedSubmodules = $branchedSubmodules;
 		$this->branchedSkins = $branchedSkins;
 		$this->specialExtensions = $specialExtensions;
 		$this->noisy = $noisy;
@@ -99,18 +100,35 @@ class MakeWmfBranch {
 		$this->chdir( $this->buildDir );
 	}
 
+	function createBranch( $branchName ) {
+		$this->runCmd( 'git', 'checkout', '-q', '-b', $branchName );
+
+		$this->fixGitReview();
+		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
+
+		$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
+	}
+
 	function branchRepo( $path  ) {
 		$repo = basename( $path );
 		$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/{$path}.git", $repo );
 		$this->chdir( $repo );
 		$newVersion = $this->branchPrefix . $this->newVersion;
 
-		$this->runCmd( 'git', 'checkout', '-q', '-b', $newVersion );
+		$this->createBranch( $newVersion );
 
-		$this->fixGitReview();
-		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$newVersion} branch" );
-
-		$this->runWriteCmd( 'git', 'push', 'origin', $newVersion );
+		if ( isset( $this->branchedSubmodules[$path] ) ) {
+			foreach ( (array)$this->branchedSubmodules[$path] as $submodule ) {
+				$this->runCmd( 'git', 'submodule', 'update', '--init', $submodule );
+				$this->chdir( $submodule );
+				$this->createBranch( $newVersion );
+				// Get us back to the repo directory by first going to the build directory,
+				// then into the repo from there. chdir( '..' ) doesn't work because the submodule
+				// may be inside a subdirectory
+				$this->chdir( $this->buildDir );
+				$this->chdir( $repo );
+			}
+		}
 		$this->chdir( $this->buildDir );
 	}
 
