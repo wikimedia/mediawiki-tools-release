@@ -100,13 +100,20 @@ class MakeWmfBranch {
 		$this->chdir( $this->buildDir );
 	}
 
-	function createBranch( $branchName ) {
+	function createBranch( $branchName, $doPush=true ) {
 		$this->runCmd( 'git', 'checkout', '-q', '-b', $branchName );
 
 		$this->fixGitReview();
 		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
-
-		$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
+		$originUrl = trim(`git config --get remote.origin.url`);
+		$originUrl = str_replace('https://gerrit.wikimedia.org/r/p/',
+					 'ssh://gerrit.wikimedia.org:29418/',
+					 $originUrl);
+                $this->runCmd( 'git', 'remote', 'rm', 'origin' );
+                $this->runCmd( 'git', 'remote', 'add', 'origin', $originUrl );
+		if ($doPush == true) {
+			$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
+		}
 	}
 
 	function branchRepo( $path  ) {
@@ -115,9 +122,8 @@ class MakeWmfBranch {
 		$this->chdir( $repo );
 		$newVersion = $this->branchPrefix . $this->newVersion;
 
-		$this->createBranch( $newVersion );
-
 		if ( isset( $this->branchedSubmodules[$path] ) ) {
+			$this->createBranch( $newVersion, false );
 			foreach ( (array)$this->branchedSubmodules[$path] as $submodule ) {
 				$this->runCmd( 'git', 'submodule', 'update', '--init', $submodule );
 				$this->chdir( $submodule );
@@ -127,7 +133,12 @@ class MakeWmfBranch {
 				// may be inside a subdirectory
 				$this->chdir( $this->buildDir );
 				$this->chdir( $repo );
+				$this->runCmd('git', 'add', $submodule);
 			}
+			$this->runCmd('git', 'commit', '-q', '--amend', '-m', "Creating new {$newVersion} branch");
+			$this->runWriteCmd( 'git', 'push', 'origin', $newVersion );
+		} else {
+			$this->createBranch( $newVersion, true );
 		}
 		$this->chdir( $this->buildDir );
 	}
