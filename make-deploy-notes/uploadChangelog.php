@@ -47,7 +47,14 @@ if ( stripos( $output, "array\n(" ) !== false ) {
 require_once( __DIR__ . '/botclasses.php' );
 $wiki = new wikipedia( 'https://www.mediawiki.org/w/api.php' );
 
-$wiki->login( '', '' );
+
+// auth.php should contain the following:
+// <?php
+// $wiki->login( 'username', 'password' );
+
+if (file_exists(__DIR__.'/auth.php')) {
+	require_once( __DIR__.'/auth.php');
+}
 
 list( $major, $minor ) = getMajorMinor( $version );
 $wiki->edit( "MediaWiki 1.{$major}/wmf{$minor}/Changelog", $output, "Update changelog for $version", false, false );
