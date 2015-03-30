@@ -465,8 +465,8 @@ class MakeRelease(object):
         if self.options.gitrootext:
             gitroot = self.options.gitrootext
 
-        self.getGit(gitroot + '/extensions/' + extension,
-                    dir + '/extensions/' + extension, extension, branch)
+        self.getGit(gitroot + '/' + extension,
+                    dir + '/' + extension, extension, branch)
         logging.info('Done with exporting %s', extension)
 
     def makePatch(self, destDir, patchFileName, dir1, dir2, type):
@@ -567,7 +567,7 @@ class MakeRelease(object):
         for ext in self.get_extensions_for_version(version, extensions):
             self.exportExtension(branch, ext, package)
             extExclude.append("--exclude")
-            extExclude.append("extensions/" + ext)
+            extExclude.append(ext)
 
         # Generate the .tar.gz files
         outFiles = []
