@@ -1,3 +1,4 @@
 *.pyc
 /.tox
 /make-deploy-notes/auth.php
+local.conf
