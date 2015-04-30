@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 from subprocess import check_output
 from datetime import date
 import re
@@ -15,15 +15,25 @@ headings = ["dependencies", "stories", "bugs", "qa", "hygiene", "i18n",
 DEBUG = False
 
 
+def get_input(prompt):
+    """
+    Backwards-compatability for Python 2
+    """
+    if sys.version[0] == 3:
+        return input(prompt)
+    else:
+        return raw_input(prompt)  # noqa
+
+
 def info(msg):
     if DEBUG:
-        print "[INFO] %s" % msg
+        print("[INFO] %s" % msg)
 
 
 def get_commit_range(repodir, commit=None):
     if not commit:
         prompt = 'Enter commit number or <ENTER> for last-update: '
-        commit = raw_input(prompt)
+        commit = get_input(prompt)
     if len(commit) == 0:
         commit = latest_commit(repodir)
     else:
@@ -175,4 +185,4 @@ if __name__ == '__main__':
         f.write(wikitext)
         f.close()
     else:
-        print wikitext
+        print(wikitext)
