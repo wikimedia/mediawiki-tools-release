@@ -68,7 +68,7 @@ def parse_args():
     )
     parser.add_argument(
         '--git-root', dest='gitroot',
-        default='ssh://gerrit.wikimedia.org:29418/mediawiki',
+        default='https://gerrit.wikimedia.org/r/p/mediawiki',
         help='base git URL to fetch projects from (defaults to Gerrit)'
     )
     parser.add_argument(
