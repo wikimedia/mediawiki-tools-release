@@ -113,6 +113,11 @@ def parse_args():
         default='composer',
         help='Location to composer executable, defaults to `composer`'
     )
+    parser.add_argument(
+        '--list-bundled', dest='list_bundled',
+        action='store_true',
+        help='List all bundled extensions for the given versoin and quit'
+    )
 
     return parser.parse_args()
 
@@ -314,11 +319,31 @@ class MakeRelease(object):
                         base.remove(repo)
         return sorted(extensions + list(base))
 
+    def print_bundled(self, extensions):
+        """
+        Print all bundled extensions and skins
+
+        :param extensions: Extensions that are already being included
+        :return: exit code
+        """
+        for repo in self.get_extensions_for_version(self.version, extensions):
+            print(repo)
+        return 0
+
     def main(self):
-        " return value should be usable as an exit code"
+        """return value should be usable as an exit code"""
 
         extensions = []
         bundles = self.config.get('bundles', {})
+
+        if options.smw:
+            if 'smw' not in bundles:
+                raise Exception("No SMW extensions given.")
+
+            # Other extensions for inclusion
+            extensions.extend(bundles['smw'])
+        if options.list_bundled:
+            return self.print_bundled(extensions)
 
         logging.info("Doing release for %s", self.version.raw)
 
@@ -333,15 +358,6 @@ class MakeRelease(object):
                 version=MwVersion.new_snapshot(),
                 dir='snapshots')
             return 0
-
-        if options.smw:
-            smwExtensions = bundles.get('smw', None)
-            if smwExtensions is None:
-                raise Exception("No SMW extensions given.")
-
-            # Other extensions for inclusion
-            for ext in smwExtensions:
-                extensions.append(ext)
 
         if options.previousversion:
             # Given the previous version on the command line
