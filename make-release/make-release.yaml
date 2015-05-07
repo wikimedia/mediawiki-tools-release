@@ -37,28 +37,28 @@ bundles:
         add:
             - extensions/CiteThisPage
     smw:
-        - AdminLinks
-        - ApprovedRevs
-        - Arrays
-        - DataTransfer,
-        - ExternalData
-        - HeaderTabs
-        - Maps
-        - PageSchemas
-        - ReplaceText
-        - SemanticCompoundQueries
-        - SemanticDrilldown,
-        - SemanticForms,
-        - SemanticFormsInputs,
-        - SemanticImageInput
-        - SemanticInternalObjects
-        - SemanticMaps
-        - SemanticMediaWiki
-        - SemanticResultFormats
-        - SemanticTasks
-        - SemanticWatchlist
-        - Validator
-        - Widgets
+        - extensions/AdminLinks
+        - extensions/ApprovedRevs
+        - extensions/Arrays
+        - extensions/DataTransfer
+        - extensions/ExternalData
+        - extensions/HeaderTabs
+        - extensions/Maps
+        - extensions/PageSchemas
+        - extensions/ReplaceText
+        - extensions/SemanticCompoundQueries
+        - extensions/SemanticDrilldown
+        - extensions/SemanticForms
+        - extensions/SemanticFormsInputs
+        - extensions/SemanticImageInput
+        - extensions/SemanticInternalObjects
+        - extensions/SemanticMaps
+        - extensions/SemanticMediaWiki
+        - extensions/SemanticResultFormats
+        - extensions/SemanticTasks
+        - extensions/SemanticWatchlist
+        - extensions/Validator
+        - extensions/Widgets
 diff:
     ignore:
         - "*~"
