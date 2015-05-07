@@ -299,8 +299,20 @@ class MakeRelease(object):
         """
         if extensions is None:
             extensions = []
-        return extensions + self.config.get('bundles', {}).get('mediawiki-' +
-                                                               version.major)
+        if 'bundles' not in self.config:
+            return extensions
+        bundles = self.config['bundles']
+        base = set(bundles['base'])
+        for release in sorted(list(bundles)):
+            if release.startswith('mediawiki-') and release <= 'mediawiki-' + version.major:
+                changes = bundles[release]
+                if 'add' in changes:
+                    for repo in changes['add']:
+                        base.add(repo)
+                if 'remove' in changes:
+                    for repo in changes['remove']:
+                        base.remove(repo)
+        return sorted(extensions + list(base))
 
     def main(self):
         " return value should be usable as an exit code"
