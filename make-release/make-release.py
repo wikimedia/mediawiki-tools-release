@@ -116,7 +116,7 @@ def parse_args():
     parser.add_argument(
         '--list-bundled', dest='list_bundled',
         action='store_true',
-        help='List all bundled extensions for the given versoin and quit'
+        help='List all bundled extensions for the given version and quit'
     )
 
     return parser.parse_args()
