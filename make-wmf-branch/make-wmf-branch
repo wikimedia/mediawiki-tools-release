@@ -9,6 +9,32 @@ if ( count( $argv ) < 3 ) {
 	exit( 1 );
 }
 
+$current_branch = trim(`git symbolic-ref --short HEAD`);
+$abort = false;
+if ($current_branch == 'master') {
+    echo "Verifying that make-wmf-branch is up to date with origin/master...";
+    shell_exec('git fetch');
+    $log = `git log HEAD..origin/master --pretty=oneline`;
+    $logsize = strlen($log);
+    if ($logsize > 0) {
+        $abort=true;
+        $reason = "Out of date, you need to integrate these commits from origin/master:\n";
+        $reason .= $log;
+        echo "\n";
+    } else {
+        echo "ok\n";
+    }
+} else {
+    $abort=true;
+    $reason = "Wrong branch: $current_branch. Please run make-wmf-branch from the latest origin/master revision.";
+}
+
+if ($abort) {
+    echo "Aborting make-wmf-branch:\n";
+    echo "Reason: $reason\n";
+    exit(1);
+}
+
 $newVersion = $argv[1];
 $oldVersion = $argv[2];
 $clonePath = isset( $argv[3] ) ? $argv[3] : null;
