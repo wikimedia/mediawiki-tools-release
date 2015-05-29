@@ -10,20 +10,27 @@ class MakeWmfBranch {
 	function __construct( $newVersion, $oldVersion ) {
 		$this->newVersion = $newVersion;
 		$this->oldVersion = $oldVersion;
-		$codeDir = dirname( __FILE__ );
 		$buildDir = sys_get_temp_dir() . '/make-wmf-branch';
 
-		require( "{$codeDir}/default.conf" );
-		if ( file_exists( "{$codeDir}/local.conf" ) ) {
-			require( "{$codeDir}/local.conf" );
+		require __DIR__ . '/default.conf';
+
+		$branchLists = json_decode(
+			file_get_contents( __DIR__ . '/config.json' ),
+			true
+		);
+
+		// This comes after we load all the default configuration
+		// so it is possible to override default.conf and $branchLists
+		if ( file_exists( __DIR__ . '/local.conf' ) ) {
+			require __DIR__ . '/local.conf';
 		}
 
 		$this->dryRun = $dryRun;
 		$this->buildDir = $buildDir;
-		$this->branchedExtensions = $branchedExtensions;
-		$this->branchedSubmodules = $branchedSubmodules;
-		$this->branchedSkins = $branchedSkins;
-		$this->specialExtensions = $specialExtensions;
+		$this->branchedExtensions = $branchLists['extensions'];
+		$this->branchedSubmodules = $branchLists['submodules'];
+		$this->branchedSkins = $branchLists['skins'];
+		$this->specialExtensions = $branchLists['special_extensions'];
 		$this->noisy = $noisy;
 		$this->patches = $patches;
 		$this->baseRepoPath = $baseRepoPath;

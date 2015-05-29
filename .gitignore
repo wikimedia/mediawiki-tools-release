@@ -2,3 +2,5 @@
 /.tox
 /make-deploy-notes/auth.php
 local.conf
+composer.lock
+/vendor
