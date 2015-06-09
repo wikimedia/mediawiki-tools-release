@@ -167,7 +167,7 @@
 	"special_extensions": {
 		"CentralNotice": "wmf_deploy",
 		"DonationInterface": "deployment",
-		"Wikidata": "wmf/1.26wmf6",
+		"Wikidata": "wmf/1.26wmf9",
 		"SemanticMediaWiki": "1.8.x",
 		"SemanticResultFormats": "1.8.x",
 		"Validator": "0.5.x"
