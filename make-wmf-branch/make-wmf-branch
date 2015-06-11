@@ -1,51 +1,113 @@
 #!/usr/bin/env php
 <?php
-require __DIR__ . '/cli.php';
+require __DIR__.'/../vendor/autoload.php';
 
-if ( count( $argv ) < 3 ) {
-	echo "Usage: make-wmf-branch <new-version> <old-version> <path to clone>\n";
-	echo "Example: make-wmf-branch 1.20wmf2 1.20wmf1\n";
-	echo " <path to clone>, if given, is a local clone on disk to use\n";
-	exit( 1 );
+$cli = new League\CLImate\CLImate;
+
+$cli->description("Creates a new release branch on mediawiki/core "
+                . "and deployed extensions.\n");
+
+$cli->arguments->add([
+    'branch' => [
+        'description'  => 'New Branch Name',
+    ],
+    'base' => [
+        'longPrefix'  => 'from',
+        'description' => 'Name of an alternate ref to branch from '
+                       . '(if not branching from master.)',
+        'defaultValue' => 'master',
+    ],
+    'localClone' => [
+        'longPrefix'    => 'localClone',
+        'description'   => 'Path to a local git repo to clone from',
+    ],
+    'resume' => [
+        'longPrefix'    => 'resume',
+        'noValue'       => true,
+        'description'   => 'Attempt to resume a previous branching operation, '
+                         . 'which was previously interrupted, '
+                         . 'by loading state from /tmp/make-wmf-branch.state.',
+    ],
+    'force' => [
+        'longPrefix'    => 'force',
+        'prefix'        => 'f',
+        'noValue'       => true,
+        'description'   => 'Force make-wmf-branch to run, overriding the '
+                         . 'branch check.',
+    ],
+    'verbose' => [
+        'longPrefix'    => 'verbose',
+        'noValue'       => true,
+        'description'   => 'Produce verbose output.',
+    ],
+    'dryRun' => [
+        'longPrefix'    => 'dryRun',
+        'noValue'       => true,
+        'description'   => 'Simulate the branching without pushing any changes '
+                         . 'to the remote repositories.',
+    ],
+    'help' => [
+        'longPrefix'    => 'help',
+        'noValue'       => true,
+        'description'   => 'Display extended usage instructions.'
+    ],
+]);
+
+try {
+    $cli->arguments->parse();
+} catch (Exception $e) {
+    $cli->usage();
+    exit(1);
+}
+
+if ($cli->arguments->defined('help')) {
+    $cli->usage();
+    $cli->br();
+    $readme = file_get_contents(__DIR__.'/README');
+    $readme = trim(str_replace("\n ", "\n        ", $readme));
+    $cli->out($readme);
+    exit();
 }
 
 $current_branch = trim(`git symbolic-ref HEAD`);
-$abort = false;
-if ($current_branch == 'refs/heads/master') {
-    echo "Verifying that make-wmf-branch is up to date with origin/master...";
+$errors=false;
+if ($current_branch == 'refs/heads/master' || $current_branch == 'master') {
+    $cli->inline("Verifying that your repo is up to date with origin/master...");
     shell_exec('git fetch');
     $log = `git log HEAD..origin/master --pretty=oneline`;
     $logsize = strlen($log);
     if ($logsize > 0) {
-        $abort=true;
-        $reason = "Out of date, you need to integrate these commits from origin/master:\n";
-        $reason .= $log;
-        echo "\n";
+        $cli->out("Nope")->red("Your repository is out of date.")
+            ->lightGray("You need to integrate these commits from origin/master:")
+            ->darkGray($log);
+        $errors=true;
     } else {
-        echo "ok\n";
+        $cli->out('Looks good.');
     }
-} else {
-    $abort=true;
-    $reason = "Wrong branch: $current_branch. Please run make-wmf-branch from the latest master revision.";
+} else if (!$cli->arguments->defined('force')) {
+    $cli->to("error")->red("Wrong branch")->lightGray($current_branch)->br();
+    $cli->out('Please run make-wmf-branch from an up to date master.');
+    $errors=true;
 }
 
-if ($abort) {
-    echo "Aborting make-wmf-branch:\n";
-    echo "Reason: $reason\n";
+$changes = `git status --porcelain`;
+if (!empty($changes)) {
+    $cli->out("Warning: You have local changes in your tools/release checkout:")->br()
+    ->comment($changes)->br();
+}
+
+if (!$cli->arguments->get('branch')) {
+    $cli->error('Missing required argument "branch"');
+    $errors=true;
+}
+if ($errors) {
+    $cli->usage();
     exit(1);
 }
 
-$changes = trim('git status --porcelain');
-if (!empty($changes)) {
-    echo "Warning: You have local changes in your tools/release checkout:\n";
-    echo $changes."\n\n";
-}
-
-$newVersion = $argv[1];
-$oldVersion = $argv[2];
-$clonePath = isset( $argv[3] ) ? $argv[3] : null;
+//$clonePath = isset( $argv[3] ) ? $argv[3] : null;
 
 require_once( __DIR__ . '/MakeWmfBranch.php' );
 
-$obj = new MakeWmfBranch( $newVersion, $oldVersion );
-$obj->execute( $clonePath );
+$obj = new MakeWmfBranch( );
+$obj->execute( null );

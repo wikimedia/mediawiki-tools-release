@@ -1,0 +1,12 @@
+# make-wmf-branch
+
+  it's a tool.
+
+# Configuration
+
+  The list of extensions and skins that are branched is loaded from config.json,
+  which is located in the same directory as the script.
+
+  Other configuration values are loaded from default.conf, which should be a
+  simple PHP include file that assigns values to local variables to override
+  the defaults contained in MakeWmfBranch.php.

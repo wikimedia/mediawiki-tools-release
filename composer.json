@@ -6,5 +6,8 @@
         "test": [
             "phpunit $PHPUNIT_ARGS"
         ]
+    },
+    "require": {
+        "league/climate": "^3.1"
     }
 }

@@ -6,10 +6,14 @@ class MakeWmfBranch {
 	var $specialExtensions, $branchedExtensions, $branchedSkins, $patches;
 	var $baseRepoPath, $anonRepoPath;
 	var $noisy;
+	var $cli;
+	var $state;
 
-	function __construct( $newVersion, $oldVersion ) {
-		$this->newVersion = $newVersion;
-		$this->oldVersion = $oldVersion;
+	function __construct( $cli ) {
+		$this->cli = $cli;
+		$this->newVersion = $cli->arguments->get('branch');
+		$this->oldVersion = $cli->arguments->get('base');
+
 		$buildDir = sys_get_temp_dir() . '/make-wmf-branch';
 
 		require __DIR__ . '/default.conf';
@@ -19,23 +23,69 @@ class MakeWmfBranch {
 			true
 		);
 
+		// if we are resuming then load the state from last run
+		if ($cli->arguments->defined('resume')
+			&& file_exists('/tmp/make-wmf-branch.state')) {
+			$lastRunState = json_decode(
+				file_get_contents( '/tmp/make-wmf-branch.state'),
+				true
+			);
+		} else {
+			$lastRunState = null;
+		}
+
 		// This comes after we load all the default configuration
 		// so it is possible to override default.conf and $branchLists
 		if ( file_exists( __DIR__ . '/local.conf' ) ) {
 			require __DIR__ . '/local.conf';
 		}
 
-		$this->dryRun = $dryRun;
+		$this->loadState($branchLists, $lastRunState);
+		$this->dryRun = $dryRun || $cli->arguments->defined('dryRun');
 		$this->buildDir = $buildDir;
-		$this->branchedExtensions = $branchLists['extensions'];
-		$this->branchedSubmodules = $branchLists['submodules'];
-		$this->branchedSkins = $branchLists['skins'];
-		$this->specialExtensions = $branchLists['special_extensions'];
-		$this->noisy = $noisy;
+		$this->noisy = $noisy || $cli->arguments->defined('verbose');
 		$this->patches = $patches;
 		$this->baseRepoPath = $baseRepoPath;
 		$this->anonRepoPath = $anonRepoPath;
 		$this->branchPrefix = $branchPrefix;
+	}
+
+	function loadState($branchLists, $lastRunState=null) {
+		foreach(['extensions','skins'] as $name) {
+			$list = $branchLists[$name];
+			$newlist = [];
+			foreach($list as $extension) {
+				if (isset($lastRunState[$name][$extension])) {
+					$newlist[$extension] = $lastRunState[$name][$extension];
+				} else {
+					$newlist[$extension] = null;
+				}
+			}
+			$branchLists[$name] = $newlist;
+		}
+
+		$this->branchedExtensions = $branchLists['extensions'];
+		$this->branchedSubmodules = $branchLists['submodules'];
+		$this->branchedSkins = $branchLists['skins'];
+		$this->specialExtensions = $branchLists['special_extensions'];
+	}
+
+	function abortSavingState() {
+		$result = $this->saveState();
+		if ($result === false) {
+			$this->cli->out('Unable to save state to file. Dumping state instead:');
+			$this->cli->out($this->state);
+		}
+		exit(1);
+	}
+
+	function saveState() {
+		$state = [
+			'extensions' => $this->branchedExtensions,
+			'skins' => $this->branchedSkins,
+		];
+		$this->state = serialize($state);
+		return file_put_contents('/tmp/mae-wmf-branch.state', $this->state);
 	}
 
 	function runCmd( /*...*/ ) {
@@ -80,28 +130,55 @@ class MakeWmfBranch {
 	}
 
 	function croak( $msg ) {
-		fwrite( STDERR, "$msg\n" );
-		exit( 1 );
+		$this->cli->to('error')->red("$msg")->br();
+		throw new Exception($msg);
 	}
 
-	function execute( $clonePath ) {
+	function execute() {
+		if ($this->cli->arguments->defined('localClone')) {
+			$clonePath = $this->cli->arguments->get('localClone');
+		} else {
+			$clonePath = null;
+		}
 		$this->setupBuildDirectory();
-		foreach( $this->branchedExtensions as $ext ) {
-			$this->branchRepo( "extensions/{$ext}" );
+		foreach( $this->branchedExtensions as $ext => $status) {
+			if ($status === null) {
+				try {
+					$status = $this->branchRepo( "extensions/{$ext}" );
+					$this->branchedExtensions[$ext] = $status;
+				} catch(Exception $e) {
+					$this->branchedExtensions[$ext] = false;
+					$this->abortSavingState();
+				}
+
+			}
 		}
-		foreach( $this->branchedSkins as $skin ) {
-			$this->branchRepo( "skins/{$skin}" );
+		foreach( $this->branchedSkins as $skin => $status) {
+			if ($status === null) {
+				try {
+					$status = $this->branchRepo( "skins/{$skin}" );
+					$this->branchedSkins[$skin] = $status;
+				} catch(Exception $e) {
+					$this->branchedExtensions[$ext] = false;
+					$this->abortSavingState();
+				}
+			}
 		}
-		$this->branchRepo( 'vendor' );
-		$this->branchWmf( $clonePath );
+		try {
+			$this->branchRepo( 'vendor' );
+			$this->branchWmf( $clonePath );
+		} catch(Exception $e) {
+			$this->abortSavingState();
+		}
 	}
 
 	function setupBuildDirectory() {
+		$resume = $this->cli->defined('resume');
 		# Create a temporary build directory
-		if ( file_exists( $this->buildDir ) ) {
+		if (file_exists($this->buildDir) && !$resume) {
 			$this->runCmd( 'rm', '-rf', '--', $this->buildDir );
 		}
-		if ( !mkdir( $this->buildDir ) ) {
+		if (!mkdir($this->buildDir) && !$resume) {
 			$this->croak( "Unable to create build directory {$this->buildDir}" );
 		}
 		$this->chdir( $this->buildDir );
@@ -148,6 +225,7 @@ class MakeWmfBranch {
 			$this->createBranch( $newVersion, true );
 		}
 		$this->chdir( $this->buildDir );
+		return true;
 	}
 
 	function branchWmf( $clonePath ) {
@@ -198,7 +276,7 @@ class MakeWmfBranch {
 
 		# Add extension submodules
 		foreach (
-			array_merge( array_keys( $this->specialExtensions ), $this->branchedExtensions )
+			array_merge( array_keys( $this->specialExtensions ), array_keys($this->branchedExtensions) )
 				as $name ) {
 			if( in_array( $name, $this->branchedExtensions ) ) {
 				$this->runCmd( 'git', 'submodule', 'add', '-b', $newVersion, '-q',
@@ -216,7 +294,7 @@ class MakeWmfBranch {
 		}
 
 		# Add skin submodules
-		foreach ( $this->branchedSkins as $name ) {
+		foreach ( $this->branchedSkins as $name => $status) {
 			$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
 				"{$this->anonRepoPath}/skins/{$name}.git", "skins/$name" );
 		}
@@ -236,7 +314,6 @@ class MakeWmfBranch {
 
 		# Apply patches
 		foreach ( $this->patches as $patch => $subpath ) {
-			// git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
 			$this->runCmd( 'git', 'fetch', $this->baseRepoPath . '/' . $subpath, $patch );
 			$this->runCmd( 'git', 'cherry-pick', 'FETCH_HEAD' );
 		}
@@ -252,9 +329,30 @@ class MakeWmfBranch {
 	}
 
 	function fixGitReview() {
-		$s = file_get_contents( ".gitreview" );
-		$s = str_replace( "defaultbranch=master", "defaultbranch={$this->branchPrefix}{$this->newVersion}", $s );
-		file_put_contents( ".gitreview", $s );
+		$orig = file_get_contents( ".gitreview" );
+		$lines = explode("\n", $orig);
+		$result = array();
+		foreach ($lines as $line) {
+	       $line = explode("=",$line,2);
+	       $line[0] = trim($line[0]);
+	       if (count($line) == 1) {
+               $result[] = $line[0];
+	       } else {
+               if ($line[0] == 'defaultbranch') {
+	               $line[1] = "{$this->branchPrefix}{$this->newVersion}";
+               }
+               $result[] = join('=', $line);
+	       }
+		}
+
+		$result = join("\n",$result);
+		if ($orig == $result) {
+			// this is essentially just a dummy change so that there is
+			// guaranteed to be some change to commit.
+			// Without this, the commit fails sometimes and breaks everything.
+			$result .= "\n# Branched at ".date('Y-m-d H:i:s');
+		}
+
+		file_put_contents( ".gitreview", $result );
 	}
 }
-
