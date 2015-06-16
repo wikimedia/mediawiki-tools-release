@@ -109,5 +109,5 @@ if ($errors) {
 
 require_once( __DIR__ . '/MakeWmfBranch.php' );
 
-$obj = new MakeWmfBranch( );
+$obj = new MakeWmfBranch( $cli );
 $obj->execute( null );

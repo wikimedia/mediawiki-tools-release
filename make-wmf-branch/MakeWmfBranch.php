@@ -99,6 +99,9 @@ class MakeWmfBranch {
 		$attempts = 0;
 		do {
 			echo "$cmd\n";
+			if ($this->dryRun) {
+				return;
+			}
 			passthru( $cmd, $ret );
 
 			if ( !$ret ) {
@@ -116,7 +119,7 @@ class MakeWmfBranch {
 		if ( $this->dryRun ) {
 			$encArgs = array_map( 'escapeshellarg', $args );
 			$cmd = implode( ' ', $encArgs );
-			echo "[dry-run] $cmd\n";
+			echo "$cmd\n";
 		} else {
 			call_user_func_array( array( $this, 'runCmd' ), $args );
 		}
@@ -173,7 +176,8 @@ class MakeWmfBranch {
 	}
 
 	function setupBuildDirectory() {
-		$resume = $this->cli->defined('resume');
+		$resume = $this->cli->arguments->defined('resume');
+		echo "is resume? $resume\n";
 		# Create a temporary build directory
 		if (file_exists($this->buildDir) && !$resume) {
 			$this->runCmd( 'rm', '-rf', '--', $this->buildDir );
