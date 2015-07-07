@@ -7,51 +7,51 @@ $cli = new League\CLImate\CLImate;
 $cli->description("Creates a new release branch on mediawiki/core "
                 . "and deployed extensions.\n");
 
-$cli->arguments->add(array(
-    'branch' => array(
+$cli->arguments->add([
+    'branch' => [
         'description'  => 'New Branch Name',
-    ),
-    'base' => array(
+    ],
+    'base' => [
         'longPrefix'  => 'from',
         'description' => 'Name of an alternate ref to branch from '
                        . '(if not branching from master.)',
         'defaultValue' => 'master',
-    ),
-    'localClone' => array(
+    ],
+    'localClone' => [
         'longPrefix'    => 'localClone',
         'description'   => 'Path to a local git repo to clone from',
-    ),
-    'resume' => array(
+    ],
+    'resume' => [
         'longPrefix'    => 'resume',
         'noValue'       => true,
         'description'   => 'Attempt to resume a previous branching operation, '
                          . 'which was previously interrupted, '
                          . 'by loading state from /tmp/make-wmf-branch.state.',
-    ),
-    'force' => array(
+    ],
+    'force' => [
         'longPrefix'    => 'force',
         'prefix'        => 'f',
         'noValue'       => true,
         'description'   => 'Force make-wmf-branch to run, overriding the '
                          . 'branch check.',
-    ),
-    'verbose' => array(
+    ],
+    'verbose' => [
         'longPrefix'    => 'verbose',
         'noValue'       => true,
         'description'   => 'Produce verbose output.',
-    ),
-    'dryRun' => array(
+    ],
+    'dryRun' => [
         'longPrefix'    => 'dryRun',
         'noValue'       => true,
         'description'   => 'Simulate the branching without pushing any changes '
                          . 'to the remote repositories.',
-    ),
-    'help' => array(
+    ],
+    'help' => [
         'longPrefix'    => 'help',
         'noValue'       => true,
         'description'   => 'Display extended usage instructions.'
-    ),
-));
+    ],
+]);
 
 try {
     $cli->arguments->parse();
@@ -63,7 +63,7 @@ try {
 if ($cli->arguments->defined('help')) {
     $cli->usage();
     $cli->br();
-    $readme = file_get_contents(__DIR__.'/README');
+    $readme = file_get_contents(__DIR__ . '/README');
     $readme = trim(str_replace("\n ", "\n        ", $readme));
     $cli->out($readme);
     exit();
@@ -77,7 +77,8 @@ if ($current_branch == 'refs/heads/master' || $current_branch == 'master') {
     $log = `git log HEAD..origin/master --pretty=oneline`;
     $logsize = strlen($log);
     if ($logsize > 0) {
-        $cli->out("Nope")->red("Your repository is out of date.")
+        $cli->out("Nope")
+            ->red("Your repository is out of date.")
             ->lightGray("You need to integrate these commits from origin/master:")
             ->darkGray($log);
         $errors=true;
@@ -85,15 +86,20 @@ if ($current_branch == 'refs/heads/master' || $current_branch == 'master') {
         $cli->out('Looks good.');
     }
 } else if (!$cli->arguments->defined('force')) {
-    $cli->to("error")->red("Wrong branch")->lightGray($current_branch)->br();
+    $cli->to("error")
+        ->red("Wrong branch")
+        ->lightGray($current_branch)
+        ->br();
     $cli->out('Please run make-wmf-branch from an up to date master.');
     $errors=true;
 }
 
 $changes = `git status --porcelain`;
 if (!empty($changes)) {
-    $cli->out("Warning: You have local changes in your tools/release checkout:")->br()
-    ->comment($changes)->br();
+    $cli->out("Warning: You have local changes in your tools/release checkout:")
+        ->br()
+        ->comment($changes)
+        ->br();
 }
 
 if (!$cli->arguments->get('branch')) {
