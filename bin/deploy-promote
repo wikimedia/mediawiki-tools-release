@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Copyright © 2015 Mukunda Modell
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+# http://www.gnu.org/copyleft/gpl.html
+#
+
+# deploy-promote promotes a specified group of wikis to the specified
+# wmf deployment branch (or the latest branch if none is specified)
+#
+# Example usage:
+#
+# bin/deploy-promote group0 1.26wmf10
+#
+# The above command promotes all group0 wikis (testwiki and mediawiki.org)
+# to version 1.26wmf10.
+
+set -e
+
+cd /srv/mediawiki-staging/
+export OLDVERSION=`/srv/mediawiki-staging/multiversion/activeMWVersions|cut -d " " -f1`
+NEWVERSION=`/srv/mediawiki-staging/multiversion/activeMWVersions|cut -d " " -f2`
+GRP=${1:-group1}
+export VERSION=${2:-$NEWVERSION}
+read -p "Promote $GRP from ${OLDVERSION} to ${VERSION}? Enter to continue, ctl-c cancel: "
+/srv/mediawiki-staging/multiversion/updateWikiversions $GRP php-${VERSION}
+
+git add wikiversions.json
+git add docroot/bits/static-current/
+git add w/static/current
+git add php
+
+MSG="$GRP wikis to ${VERSION}"
+NOLOGMSG=1 git commit -m "$MSG" -e
+
+git push gerrit HEAD:refs/for/master/${VERSION}
+
+git reset --hard HEAD^
+
+read -p "Now merge the patch and press enter to continue with git pull && sync-wikiversions"
+
+echo "Running git pull"
+
+git pull
+
+HEADMSG=`git log --pretty=oneline -1 | cut -f 2- -d " "`
+
+if [ "$HEADMSG" != "$MSG" ]; then
+    echo "ERR: Pulled revision didn't match."
+    echo "Expected: $MSG"
+    echo "Actual: $HEADMSG"
+    exit 1
+fi
+
+echo "Running sync-wikiversions"
+
+sync-wikiversions "$MSG"
+
+set +e
+[[ "$GRP" == "all" ]] && CHECK="wikipedia" || CHECK="wikinews"
+URLTOCHECK="https://en.$CHECK.org/wiki/Special:Version"
+echo "-----------------------------------------"
+echo "Checking version on $URLTOCHECK"
+echo "Expect: $VERSION"
+echo -n "Response: "
+curl --silent --show-error $URLTOCHECK | grep --only-matching "$VERSION"
+echo
+echo "-----------------------------------------"
+
+if [ $? -eq 0 ]; then
+    echo "SUCCESS: version matched ${VERSION}"
+else
+    echo "ERROR: did not match ${VERSION}"
+    exit 1
+fi
+
