@@ -7,51 +7,51 @@ $cli = new League\CLImate\CLImate;
 $cli->description("Creates a new release branch on mediawiki/core "
                 . "and deployed extensions.\n");
 
-$cli->arguments->add([
-    'branch' => [
+$cli->arguments->add(array(
+    'branch' => array(
         'description'  => 'New Branch Name',
-    ],
-    'base' => [
+    ),
+    'base' => array(
         'longPrefix'  => 'from',
         'description' => 'Name of an alternate ref to branch from '
                        . '(if not branching from master.)',
         'defaultValue' => 'master',
-    ],
-    'localClone' => [
+    ),
+    'localClone' => array(
         'longPrefix'    => 'localClone',
         'description'   => 'Path to a local git repo to clone from',
-    ],
-    'resume' => [
+    ),
+    'resume' => array(
         'longPrefix'    => 'resume',
         'noValue'       => true,
         'description'   => 'Attempt to resume a previous branching operation, '
                          . 'which was previously interrupted, '
                          . 'by loading state from /tmp/make-wmf-branch.state.',
-    ],
-    'force' => [
+    ),
+    'force' => array(
         'longPrefix'    => 'force',
         'prefix'        => 'f',
         'noValue'       => true,
         'description'   => 'Force make-wmf-branch to run, overriding the '
                          . 'branch check.',
-    ],
-    'verbose' => [
+    ),
+    'verbose' => array(
         'longPrefix'    => 'verbose',
         'noValue'       => true,
         'description'   => 'Produce verbose output.',
-    ],
-    'dryRun' => [
+    ),
+    'dryRun' => array(
         'longPrefix'    => 'dryRun',
         'noValue'       => true,
         'description'   => 'Simulate the branching without pushing any changes '
                          . 'to the remote repositories.',
-    ],
-    'help' => [
+    ),
+    'help' => array(
         'longPrefix'    => 'help',
         'noValue'       => true,
         'description'   => 'Display extended usage instructions.'
-    ],
-]);
+    ),
+));
 
 try {
     $cli->arguments->parse();
