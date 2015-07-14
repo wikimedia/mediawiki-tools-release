@@ -8,7 +8,8 @@ class MakeWmfBranch {
 	var $noisy;
 	var $cli;
 	var $state;
-
+	var $cmdLog = array();
+	var $logOnly = false;
 	function __construct( $cli ) {
 		$this->cli = $cli;
 		$this->newVersion = $cli->arguments->get('branch');
@@ -48,6 +49,7 @@ class MakeWmfBranch {
 		$this->baseRepoPath = $baseRepoPath;
 		$this->anonRepoPath = $anonRepoPath;
 		$this->branchPrefix = $branchPrefix;
+		$this->logOnly = $cli->arguments->defined('logOnly');
 	}
 
 	function loadState($branchLists, $lastRunState=null) {
@@ -95,7 +97,10 @@ class MakeWmfBranch {
 		}
 		$encArgs = array_map( 'escapeshellarg', $args );
 		$cmd = implode( ' ', $encArgs );
-
+		$this->cmdLog[] = $cmd;
+		if ($this->logOnly){
+			return;
+		}
 		$attempts = 0;
 		do {
 			echo "$cmd\n";
@@ -172,6 +177,12 @@ class MakeWmfBranch {
 			$this->branchWmf( $clonePath );
 		} catch(Exception $e) {
 			$this->abortSavingState();
+		}
+		if ($this->logOnly){
+			$cli->lightGray('Command Log:')->br();
+			$cli->border('=');
+			$lines = join("\n", $this->cmdLog);
+			$this->cli->darkGray($lines)->br();
 		}
 	}
 

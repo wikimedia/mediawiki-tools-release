@@ -46,6 +46,13 @@ $cli->arguments->add([
         'description'   => 'Simulate the branching without pushing any changes '
                          . 'to the remote repositories.',
     ],
+    'logOnly' =>  [
+        'longPrefix'    => 'logOnly',
+        'noValue'       => true,
+        'description'   => 'Instead of executing the various commands to '
+                         . 'create new branches, simply output a log of the '
+                         . 'commands that would have been executed.'
+    ],
     'help' => [
         'longPrefix'    => 'help',
         'noValue'       => true,
