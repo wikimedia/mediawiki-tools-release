@@ -1,0 +1,49 @@
+#!/bin/env php
+<?php
+$function = $argv[0];
+$args = array_slice($argv,1);
+
+call_user_func_array($function, $args);
+
+function fixGitReview($newVersion, $branchPrefix="wmf/") {
+    if (!file_exists('.gitreview')){
+      echo 'No such file: .gitreview'
+      exit(1);
+    }
+    $orig = file_get_contents( ".gitreview" );
+    $lines = explode("\n", $orig);
+    $result = array();
+    foreach ($lines as $line) {
+       $line = explode("=",$line,2);
+       $line[0] = trim($line[0]);
+       if (count($line) == 1) {
+           $result[] = $line[0];
+       } else {
+           if ($line[0] == 'defaultbranch') {
+               $line[1] = "{$branchPrefix}{$this->newVersion}";
+           }
+           $result[] = join('=', $line);
+       }
+    }
+
+    $result = join("\n",$result);
+    if ($orig == $result) {
+        // this is essentially just a dummy change so that there is
+        // guaranteed to be some change to commit.
+        // Without this, the commit fails sometimes and breaks everything.
+        $result .= "\n# Branched at ".date('Y-m-d H:i:s');
+    }
+
+    file_put_contents( ".gitreview", $result );
+  }
+
+  function fixVersion( $newVersion, $fileName ) {
+    if (!$file_exists($fileName)){
+        echo "File not found: $fileName";
+        exit(1);
+    }
+    $s = file_get_contents( $fileName );
+    $s = preg_replace( '/^( \$wgVersion \s+ = \s+ )  [^;]*  ( ; \s* ) $/xm',
+      "\\1'{$newVersion}'\\2", $s );
+    file_put_contents( $fileName, $s );
+  }

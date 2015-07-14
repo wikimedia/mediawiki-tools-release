@@ -131,6 +131,11 @@ class MakeWmfBranch {
 	}
 
 	function chdir( $dir ) {
+		if ($this->logOnly) {
+			$this->cmdLog[] = "cd $dir";
+			@chdir( $dir );
+			return;
+		}
 		if ( !chdir( $dir ) ) {
 			$this->croak( "Unable to change working directory\n" );
 		}
@@ -138,6 +143,9 @@ class MakeWmfBranch {
 	}
 
 	function croak( $msg ) {
+		if ($this->logOnly){
+			return;
+		}
 		$this->cli->to('error')->red("$msg")->br();
 		throw new Exception($msg);
 	}
@@ -179,8 +187,8 @@ class MakeWmfBranch {
 			$this->abortSavingState();
 		}
 		if ($this->logOnly){
-			$cli->lightGray('Command Log:')->br();
-			$cli->border('=');
+			$this->cli->lightGray('Command Log:')->br();
+			$this->cli->border('=');
 			$lines = join("\n", $this->cmdLog);
 			$this->cli->darkGray($lines)->br();
 		}
@@ -188,10 +196,14 @@ class MakeWmfBranch {
 
 	function setupBuildDirectory() {
 		$resume = $this->cli->arguments->defined('resume');
-		echo "is resume? $resume\n";
 		# Create a temporary build directory
 		if (file_exists($this->buildDir) && !$resume) {
 			$this->runCmd( 'rm', '-rf', '--', $this->buildDir );
+		}
+		if ($this->logOnly){
+			$this->cmdLog[] = "mkdir ".$this->buildDir;
+			$this->chdir( $this->buildDir );
+			return;
 		}
 		if (!mkdir($this->buildDir) && !$resume) {
 			$this->croak( "Unable to create build directory {$this->buildDir}" );
@@ -337,6 +349,10 @@ class MakeWmfBranch {
 	}
 
 	function fixVersion( $fileName ) {
+		if ($this->logOnly) {
+			$this->cmdLog[] = "~/bin/fixVersion {$this->newVersion} {$fileName}";
+			return;
+		}
 		$s = file_get_contents( $fileName );
 		$s = preg_replace( '/^( \$wgVersion \s+ = \s+ )  [^;]*  ( ; \s* ) $/xm',
 			"\\1'{$this->newVersion}'\\2", $s );
@@ -344,6 +360,10 @@ class MakeWmfBranch {
 	}
 
 	function fixGitReview() {
+		if ($this->logOnly) {
+			$this->cmdLog[] = "~/bin/fixGitReview $this->newVersion";
+			return;
+		}
 		$orig = file_get_contents( ".gitreview" );
 		$lines = explode("\n", $orig);
 		$result = array();
