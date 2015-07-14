@@ -35,6 +35,11 @@ export OLDVERSION=`/srv/mediawiki-staging/multiversion/activeMWVersions|cut -d "
 NEWVERSION=`/srv/mediawiki-staging/multiversion/activeMWVersions|cut -d " " -f2`
 GRP=${1:-group1}
 export VERSION=${2:-$NEWVERSION}
+DBLIST="/srv/mediawiki-staging/$GRP.dblist"
+if [ ! -f "$DBLIST" ]; then
+    echo "$DBLIST does not exist"
+    exit 1
+fi
 read -p "Promote $GRP from ${OLDVERSION} to ${VERSION}? Enter to continue, ctl-c cancel: "
 /srv/mediawiki-staging/multiversion/updateWikiversions $GRP php-${VERSION}
 
@@ -44,7 +49,7 @@ git add w/static/current
 git add php
 
 MSG="$GRP wikis to ${VERSION}"
-NOLOGMSG=1 git commit -m "$MSG" -e
+git commit -m "$MSG"
 
 git push gerrit HEAD:refs/for/master/${VERSION}
 
