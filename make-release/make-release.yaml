@@ -64,7 +64,6 @@ diff:
         - "*~"
         - ".js*"
         - ".git*"
-        - "*.xcf"
         - "#*#"
         - ".#*"
         - ".rubocop*"
@@ -87,7 +86,6 @@ tar:
         - ".js*"
         - ".git*"
         - ".rubocop*"
-        - "*.xcf"
         - "#*#"
         - ".#*"
         - .travis.yml
