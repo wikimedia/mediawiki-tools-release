@@ -93,6 +93,7 @@
 		"PageImages",
 		"PageTriage",
 		"ParserFunctions",
+		"ParsoidBatchAPI",
 		"PdfHandler",
 		"Petition",
 		"Poem",
