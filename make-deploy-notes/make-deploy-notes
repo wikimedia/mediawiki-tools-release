@@ -231,12 +231,16 @@ function filter_git_output( $logoutput ) {
  * @param string $oldbranch
  * @param string $newbranch
  * @param string $type
+ * @param array $disabledExtension
  * @return string
  */
-function get_all_submodule_change_markup( $oldbranch, $newbranch, $type ) {
+function get_all_submodule_change_markup( $oldbranch, $newbranch, $type, $disabledExtension = array() ) {
 	$retval = '';
 	$extrecords = get_submodule_versions( $oldbranch, $newbranch, $type );
 	foreach ( $extrecords as $extrecord ) {
+		if ( in_array( $extrecord['name'], $disabledExtension ) ) {
+			continue;
+		}
 		if( !array_key_exists( 'oldrev', $extrecord ) ) {
 			$printType = $type === 'extensions' ? 'extension' : 'skin';
 			$retval .= get_change_log( $extrecord['name'], "* Newly deployed $printType\n" );
@@ -265,6 +269,7 @@ function get_change_log( $name, $changes ) {
 	return '=== ' . $name . " ===\n" . $changes;
 }
 
+
 /**
  * Main program flow
  * Get changes for core (git_cherry_log_output_core + filter_git_output)
@@ -275,6 +280,17 @@ function get_change_log( $name, $changes ) {
  * @param array $argv
  */
 function main( $argv ) {
+	$disabledExtensions = array();
+	if ( file_exists( __DIR__ . '/../make-wmf-branch/config.json' ) ) {
+		$extensionLists = json_decode(
+			file_get_contents( __DIR__ . '/../make-wmf-branch/config.json' ),
+			true
+		);
+		if ( isset( $extensionLists['special_extensions'] ) ) {
+			$disabledExtensions = array_keys( $extensionLists['special_extensions'] );
+		}
+	}
+
 	list( $oldbranch, $newbranch ) = get_args( $argv );
 	print "== Core changes ==\n";
 	print filter_git_output( useful_git_log( $oldbranch, $newbranch ) );
@@ -285,7 +301,7 @@ function main( $argv ) {
 	print filter_git_output( useful_git_log( $vendorVer['oldrev'], $vendorVer['newrev'], null, 'vendor' ) );
 
 	print "== Extensions ==\n";
-	print get_all_submodule_change_markup( $oldbranch, $newbranch, 'extensions' );
+	print get_all_submodule_change_markup( $oldbranch, $newbranch, 'extensions', $disabledExtensions );
 
 	print "== Skins ==\n";
 	print get_all_submodule_change_markup( $oldbranch, $newbranch, 'skins' );
