@@ -88,7 +88,6 @@
 		"OAI",
 		"OATHAuth",
 		"OpenStackManager",
-		"Oversight",
 		"PagedTiffHandler",
 		"PageImages",
 		"PageTriage",
@@ -138,8 +137,8 @@
 		"VectorBeta",
 		"VipsScaler",
 		"VisualEditor",
+		"WikidataPageBanner",
 		"WikiEditor",
-		"WikiGrok",
 		"wikihiero",
 		"WikiLove",
 		"WikimediaEvents",
@@ -167,7 +166,7 @@
 	"special_extensions": {
 		"CentralNotice": "wmf_deploy",
 		"DonationInterface": "deployment",
-		"Wikidata": "wmf/1.26wmf16",
+		"Wikidata": "wmf/1.26wmf19",
 		"SemanticMediaWiki": "1.8.x",
 		"SemanticResultFormats": "1.8.x",
 		"Validator": "0.5.x"
