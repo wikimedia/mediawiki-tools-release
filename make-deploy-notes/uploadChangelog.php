@@ -21,7 +21,7 @@
  */
 
 if ( count( $argv ) !== 2 ) {
-	print "usage: $argv[0] wmf/1.23wmf1\n";
+	print "usage: $argv[0] wmf/1.27.0-wmf.1\n";
 	exit(1);
 }
 
@@ -29,7 +29,7 @@ $version = $argv[1];
 $previousVersion = getPreviousVersion( $version );
 
 if ( $previousVersion === null ) {
-	print "usage: $argv[0] wmf/1.23wmf1\n";
+	print "usage: $argv[0] wmf/1.27.0-wmf.1\n";
 	exit(1);
 }
 
@@ -77,7 +77,15 @@ function getPreviousVersion( $input ) {
 	} else {
 		$minor--;
 	}
-	return "wmf/1.{$major}wmf{$minor}";
+	// wmf branches in the 1.26 release cycle and prior has another version notation
+	// FIXME: This is useful for the time we change to semver and can (probably) be removed after
+	// four or five wmf-versions, or after REL1_27 was released.
+	if ( $major <= 26 ) {
+		return "wmf/1.{$major}wmf{$minor}";
+	} else {
+		// anything else (higher and equal 1.27) uses new semver notation
+		return "wmf/1.{$major}.0-wmf.{$minor}";
+	}
 }
 
 /**
@@ -86,7 +94,8 @@ function getPreviousVersion( $input ) {
  */
 function getMajorMinor( $input ) {
 	$matches = array();
-	if ( preg_match( "/^wmf\/1\.(\d{2})wmf(\d{1,2})/", $input, $matches ) ) {
+	// match any version like wmf/1.26wmf22 or the new semver wmf/1.27.0-wmf1
+	if ( preg_match( "/^wmf\/1\.(\d{2})(?:\.[0-9]\-)?wmf.?(\d{1,2})/", $input, $matches ) ) {
 		// var_dump( $matches );
 		$major = intval( $matches[1] );
 		$minor = intval( $matches[2] );
