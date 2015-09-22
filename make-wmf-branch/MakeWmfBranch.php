@@ -10,6 +10,7 @@ class MakeWmfBranch {
 	var $state;
 	var $cmdLog = array();
 	var $logOnly = false;
+
 	function __construct( $cli ) {
 		$this->cli = $cli;
 		$this->newVersion = $cli->arguments->get('branch');
@@ -166,7 +167,6 @@ class MakeWmfBranch {
 					$this->branchedExtensions[$ext] = false;
 					$this->abortSavingState();
 				}
-
 			}
 		}
 		foreach( $this->branchedSkins as $skin => $status) {
@@ -220,8 +220,8 @@ class MakeWmfBranch {
 		$originUrl = str_replace('https://gerrit.wikimedia.org/r/p/',
 					 'ssh://gerrit.wikimedia.org:29418/',
 					 $originUrl);
-                $this->runCmd( 'git', 'remote', 'rm', 'origin' );
-                $this->runCmd( 'git', 'remote', 'add', 'origin', $originUrl );
+        $this->runCmd( 'git', 'remote', 'rm', 'origin' );
+        $this->runCmd( 'git', 'remote', 'add', 'origin', $originUrl );
 		if ($doPush == true) {
 			$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
 		}
@@ -345,7 +345,7 @@ class MakeWmfBranch {
 			$this->runCmd( 'git', 'cherry-pick', 'FETCH_HEAD' );
 		}
 
-		$this->runWriteCmd( 'git', 'push', 'origin', 'wmf/' . $this->newVersion  );
+		//$this->runWriteCmd( 'git', 'push', 'origin', 'wmf/' . $this->newVersion  );
 	}
 
 	function fixVersion( $fileName ) {
