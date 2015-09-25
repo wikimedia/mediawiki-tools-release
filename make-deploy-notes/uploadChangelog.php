@@ -57,7 +57,7 @@ if (file_exists(__DIR__.'/auth.php')) {
 }
 
 list( $major, $minor ) = getMajorMinor( $version );
-$wiki->edit( "MediaWiki 1.{$major}/wmf{$minor}/Changelog", $output, "Update changelog for $version", false, false );
+$wiki->edit( "MediaWiki 1.{$major}/wmf.{$minor}/Changelog", $output, "Update changelog for $version", false, false );
 
 print "Changelog updated\n";
 
