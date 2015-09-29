@@ -57,7 +57,7 @@ if (file_exists(__DIR__.'/auth.php')) {
 }
 
 list( $major, $minor ) = getMajorMinor( $version );
-$wiki->edit( "MediaWiki 1.{$major}/wmf{$minor}/Changelog", $output, "Update changelog for $version", false, false );
+$wiki->edit( "MediaWiki 1.{$major}/wmf.{$minor}/Changelog", $output, "Update changelog for $version", false, false );
 
 print "Changelog updated\n";
 
@@ -95,7 +95,7 @@ function getPreviousVersion( $input ) {
 function getMajorMinor( $input ) {
 	$matches = array();
 	// match any version like wmf/1.26wmf22 or the new semver wmf/1.27.0-wmf1
-	if ( preg_match( "/^wmf\/1\.(\d{2})(?:\.[0-9]\-)?wmf.?(\d{1,2})/", $input, $matches ) ) {
+	if ( preg_match( "/^wmf\/1\.(\d{2})(?:\.[0-9]\-)?wmf\.?(\d{1,2})/", $input, $matches ) ) {
 		// var_dump( $matches );
 		$major = intval( $matches[1] );
 		$minor = intval( $matches[2] );

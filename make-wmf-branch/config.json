@@ -34,6 +34,7 @@
 		"DisableAccount",
 		"Disambiguator",
 		"DismissableSiteNotice",
+		"DonationInterface",
 		"DoubleWiki",
 		"DynamicSidebar",
 		"Echo",
@@ -165,8 +166,7 @@
 	"@": "Set value to true to copy last branch, or a string for the specific commit, branch, or tag",
 	"special_extensions": {
 		"CentralNotice": "wmf_deploy",
-		"DonationInterface": "deployment",
-		"Wikidata": "wmf/1.26wmf22",
+		"Wikidata": true,
 		"SemanticMediaWiki": "1.8.x",
 		"SemanticResultFormats": "1.8.x",
 		"Validator": "0.5.x"
