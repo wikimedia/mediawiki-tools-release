@@ -73,7 +73,7 @@ function getPreviousVersion( $input ) {
 	list( $major, $minor ) = $majorMinor;
 	if ( $minor === 1 ) {
 		$major--;
-		$minor = 22;
+		$minor = getPreviousMinorVersion( $major );
 	} else {
 		$minor--;
 	}
@@ -86,6 +86,36 @@ function getPreviousVersion( $input ) {
 		// anything else (higher and equal 1.27) uses new semver notation
 		return "wmf/1.{$major}.0-wmf.{$minor}";
 	}
+}
+
+/**
+ * Takes a major version and finds the last minor version of the previous major version.
+ * @param string $major
+ * @return string
+ */
+function getPreviousMinorVersion( $major ) {
+	// check, which filter should be used for the filter
+	// Note, that 27 is used here, because the previous version would be 26, which uses the old
+	// non semantic versioning notation.
+	if ( $major <= 27 ) {
+		$filter = "wmf/1.{$major}wmf";
+	} else {
+		$filter = "wmf/1.{$major}.0-wmf";
+	}
+	// get the list in a raw output format which would be visible in the console for this command, sorted by version numbers
+	$rawList = shell_exec( "git branch -a --list */{$filter}* | sort -V" );
+	// convert the list (which is one string now) into an array of strings, splitted at the end of each line
+	$list = explode( PHP_EOL, $rawList );
+	$minor = '';
+	// there will be at least one (empty) line, check if there are more elements, which would be the list of versions.
+	if ( count( $list ) !== 1 ) {
+		// remove anythign before the correct version semantic (wmf/1.26wmf1 or wmf/1.27.0-wmf.1) using the filter defined above
+		// the array will start counting at 0 and will has one empty "line" at the end, so count all elements and subtract 2
+		list( $major, $minor ) = getMajorMinor( strstr( $list[ count( $list ) -2 ], $filter ) );
+	}
+
+	// check, if there was a good result, otherwise assume, that there are 22 previous minor versions and use that
+	return ( $minor !== "" ) ? $minor : 22;
 }
 
 /**
