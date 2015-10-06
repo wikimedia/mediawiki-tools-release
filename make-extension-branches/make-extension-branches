@@ -82,54 +82,48 @@ class MakeExtensionBranches {
 	public function start() {
 		$this->setup();
 		$this->setupBuildDirectory();
-
-		$branchName = $this->opts->branchName;
-		foreach ( $this->conf->extRepos as $extRepo ) {
-			// Move back to the build dir in each loop,
-			// otherwise we'll get build/AntiBot/CategoryTree/.. instead of build/AntiBot, build/CategoryTree, ..
-			$this->chdir( $this->buildDir );
-
-			if ( $extRepo === 'mediawiki/extensions' ) {
-				// Skip the meta repository
-				continue;
-			}
-			echo "... $extRepo\n";
-			$url = str_replace( '{repository}', $extRepo, $this->conf->extRepoUrlFormat );
-			$name = basename( $extRepo );
-			$this->execCmd( 'git', 'clone', '-q', $url, '-b', 'master', $name );
-			$this->chdir( $name );
-
-			$out = $exitcode = null;
-			// Check if the branch exists already
-			exec( 'git show-branch origin/' . escapeshellarg( $branchName ) . ' 2>&1', $out, $exitcode );
-			if ( $exitcode == 0 ) {
-				echo "Skipping $extRepo: Branch exists already\n";
-				continue;
-			}
-			$commit = $this->execReadCmd( 'git', 'rev-list', '-n', '1', '--before', $this->opts->branchDate, 'master' );
-			if ( !$commit ) {
-				echo "Skipping $extRepo: Repo does not have a commit before the branch date\n";
-				continue;
-			}
-			if ( $this->conf->verbose ) {
-				echo "... $extRepo: Branching $branchName at $commit\n";
-			}
-			$this->execCmd( 'git', 'checkout', '-q', $commit );
-			exec( 'git branch ' . escapeshellarg( $branchName ) . ' 2>&1', $out, $exitcode );
-			if ( $exitcode != 0 ) {
-				echo "Skipping $extRepo: Creating branch failed (exit code: $exitcode)\n";
-				continue;
-			}
-
-			# Intermediate commit & fixes
-			$this->fixGitReview( $branchName );
-			$this->execWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
-
-			# Final push to repo for this extension
-			$this->execWriteCmd( 'git', 'push', 'origin', "$branchName:refs/heads/$branchName" );
-		}
-
+		array_walk( $this->conf->extRepos, array( $this, 'doExt' ), $this->opts->branchName );
 		echo "Done!\n";
+	}
+
+
+	public function doExt( $extRepo, $unusedKey, $branchName ) {
+		// Move back to the build dir in each loop,
+		// otherwise we'll get build/AntiBot/CategoryTree/.. instead of build/AntiBot, build/CategoryTree, ..
+		$this->chdir( $this->buildDir );
+		if ( $extRepo === 'mediawiki/extensions' ) {
+			// Skip the meta repository
+			return;
+		}
+		echo "... $extRepo\n";
+		$url = str_replace( '{repository}', $extRepo, $this->conf->extRepoUrlFormat );
+		$name = basename( $extRepo );
+		$this->execCmd( 'git', 'clone', '-q', $url, '-b', 'master', $name );
+		$this->chdir( $name );
+
+		$out = $exitcode = null;
+		// Check if the branch exists already
+		exec( 'git show-branch origin/' . escapeshellarg( $branchName ) . ' 2>&1', $out, $exitcode );
+		if ( $exitcode == 0 ) {
+			echo "Skipping $extRepo: Branch exists already\n";
+			return;
+		}
+		$commit = $this->execReadCmd( 'git', 'rev-list', '-n', '1', '--before', $this->opts->branchDate, 'master' );
+		if ( !$commit ) {
+			echo "Skipping $extRepo: Repo does not have a commit before the branch date\n";
+			return;
+		}
+		if ( $this->conf->verbose ) {
+			echo "... $extRepo: Branching $branchName at $commit\n";
+		}
+		$this->execCmd( 'git', 'checkout', '-q', '-b', $branchName, $commit );
+
+		# Intermediate commit & fixes
+		$this->fixGitReview( $branchName );
+		$this->execCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
+
+		# Final push to repo for this extension
+		$this->execWriteCmd( 'git', 'push', 'origin', "$branchName:refs/heads/$branchName" );
 	}
 
 	protected function setupBuildDirectory() {
