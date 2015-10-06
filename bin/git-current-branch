@@ -1,2 +1,7 @@
 #!/bin/sh
+# this is meant to be used from within a repository which
+# conforms to wmf release branch naming conventions.
+# call git-current-branch to find the newest release branch
+# in version-sorted order, at the time of writing it should
+# print "wmf/1.27.0-wmf.1"
 git branch -a --list */wmf/1*|cut -d/ -f4|sort -V|tail -1
