@@ -1,2 +1,0 @@
-#!/bin/sh
-git branch -a --list */wmf/1*|cut -d/ -f4|sort -V|tail -1
