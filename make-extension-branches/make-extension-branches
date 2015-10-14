@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * Create branches in all Wikimedia-hosted extension repositories.
+ * Create branches in all Wikimedia-hosted extension/skin repositories.
  * Run this script after mediawiki/core has branched. Then figure
  * out the timestamp of when it was branched as follows:
  *
@@ -69,7 +69,11 @@ class MakeExtensionBranches {
 	protected function setup() {
 		if ( !$this->conf->extRepos ) {
 			// Fetch from Gerit
-			$list = explode( "\n", shell_exec( 'ssh -p 29418 gerrit.wikimedia.org gerrit ls-projects -p mediawiki/extensions' ) );
+			$cmd = 'ssh -p 29418 gerrit.wikimedia.org gerrit ls-projects -p';
+			$list = array_merge(
+				explode( "\n", shell_exec( "$cmd mediawiki/extensions" ) ),
+				explode( "\n", shell_exec( "$cmd mediawiki/skins" ) ),
+			);
 			// Trim leading/trailing whitespace
 			$list = array_map( 'trim', $list );
 			// Ignore empty lines
@@ -91,10 +95,6 @@ class MakeExtensionBranches {
 		// Move back to the build dir in each loop,
 		// otherwise we'll get build/AntiBot/CategoryTree/.. instead of build/AntiBot, build/CategoryTree, ..
 		$this->chdir( $this->buildDir );
-		if ( $extRepo === 'mediawiki/extensions' ) {
-			// Skip the meta repository
-			return;
-		}
 		echo "... $extRepo\n";
 		$url = str_replace( '{repository}', $extRepo, $this->conf->extRepoUrlFormat );
 		$name = basename( $extRepo );
@@ -122,7 +122,7 @@ class MakeExtensionBranches {
 		$this->fixGitReview( $branchName );
 		$this->execCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
 
-		# Final push to repo for this extension
+		# Final push to repo for this extension/skin
 		$this->execWriteCmd( 'git', 'push', 'origin', "$branchName:refs/heads/$branchName" );
 	}
 
