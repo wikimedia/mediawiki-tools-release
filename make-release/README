@@ -1,4 +1,4 @@
-Handy-dandy tool to pull a tagged release out of SVN and generate:
+Handy-dandy tool to pull a tagged release out of Git and generate:
 * a tarball
 * a patch to previous revision (if >= x.x.1)
 * GPG signatures for the above
