@@ -11,6 +11,7 @@ If no arguments are given, a snapshot is created.
 """
 
 import argparse
+import glob
 import logging
 import os
 import re
@@ -320,6 +321,11 @@ class MakeRelease(object):
                         base.remove(repo)
         return sorted(extensions + list(base))
 
+    def get_patches_for_repo(self, repo, patchDir):
+        patch_file_pattern = '*-%s.patch' % self.version.branch
+        return sorted(
+            glob.glob(os.path.join(patchDir, repo, patch_file_pattern)))
+
     def print_bundled(self, extensions):
         """
         Print all bundled extensions and skins
@@ -409,7 +415,7 @@ class MakeRelease(object):
                     return False
             print('Please type "y" for yes or "n" for no')
 
-    def getGit(self, repo, dir, label, branch):
+    def getGit(self, repo, dir, label, gitRef):
         oldDir = os.getcwd()
         if os.path.exists(repo):
             logging.debug("Updating local %s", repo)
@@ -434,9 +440,9 @@ class MakeRelease(object):
 
         os.chdir(dir)
 
-        if branch != 'master':
-            logging.debug("Checking out %s in %s...", branch, dir)
-            proc = subprocess.Popen(['git', 'checkout', branch])
+        if gitRef != 'master':
+            logging.debug("Checking out %s in %s...", gitRef, dir)
+            proc = subprocess.Popen(['git', 'checkout', gitRef])
 
             if proc.wait() != 0:
                 logging.error("git checkout failed, exiting")
@@ -460,25 +466,31 @@ class MakeRelease(object):
         os.chdir(cwd)
         logging.info("Fetched external composer dependencies")
 
-    def export(self, tag, module, exportDir):
+    def export(self, gitRef, module, exportDir, patches=[]):
 
         gitRoot = self.options.gitroot
 
         dir = exportDir + '/' + module
-        self.getGit(gitRoot + '/core', dir, "core", tag)
+        if patches:
+            gitRef = self.version.branch
+        self.getGit(gitRoot + '/core', dir, "core", gitRef)
+        for patch in patches:
+            self.applyPatch(patch, dir)
         # 1.25+ has composer dependencies.
         if self.version.major >= '1.25' or self.version.major == 'snapshot':
             self.install_composer_dependencies(dir)
 
         logging.info('Done with exporting core')
 
-    def exportExtension(self, branch, extension, dir):
+    def exportExtension(self, branch, extension, dir, patches=[]):
         gitroot = self.options.gitroot
         if self.options.gitrootext:
             gitroot = self.options.gitrootext
 
         self.getGit(gitroot + '/' + extension,
                     dir + '/' + extension, extension, branch)
+        for patch in patches:
+            self.applyPatch(patch, dir)
         logging.info('Done with exporting %s', extension)
 
     def makePatch(self, destDir, patchFileName, dir1, dir2, type):
@@ -510,6 +522,19 @@ class MakeRelease(object):
         patchFile.close()
         logging.info('Done with making patch')
         return diffStatus == 1
+
+    def applyPatch(self, patchFile, targetDir):
+        oldDir = os.getcwd()
+        os.chdir(targetDir)
+        with open(patchFile) as patchIn:
+            patchProc = subprocess.Popen(['git', 'am', '--signoff'], stdin=patchIn)
+            status = patchProc.wait()
+            if status != 0:
+                logging.error("Patch failed, exiting")
+                logging.error("git: %s", status)
+                sys.exit(1)
+        logging.info("Finished applying patch %s", patchFile)
+        os.chdir(oldDir)
 
     def makeTarFile(self, package, targetDir, dir, argAdd=[]):
         tar = self.options.tar_command
@@ -553,6 +578,7 @@ class MakeRelease(object):
 
         buildDir = rootDir + '/build'
         uploadDir = rootDir + '/uploads'
+        patchDir = rootDir + '/patches'
 
         if not os.path.exists(buildDir):
             logging.debug('Creating build dir: %s', buildDir)
@@ -560,6 +586,9 @@ class MakeRelease(object):
         if not os.path.exists(uploadDir):
             logging.debug('Creating uploads dir: %s', uploadDir)
             os.mkdir(uploadDir)
+        if not os.path.exists(patchDir):
+            logging.debug('Creating patch directory: %s', patchDir)
+            os.mkdir(patchDir)
 
         os.chdir(buildDir)
 
@@ -569,11 +598,13 @@ class MakeRelease(object):
         package = 'mediawiki-' + version.raw
 
         # Export the target
-        self.export(tag, package, buildDir)
+        patches = self.get_patches_for_repo('core', patchDir)
+        self.export(tag, package, buildDir, patches)
 
         extExclude = []
         for ext in self.get_extensions_for_version(version, extensions):
-            self.exportExtension(branch, ext, package)
+            patches = self.get_patches_for_repo(ext, patchDir)
+            self.exportExtension(branch, ext, package, patches)
             extExclude.append("--exclude")
             extExclude.append(ext)
 
