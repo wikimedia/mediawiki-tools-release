@@ -309,7 +309,8 @@ class MakeRelease(object):
         bundles = self.config['bundles']
         base = set(bundles['base'])
         for release in sorted(list(bundles)):
-            if release.startswith('mediawiki-') and release <= 'mediawiki-' + version.major:
+            if release.startswith('mediawiki-') and \
+                    release <= 'mediawiki-' + version.major:
                 changes = bundles[release]
                 if 'add' in changes:
                     for repo in changes['add']:
@@ -445,7 +446,8 @@ class MakeRelease(object):
 
     def install_composer_dependencies(self, directory):
         if self.options.offline:
-            logging.warning('Composer dependencies cannot be fetched in offline mode')
+            logging.warning(
+                'Composer dependencies cannot be fetched in offline mode')
             return
         cwd = os.getcwd()
         os.chdir(directory)
