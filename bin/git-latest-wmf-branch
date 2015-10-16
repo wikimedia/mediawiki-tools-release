@@ -1,0 +1,12 @@
+#!/bin/sh
+# this is meant to be used from within a repository which
+# conforms to wmf release branch naming conventions.
+# call git-current-branch to find the newest release branch
+# in version-sorted order, at the time of writing it should
+# print "wmf/1.27.0-wmf.1"
+
+# to use this script as a git subcommand, simply symlink it
+# to /usr/local/bin/git-latest-wmf-branch
+# (or another directory that is in your path)
+
+git branch -a --list|grep -o wmf\/.\*|sort -V|tail -1
