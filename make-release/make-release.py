@@ -458,24 +458,6 @@ class MakeRelease(object):
         os.chdir(cwd)
         logging.info("Fetched external composer dependencies")
 
-    def patchExport(self, patch, dir):
-
-        gitRoot = self.options.gitroot
-
-        os.chdir(dir)
-        logging.debug("Applying patch %s", patch)
-
-        # git fetch the reference from Gerrit and cherry-pick it
-        proc = subprocess.Popen(['git', 'fetch', gitRoot + '/core', patch,
-                                 '&&', 'git', 'cherry-pick', 'FETCH_HEAD'])
-
-        if proc.wait() != 0:
-            logging.error("git patch failed, exiting")
-            sys.exit(1)
-
-        os.chdir('..')
-        logging.info('Done with applying patch %s', patch)
-
     def export(self, tag, module, exportDir):
 
         gitRoot = self.options.gitroot
@@ -586,10 +568,6 @@ class MakeRelease(object):
 
         # Export the target
         self.export(tag, package, buildDir)
-
-        patchRevisions = []
-        for patch in patchRevisions:
-            self.patchExport(patch, package)
 
         extExclude = []
         for ext in self.get_extensions_for_version(version, extensions):
