@@ -35,7 +35,7 @@ export OLDVERSION=`/srv/mediawiki-staging/multiversion/activeMWVersions|cut -d "
 NEWVERSION=`/srv/mediawiki-staging/multiversion/activeMWVersions|cut -d " " -f2`
 GRP=${1:-group1}
 export VERSION=${2:-$NEWVERSION}
-DBLIST="/srv/mediawiki-staging/$GRP.dblist"
+DBLIST="/srv/mediawiki-staging/dblists/$GRP.dblist"
 if [ ! -f "$DBLIST" ]; then
     echo "$DBLIST does not exist"
     exit 1
@@ -44,14 +44,14 @@ read -p "Promote $GRP from ${OLDVERSION} to ${VERSION}? Enter to continue, ctl-c
 /srv/mediawiki-staging/multiversion/updateWikiversions $GRP php-${VERSION}
 
 git add wikiversions.json
-git add docroot/bits/static-current/
 git add w/static/current
+git add docroot/bits/static
 git add php
 
 MSG="$GRP wikis to ${VERSION}"
 git commit -m "$MSG"
 
-git push gerrit HEAD:refs/for/master/${VERSION}
+git push origin HEAD:refs/for/master/${VERSION}
 
 git reset --hard HEAD^
 
@@ -75,8 +75,11 @@ echo "Running sync-wikiversions"
 sync-wikiversions "$MSG"
 
 set +e
-[[ "$GRP" == "all" ]] && CHECK="wikipedia" || CHECK="wikinews"
-URLTOCHECK="https://en.$CHECK.org/wiki/Special:Version"
+[[ "$GRP" == "all" ]] || [[ "$GPP" == "wikipedia" ]] && CHECKDOMAIN="en.wikipedia.org"
+[[ "$GRP" == "group1" ]] && CHECKDOMAIN="en.wikinews.org"
+[[ "$GRP" == "group0" ]] && CHECKDOMAIN="www.mediawiki.org" || CHECKDOMAIN="test.wikipedia.org"
+
+URLTOCHECK="https://$CHECKDOMAIN/wiki/Special:Version"
 echo "-----------------------------------------"
 echo "Checking version on $URLTOCHECK"
 echo "Expect: $VERSION"
