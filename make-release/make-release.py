@@ -110,11 +110,6 @@ def parse_args():
         help='Do not perform actions (e.g. git pull) that require the network'
     )
     parser.add_argument(
-        '--composer', dest='composer',
-        default='composer',
-        help='Location to composer executable, defaults to `composer`'
-    )
-    parser.add_argument(
         '--list-bundled', dest='list_bundled',
         action='store_true',
         help='List all bundled extensions for the given version and quit'
@@ -450,22 +445,6 @@ class MakeRelease(object):
 
         os.chdir(oldDir)
 
-    def install_composer_dependencies(self, directory):
-        if self.options.offline:
-            logging.warning(
-                'Composer dependencies cannot be fetched in offline mode')
-            return
-        cwd = os.getcwd()
-        os.chdir(directory)
-        logging.debug('Installing composer dependencies...')
-        proc = subprocess.Popen([self.options.composer, 'install', '--no-dev'])
-        if proc.wait() != 0:
-            logging.error("Installing composer dependencies failed, exiting")
-            sys.exit(1)
-
-        os.chdir(cwd)
-        logging.info("Fetched external composer dependencies")
-
     def export(self, gitRef, module, exportDir, patches=[]):
 
         gitRoot = self.options.gitroot
@@ -476,9 +455,10 @@ class MakeRelease(object):
         self.getGit(gitRoot + '/core', dir, "core", gitRef)
         for patch in patches:
             self.applyPatch(patch, dir)
-        # 1.25+ has composer dependencies.
+        # 1.25+ has composer dependencies and needs mediawiki/vendor.
         if self.version.major >= '1.25' or self.version.major == 'snapshot':
-            self.install_composer_dependencies(dir)
+            self.getGit(gitRoot + '/vendor', dir + '/vendor',
+                        'vendor', self.version.branch)
 
         logging.info('Done with exporting core')
 
