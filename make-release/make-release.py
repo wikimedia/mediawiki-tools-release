@@ -659,7 +659,7 @@ class MakeRelease(object):
         # Write email template
         print()
         print("Full release notes:")
-        url = ('https://git.wikimedia.org/blob/mediawiki%2Fcore.git/' +
+        url = ('https://phabricator.wikimedia.org/diffusion/MW/browse/' +
                branch + '/RELEASE-NOTES-' + dir)
 
         print(url)
