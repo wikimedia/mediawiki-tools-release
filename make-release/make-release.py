@@ -660,9 +660,7 @@ class MakeRelease(object):
         print()
         print("Full release notes:")
         url = ('https://git.wikimedia.org/blob/mediawiki%2Fcore.git/' +
-               branch + '/RELEASE-NOTES')
-        if dir > '1.17':
-            url += '-' + dir
+               branch + '/RELEASE-NOTES-' + dir)
 
         print(url)
         print('https://www.mediawiki.org/wiki/Release_notes/' + dir)
