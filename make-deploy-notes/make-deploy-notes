@@ -210,7 +210,7 @@ function filter_git_output( $logoutput ) {
 		}
 
 		$retval .= "* {{git|{$record['hash']}}} - <nowiki>";
-		$retval .= htmlspecialchars( $record['subject'] ) . '</nowiki>';
+		$retval .= $record['subject'] . '</nowiki>';
 		if ( $record['bugs'] ) {
 			$retval .= ' (';
 			$retval .= implode( ", ", array_map( function( $b ) {
