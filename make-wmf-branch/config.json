@@ -11,6 +11,7 @@
 		"BounceHandler",
 		"Calendar",
 		"Campaigns",
+		"Cards",
 		"CategoryTree",
 		"CentralAuth",
 		"CharInsert",
