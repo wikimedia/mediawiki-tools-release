@@ -252,9 +252,35 @@ class MakeWmfBranch {
 	}
 
 	function fixGitReview() {
-		$s = file_get_contents( ".gitreview" );
-		$s = str_replace( "defaultbranch=master", "defaultbranch={$this->branchPrefix}{$this->newVersion}", $s );
-		file_put_contents( ".gitreview", $s );
+		$lines = file( '.gitreview', FILE_IGNORE_NEW_LINES );
+		$outputFile = array();
+		$changed = false;
+
+		foreach ( $lines as $line ) {
+			$arr = explode( '=', $line );
+
+			if ( count( $arr ) < 2 ) {
+				$outputFile[] = $line;
+				continue;
+			}
+
+			list( $k, $v ) = $arr;
+
+			if ( trim($k) === 'defaultbranch' ) {
+				$v = "{$this->branchPrefix}{$this->newVersion}";
+				$changed = true;
+			}
+
+			$outputFile[] = implode( '=', array( $k, $v ) );
+		}
+
+		$final = implode( "\n", $outputFile );
+		$final .= "\n";
+
+		if ( !$changed )
+			$final .= '# Updated ' . date( 'c' ) . "\n";
+
+		file_put_contents( '.gitreview', $final );
 	}
 }
 
