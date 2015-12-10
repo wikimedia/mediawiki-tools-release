@@ -31,11 +31,53 @@ class MakeWmfBranch {
 		$this->branchedSubmodules = $branchLists['submodules'];
 		$this->branchedSkins = $branchLists['skins'];
 		$this->specialExtensions = $branchLists['special_extensions'];
+		$this->alreadyBranched = array();
 		$this->noisy = $noisy;
 		$this->patches = $patches;
 		$this->baseRepoPath = $baseRepoPath;
 		$this->anonRepoPath = $anonRepoPath;
 		$this->branchPrefix = $branchPrefix;
+	}
+
+	/**
+	 * setup an alreadyBranched array that has the names of all extensions
+	 * up-to the extension from which we would like to start branching
+	 *
+	 * @param String/null $extName - name of extension from which to start branching
+	 */
+	function setStartExtension( $extName ) {
+		if ( $extName === null )
+			return;
+
+		$foundKey = false;
+		foreach ( array(
+			$this->branchedExtensions,
+			$this->branchedSkins,
+			array( 'vendor' ),
+		) as $branchedArr ) {
+			$key = array_search( $extName, $branchedArr);
+
+			if ( $key !== false ) {
+				array_splice( $branchedArr, $key );
+				$foundKey = true;
+			}
+
+			$this->alreadyBranched = array_merge(
+				$this->alreadyBranched,
+				$branchedArr
+			);
+
+			if ( $foundKey )
+				break;
+		}
+
+		if ( !$foundKey )
+			$this->croak(
+				"Could not find extension '{$extName}' in any branched Extension list"
+			);
+
+		// Should make searching array easier
+		$this->alreadyBranched = array_flip( $this->alreadyBranched );
 	}
 
 	function runCmd( /*...*/ ) {
@@ -80,7 +122,10 @@ class MakeWmfBranch {
 	}
 
 	function croak( $msg ) {
-		fwrite( STDERR, "$msg\n" );
+		$red = `tput setaf 1`;
+		$reset = `tput sgr0`;
+
+		fprintf( STDERR, "[{$red}ERROR{$reset}] %s\n", $msg );
 		exit( 1 );
 	}
 
@@ -125,6 +170,11 @@ class MakeWmfBranch {
 
 	function branchRepo( $path  ) {
 		$repo = basename( $path );
+
+		// repo has already been branched, so just bail out
+		if ( isset( $this->alreadyBranched[$repo] ) )
+			return;
+
 		$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/{$path}.git", $repo );
 		$this->chdir( $repo );
 		$newVersion = $this->branchPrefix . $this->newVersion;
