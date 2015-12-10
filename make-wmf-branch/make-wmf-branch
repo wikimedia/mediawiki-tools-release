@@ -2,11 +2,57 @@
 <?php
 require __DIR__ . '/cli.php';
 
-if ( count( $argv ) < 3 ) {
-	echo "Usage: make-wmf-branch <new-version> <old-version> <path to clone>\n";
-	echo "Example: make-wmf-branch 1.20wmf2 1.20wmf1\n";
-	echo " <path to clone>, if given, is a local clone on disk to use\n";
-	exit( 1 );
+const USAGE = <<<EOF
+    make-wmf-branch -n <new-branch> -o <old-branch> [-p wmf-clone-path]
+
+    Example: make-wmf-branch -o 1.27.0-wmf.8 -n 1.27.0-wmf.9
+
+    Arguments:
+    -h, --help                      Show this message
+    -n, --new                       New branch
+    -o, --old                       Old branch
+    -p, --path                      Path on local disk from which to
+                                    branch mediawiki-core
+
+EOF;
+
+$passedArgs = getopt( 'hn:o:p:', array(
+    'help',
+    'new:',
+    'old:',
+    'path:',
+) );
+
+if ( isset( $passedArgs['help'] ) || isset( $passedArgs['h'] ) ) {
+    fwrite( STDERR, USAGE );
+    exit( 0 );
+}
+
+$storedArgs = array(
+    array( 'n', 'new', 'newVersion', true ),
+    array( 'o', 'old', 'oldVersion', true ),
+    array( 'p', 'path', 'clonePath', false ),
+);
+
+foreach ( $storedArgs as $args ) {
+    list( $short, $long, $var, $required ) = $args;
+
+    $set = isset( $passedArgs[$short] ) || isset( $passedArgs[$long] );
+
+    if ( !$set && $required ) {
+        fprintf( STDERR, "'-%s' or '--%s' must be set.\n", $short, $long );
+        fprintf( STDERR, USAGE );
+        exit( 1 );
+    }
+
+    if ( !$set && !$required ) {
+        $$var = null;
+        continue;
+    }
+
+    $$var = isset( $passedArgs[$short] )
+        ? $passedArgs[$short]
+        : $passedArgs[$long];
 }
 
 $current_branch = trim(`git symbolic-ref HEAD`);
@@ -40,10 +86,6 @@ if (!empty($changes)) {
     echo "Warning: You have local changes in your tools/release checkout:\n";
     echo $changes."\n\n";
 }
-
-$newVersion = $argv[1];
-$oldVersion = $argv[2];
-$clonePath = isset( $argv[3] ) ? $argv[3] : null;
 
 require_once( __DIR__ . '/MakeWmfBranch.php' );
 
