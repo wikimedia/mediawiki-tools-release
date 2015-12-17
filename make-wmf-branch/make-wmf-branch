@@ -4,6 +4,7 @@ require __DIR__ . '/cli.php';
 
 const USAGE = <<<EOF
     make-wmf-branch -n <new-branch> -o <old-branch> [-p wmf-clone-path]
+                    [-c extension-name]
 
     Example: make-wmf-branch -o 1.27.0-wmf.8 -n 1.27.0-wmf.9
 
@@ -13,14 +14,24 @@ const USAGE = <<<EOF
     -o, --old                       Old branch
     -p, --path                      Path on local disk from which to
                                     branch mediawiki-core
+    -c, --continue-from             Extension from which to resume
+                                    branching. Mainly useful in the case
+                                    where initial branching fails.
+
+    Example `--continue-from` Usage:
+    --------------------------------
+    Branching fails on the `AccountAudit` extension. Use `-c AccountAudit` to
+    skip branching any previously successfully branched extensions and start
+    with branching `AccountAudit`.
 
 EOF;
 
-$passedArgs = getopt( 'hn:o:p:', array(
+$passedArgs = getopt( 'hn:o:p:c:', array(
     'help',
     'new:',
     'old:',
     'path:',
+    'continue-from:',
 ) );
 
 if ( isset( $passedArgs['help'] ) || isset( $passedArgs['h'] ) ) {
@@ -32,6 +43,7 @@ $storedArgs = array(
     array( 'n', 'new', 'newVersion', true ),
     array( 'o', 'old', 'oldVersion', true ),
     array( 'p', 'path', 'clonePath', false ),
+    array( 'c', 'continue-from', 'firstExtension', false ),
 );
 
 foreach ( $storedArgs as $args ) {
@@ -81,8 +93,8 @@ if ($abort) {
     exit(1);
 }
 
-$changes = trim('git status --porcelain');
-if (!empty($changes)) {
+$changes = `git status --porcelain`;
+if ( !empty( $changes ) ) {
     echo "Warning: You have local changes in your tools/release checkout:\n";
     echo $changes."\n\n";
 }
@@ -90,4 +102,5 @@ if (!empty($changes)) {
 require_once( __DIR__ . '/MakeWmfBranch.php' );
 
 $obj = new MakeWmfBranch( $newVersion, $oldVersion );
+$obj->setStartExtension( $firstExtension );
 $obj->execute( $clonePath );
