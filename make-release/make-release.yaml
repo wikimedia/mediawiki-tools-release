@@ -90,5 +90,6 @@ tar:
         - ".#*"
         - .travis.yml
         - package.json
+        - README.mediawiki
         - Gemfile
         - ".mailmap"
