@@ -1,0 +1,8 @@
+#!/bin/bash
+git checkout $1
+git pull
+git checkout $2
+git pull
+git merge -X theirs $1
+git submodule update --init --recursive
+git submodule foreach "merge-submodule-branch $1 $2"
