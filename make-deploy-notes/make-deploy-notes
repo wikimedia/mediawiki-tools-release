@@ -199,7 +199,7 @@ function filter_git_output( $logoutput ) {
 		'Add (\.gitreview( and )?)?\.gitignore',
 		'Creating new WMF', // Branching commit; set $wgVersion, defaultbranch, add submodules
 		'Updating development dependencies',
-		'Updated mediawiki/core', // git submodule autobumps
+		'Updated mediawiki\/core', // git submodule autobumps
 	);
 	foreach ( $logoutput as $record ) {
 		foreach( $skipLines as $skip ) {
