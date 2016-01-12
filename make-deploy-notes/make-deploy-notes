@@ -196,12 +196,10 @@ function filter_git_output( $logoutput ) {
 	$skipLines = array(
 		'Localisation updates from',
 		'COMMITMSG', // Fix for escaping fail leaving a commit summary of $COMMITMSG
-		'Add (\.gitreview and )?\.gitignore',
-		'Creating new WMF',
-		'Commit of various live hacks', // Our catchall patch for live hacky stuff
-		'Applied patches to new WMF',
-		'Bump .*? for deployment',
+		'Add (\.gitreview( and )?)?\.gitignore',
+		'Creating new WMF', // Branching commit; set $wgVersion, defaultbranch, add submodules
 		'Updating development dependencies',
+		'Updated mediawiki/core', // git submodule autobumps
 	);
 	foreach ( $logoutput as $record ) {
 		foreach( $skipLines as $skip ) {
