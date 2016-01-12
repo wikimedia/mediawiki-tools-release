@@ -201,6 +201,7 @@ function filter_git_output( $logoutput ) {
 		'Commit of various live hacks', // Our catchall patch for live hacky stuff
 		'Applied patches to new WMF',
 		'Bump .*? for deployment',
+		'Updating development dependencies',
 	);
 	foreach ( $logoutput as $record ) {
 		foreach( $skipLines as $skip ) {
