@@ -164,7 +164,7 @@
 			"lib/ve"
 		]
 	},
-	"@": "Set value to true to copy last branch, or a string for the specific commit, branch, or tag",
+	"@": "Set a string for the specific commit, branch, or tag",
 	"special_extensions": {
 		"CentralNotice": "wmf_deploy",
 		"Wikidata": "wmf/1.27.0-wmf.10",
