@@ -216,27 +216,6 @@ class MakeWmfBranch {
 			$this->runCmd( 'git', 'pull', '-q', '--ff-only', 'origin', $oldVersion );
 		}
 
-		# Look for the extensions we want to preserve the old branch's state
-		$preservedRefs = array();
-		foreach( $this->specialExtensions as $name => $copy ) {
-			if( $copy === true ) {
-				if( $this->oldVersion == 'master' ) {
-					// There's nothing to copy in this instance, if you're trying
-					// pin while oldVersion is master then use sha1's instead of true
-					continue;
-				} elseif( file_exists( "extension/$name" ) ) {
-					$preservedRefs[$name] = file_get_contents( "extensions/$name" );
-				} else {
-					$this->croak( "Extension ($name) wants to copy from the old branch "
-						. "but it doesn't exist there. Check configuration." );
-				}
-			} elseif( is_string( $copy ) ) {
-				$preservedRefs[$name] = $copy;
-			} else {
-				$this->croak( "Extension ($name) misconfigured. Don't know how to proceed." );
-			}
-		}
-
 		# Create a new branch from master and switch to it
 		$newVersion = $this->branchPrefix . $this->newVersion;
 		$this->runCmd( 'git', 'checkout', '-q', '-b', $newVersion );
@@ -257,10 +236,10 @@ class MakeWmfBranch {
 				$this->runCmd( 'git', 'submodule', 'add', '-q',
 					"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
 			}
-			if( isset( $preservedRefs[$name] ) ) {
+			if( in_array( $name, $this->specialExtensions ) ) {
 				$this->chdir( "extensions/$name" );
 				$this->runCmd( 'git', 'remote', 'update' );
-				$this->runCmd( 'git', 'checkout', '-q', $preservedRefs[$name] );
+				$this->runCmd( 'git', 'checkout', '-q', $this->specialExtensions[$name] );
 				$this->chdir( "../.." );
 			}
 		}
@@ -333,4 +312,3 @@ class MakeWmfBranch {
 		file_put_contents( '.gitreview', $final );
 	}
 }
-
