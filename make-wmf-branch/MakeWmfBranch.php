@@ -229,19 +229,14 @@ class MakeWmfBranch {
 		foreach (
 			array_merge( array_keys( $this->specialExtensions ), $this->branchedExtensions )
 				as $name ) {
-			if( in_array( $name, $this->branchedExtensions ) ) {
-				$this->runCmd( 'git', 'submodule', 'add', '-b', $newVersion, '-q',
-					"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
-			} else {
-				$this->runCmd( 'git', 'submodule', 'add', '-q',
-					"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
-			}
-			if( in_array( $name, $this->specialExtensions ) ) {
-				$this->chdir( "extensions/$name" );
-				$this->runCmd( 'git', 'remote', 'update' );
-				$this->runCmd( 'git', 'checkout', '-q', $this->specialExtensions[$name] );
-				$this->chdir( "../.." );
-			}
+
+			$submoduleBranch = $newVersion;
+
+			if ( isset( $this->specialExtensions[$name] ) )
+				$submoduleBranch = $this->specialExtensions[$name];
+
+			$this->runCmd( 'git', 'submodule', 'add', '-b', $submoduleBranch, '-q',
+				"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
 		}
 
 		# Add skin submodules
