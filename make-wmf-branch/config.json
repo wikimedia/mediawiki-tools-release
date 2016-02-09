@@ -90,6 +90,7 @@
 		"OAuth",
 		"OAI",
 		"OATHAuth",
+		"ORES",
 		"OpenStackManager",
 		"PagedTiffHandler",
 		"PageImages",
