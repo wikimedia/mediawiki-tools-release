@@ -4,7 +4,7 @@ class MakeWmfBranch {
 	var $dryRun;
 	var $newVersion, $oldVersion, $buildDir;
 	var $specialExtensions, $branchedExtensions, $branchedSkins, $patches;
-	var $baseRepoPath, $anonRepoPath;
+	var $repoPath;
 	var $noisy;
 
 	function __construct( $newVersion, $oldVersion ) {
@@ -34,8 +34,7 @@ class MakeWmfBranch {
 		$this->alreadyBranched = array();
 		$this->noisy = $noisy;
 		$this->patches = $patches;
-		$this->baseRepoPath = $baseRepoPath;
-		$this->anonRepoPath = $anonRepoPath;
+		$this->repoPath = $repoPath;
 		$this->branchPrefix = $branchPrefix;
 	}
 
@@ -175,7 +174,7 @@ class MakeWmfBranch {
 		if ( isset( $this->alreadyBranched[$repo] ) )
 			return;
 
-		$this->runCmd( 'git', 'clone', '-q', "{$this->baseRepoPath}/{$path}.git", $repo );
+		$this->runCmd( 'git', 'clone', '-q', "{$this->repoPath}/{$path}.git", $repo );
 		$this->chdir( $repo );
 		$newVersion = $this->branchPrefix . $this->newVersion;
 
@@ -203,7 +202,7 @@ class MakeWmfBranch {
 	function branchWmf( $clonePath ) {
 		# Clone the repository
 		$oldVersion = $this->oldVersion == 'master' ? 'master' : $this->branchPrefix . $this->oldVersion;
-		$path = $clonePath ? $clonePath : "{$this->baseRepoPath}/core.git";
+		$path = $clonePath ? $clonePath : "{$this->repoPath}/core.git";
 		$this->runCmd( 'git', 'clone', '-q', $path, '-b', $oldVersion, 'wmf' );
 
 		$this->chdir( 'wmf' );
@@ -212,7 +211,7 @@ class MakeWmfBranch {
 		# and make sure our clone is up to date with origin
 		if( $clonePath ) {
 			$this->runCmd( 'git', 'remote', 'rm', 'origin' );
-			$this->runCmd( 'git', 'remote', 'add', 'origin', "{$this->baseRepoPath}/core.git" );
+			$this->runCmd( 'git', 'remote', 'add', 'origin', "{$this->repoPath}/core.git" );
 			$this->runCmd( 'git', 'pull', '-q', '--ff-only', 'origin', $oldVersion );
 		}
 
@@ -236,18 +235,18 @@ class MakeWmfBranch {
 				$submoduleBranch = $this->specialExtensions[$name];
 
 			$this->runCmd( 'git', 'submodule', 'add', '-b', $submoduleBranch, '-q',
-				"{$this->anonRepoPath}/extensions/{$name}.git", "extensions/$name" );
+				"{$this->repoPath}/extensions/{$name}.git", "extensions/$name" );
 		}
 
 		# Add skin submodules
 		foreach ( $this->branchedSkins as $name ) {
 			$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
-				"{$this->anonRepoPath}/skins/{$name}.git", "skins/$name" );
+				"{$this->repoPath}/skins/{$name}.git", "skins/$name" );
 		}
 
 		# Add vendor submodule
 		$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
-			"{$this->anonRepoPath}/vendor.git", 'vendor' );
+			"{$this->repoPath}/vendor.git", 'vendor' );
 
 		# Fix $wgVersion
 		$this->fixVersion( "includes/DefaultSettings.php" );
@@ -261,7 +260,7 @@ class MakeWmfBranch {
 		# Apply patches
 		foreach ( $this->patches as $patch => $subpath ) {
 			// git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
-			$this->runCmd( 'git', 'fetch', $this->baseRepoPath . '/' . $subpath, $patch );
+			$this->runCmd( 'git', 'fetch', $this->repoPath . '/' . $subpath, $patch );
 			$this->runCmd( 'git', 'cherry-pick', 'FETCH_HEAD' );
 		}
 
