@@ -103,14 +103,29 @@ check_versions() {
     fi
 }
 
+assert_repository_is_clean() {
+    if [ "$(git status --porcelain)" != "" ]; then
+        echo 'Git repo is not clean!'
+        echo
+	git status
+        echo
+	if ask "Continue anyway?" N; then
+            echo 'continuing...'
+        else
+            abort
+        fi
+    fi
+}
+
 update_versions() {
     set -e
 
     cd /srv/mediawiki-staging/
+
     /srv/mediawiki-staging/multiversion/updateWikiversions "$GRP" "php-${VERSION}"
     git add wikiversions.json
-    git add w/static/current
-    git add docroot/bits/static
+    #git add w/static/current
+    #git add docroot/bits/static
     git add php
     MSG="${GRP} wikis to ${VERSION}"
     git commit -m "$MSG"
@@ -145,6 +160,8 @@ main() {
     if [ ! -f "/srv/mediawiki-staging/dblists/$GRP.dblist" ]; then
         die 1 "$DBLIST does not exist"
     fi
+
+    assert_repository_is_clean
 
     if ask "Promote $GRP from ${OLDVERSION} to ${VERSION}?" N; then
         update_versions
