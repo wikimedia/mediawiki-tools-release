@@ -6,12 +6,12 @@ const USAGE = <<<EOF
     make-wmf-branch -n <new-branch> -o <old-branch> [-p wmf-clone-path]
                     [-c extension-name]
 
-    Example: make-wmf-branch -o 1.27.0-wmf.8 -n 1.27.0-wmf.9
+    Example: make-wmf-branch -o master -n 1.27.0-wmf.9
 
     Arguments:
     -h, --help                      Show this message
-    -n, --new                       New branch
-    -o, --old                       Old branch
+    -n, --new                       New branch name
+    -o, --old                       Branch from (usually master)
     -p, --path                      Path on local disk from which to
                                     branch mediawiki-core
     -c, --continue-from             Extension from which to resume
@@ -66,6 +66,8 @@ foreach ( $storedArgs as $args ) {
         ? $passedArgs[$short]
         : $passedArgs[$long];
 }
+$CWD = getcwd();
+chdir(__DIR__);
 
 $current_branch = trim(`git symbolic-ref HEAD`);
 $abort = false;
@@ -98,6 +100,8 @@ if ( !empty( $changes ) ) {
     echo "Warning: You have local changes in your tools/release checkout:\n";
     echo $changes."\n\n";
 }
+
+chdir($CWD);
 
 require_once( __DIR__ . '/MakeWmfBranch.php' );
 
