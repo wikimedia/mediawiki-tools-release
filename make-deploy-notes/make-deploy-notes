@@ -178,7 +178,7 @@ function full_git_log_as_array( $oldRev, $newRev ) {
  * @return string
  */
 function git_submodule_diff_output( $oldbranch, $newbranch, $type ) {
-	return shell_exec( "git diff $oldbranch $newbranch $type" );
+	return shell_exec( "git diff --submodule=short $oldbranch $newbranch $type" );
 }
 
 /**
