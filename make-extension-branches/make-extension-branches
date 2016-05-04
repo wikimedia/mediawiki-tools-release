@@ -72,7 +72,7 @@ class MakeExtensionBranches {
 			$cmd = 'ssh -p 29418 gerrit.wikimedia.org gerrit ls-projects -p';
 			$list = array_merge(
 				explode( "\n", shell_exec( "$cmd mediawiki/extensions" ) ),
-				explode( "\n", shell_exec( "$cmd mediawiki/skins" ) ),
+				explode( "\n", shell_exec( "$cmd mediawiki/skins" ) )
 			);
 			// Trim leading/trailing whitespace
 			$list = array_map( 'trim', $list );
