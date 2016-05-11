@@ -131,7 +131,7 @@ update_versions() {
     git commit -m "$MSG"
     git push origin "HEAD:refs/for/master/${VERSION}"
     git reset --hard HEAD^
-    read -p "Now merge the patch and press enter to continue with git pull && sync-wikiversions"
+    read -p "Now merge the patch and press enter to continue with git pull && scap sync-wikiversions"
 
     notify "Running git pull"
 
@@ -143,9 +143,9 @@ update_versions() {
         die 1 "Pulled Revision ${MSG} did not match ${HEADMSG}"
     fi
 
-    notify "Running sync-wikiversions"
+    notify "Running scap sync-wikiversions"
 
-    sync-wikiversions "$MSG"
+    scap sync-wikiversions "$MSG"
 
     set +e
     check_versions
