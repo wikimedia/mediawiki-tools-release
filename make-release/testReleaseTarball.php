@@ -39,7 +39,7 @@ class ReleaseTarballTestCase extends PHPUnit_Framework_TestCase {
 
 	public static function setUpBeforeClass() {
 		parent::setUpBeforeClass();
-		//version tag is the last argument
+		// version tag is the last argument
 		self::setTargetVersion( array_pop( $_SERVER['argv'] ) );
 	}
 
@@ -48,7 +48,7 @@ class ReleaseTarballTestCase extends PHPUnit_Framework_TestCase {
 		if ( file_exists( self::$basePath ) && is_dir( self::$basePath ) ) {
 			# There seems to be a handle on the language files immediately after
 			# install, so lets wait a bit
-			sleep(1);
+			sleep( 1 );
 
 			$cmd = 'rm -r ' . escapeshellarg( self::$basePath );
 			exec( $cmd );
@@ -106,17 +106,17 @@ class ReleaseTarballTestCase extends PHPUnit_Framework_TestCase {
 
 	public function testCliInstaller() {
 		$cmd = 'php ' . escapeshellarg( self::$basePath ) . '/maintenance/install.php'
-				//SQLite for installation
+				// SQLite for installation
 				.' --dbtype=sqlite'
-				//Put SQLite file in MW install path
+				// Put SQLite file in MW install path
 				.' --dbpath=' . escapeshellarg( self::$basePath )
-				//Put required DB name in
+				// Put required DB name in
 				.' --dbname=tmp'
-				//admin pass
+				// admin pass
 				.' --pass=releaseTest'
-				//name
+				// name
 				.' TarballTestInstallation'
-				//admin
+				// admin
 				.' WikiSysop';
 
 		exec( $cmd, $output, $exitCode );

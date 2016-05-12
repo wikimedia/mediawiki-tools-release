@@ -1,11 +1,11 @@
 <?php
 
 class MakeWmfBranch {
-	var $dryRun;
-	var $newVersion, $oldVersion, $buildDir;
-	var $specialExtensions, $branchedExtensions, $branchedSkins, $patches;
-	var $repoPath;
-	var $noisy;
+	public $dryRun;
+	public $newVersion, $oldVersion, $buildDir;
+	public $specialExtensions, $branchedExtensions, $branchedSkins, $patches;
+	public $repoPath;
+	public $noisy;
 
 	function __construct( $newVersion, $oldVersion ) {
 		$this->newVersion = $newVersion;
@@ -45,8 +45,9 @@ class MakeWmfBranch {
 	 * @param String/null $extName - name of extension from which to start branching
 	 */
 	function setStartExtension( $extName ) {
-		if ( $extName === null )
+		if ( $extName === null ) {
 			return;
+	 }
 
 		$foundKey = false;
 		foreach ( array(
@@ -54,7 +55,7 @@ class MakeWmfBranch {
 			$this->branchedSkins,
 			array( 'vendor' ),
 		) as $branchedArr ) {
-			$key = array_search( $extName, $branchedArr);
+			$key = array_search( $extName, $branchedArr );
 
 			if ( $key !== false ) {
 				array_splice( $branchedArr, $key );
@@ -66,14 +67,16 @@ class MakeWmfBranch {
 				$branchedArr
 			);
 
-			if ( $foundKey )
+			if ( $foundKey ) {
 				break;
+	  }
 		}
 
-		if ( !$foundKey )
+		if ( !$foundKey ) {
 			$this->croak(
 				"Could not find extension '{$extName}' in any branched Extension list"
 			);
+	 }
 
 		// Should make searching array easier
 		$this->alreadyBranched = array_flip( $this->alreadyBranched );
@@ -81,7 +84,7 @@ class MakeWmfBranch {
 
 	function runCmd( /*...*/ ) {
 		$args = func_get_args();
-		if( $this->noisy && in_array( "-q", $args ) ) {
+		if ( $this->noisy && in_array( "-q", $args ) ) {
 			$args = array_diff( $args, array( "-q" ) );
 		}
 		$encArgs = array_map( 'escapeshellarg', $args );
@@ -130,10 +133,10 @@ class MakeWmfBranch {
 
 	function execute( $clonePath ) {
 		$this->setupBuildDirectory();
-		foreach( $this->branchedExtensions as $ext ) {
+		foreach ( $this->branchedExtensions as $ext ) {
 			$this->branchRepo( "extensions/{$ext}" );
 		}
-		foreach( $this->branchedSkins as $skin ) {
+		foreach ( $this->branchedSkins as $skin ) {
 			$this->branchRepo( "skins/{$skin}" );
 		}
 		$this->branchRepo( 'vendor' );
@@ -156,23 +159,24 @@ class MakeWmfBranch {
 
 		$this->fixGitReview();
 		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
-		$originUrl = trim(`git config --get remote.origin.url`);
-		$originUrl = str_replace('https://gerrit.wikimedia.org/r/p/',
+		$originUrl = trim( `git config --get remote.origin.url` );
+		$originUrl = str_replace( 'https://gerrit.wikimedia.org/r/p/',
 					 'ssh://gerrit.wikimedia.org:29418/',
-					 $originUrl);
-                $this->runCmd( 'git', 'remote', 'rm', 'origin' );
-                $this->runCmd( 'git', 'remote', 'add', 'origin', $originUrl );
-		if ($doPush == true) {
+					 $originUrl );
+				$this->runCmd( 'git', 'remote', 'rm', 'origin' );
+				$this->runCmd( 'git', 'remote', 'add', 'origin', $originUrl );
+		if ( $doPush == true ) {
 			$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
 		}
 	}
 
-	function branchRepo( $path  ) {
+	function branchRepo( $path ) {
 		$repo = basename( $path );
 
 		// repo has already been branched, so just bail out
-		if ( isset( $this->alreadyBranched[$repo] ) )
+		if ( isset( $this->alreadyBranched[$repo] ) ) {
 			return;
+	 }
 
 		$this->runCmd( 'git', 'clone', '-q', "{$this->repoPath}/{$path}.git", $repo );
 		$this->chdir( $repo );
@@ -189,9 +193,9 @@ class MakeWmfBranch {
 				// may be inside a subdirectory
 				$this->chdir( $this->buildDir );
 				$this->chdir( $repo );
-				$this->runCmd('git', 'add', $submodule);
+				$this->runCmd( 'git', 'add', $submodule );
 			}
-			$this->runCmd('git', 'commit', '-q', '--amend', '-m', "Creating new {$newVersion} branch");
+			$this->runCmd( 'git', 'commit', '-q', '--amend', '-m', "Creating new {$newVersion} branch" );
 			$this->runWriteCmd( 'git', 'push', 'origin', $newVersion );
 		} else {
 			$this->createBranch( $newVersion, true );
@@ -209,7 +213,7 @@ class MakeWmfBranch {
 
 		# If we cloned from somewhere other than SSH, update remotes
 		# and make sure our clone is up to date with origin
-		if( $clonePath ) {
+		if ( $clonePath ) {
 			$this->runCmd( 'git', 'remote', 'rm', 'origin' );
 			$this->runCmd( 'git', 'remote', 'add', 'origin', "{$this->repoPath}/core.git" );
 			$this->runCmd( 'git', 'pull', '-q', '--ff-only', 'origin', $oldVersion );
@@ -220,7 +224,7 @@ class MakeWmfBranch {
 		$this->runCmd( 'git', 'checkout', '-q', '-b', $newVersion );
 
 		# Delete extensions/README and extensions/.gitignore if we branched master
-		if( $this->oldVersion == 'master' ) {
+		if ( $this->oldVersion == 'master' ) {
 			$this->runCmd( 'git', 'rm', '-q', "extensions/README", "extensions/.gitignore" );
 		}
 
@@ -231,8 +235,9 @@ class MakeWmfBranch {
 
 			$submoduleBranch = $newVersion;
 
-			if ( isset( $this->specialExtensions[$name] ) )
+			if ( isset( $this->specialExtensions[$name] ) ) {
 				$submoduleBranch = $this->specialExtensions[$name];
+	  }
 
 			$this->runCmd( 'git', 'submodule', 'add', '-b', $submoduleBranch, '-q',
 				"{$this->repoPath}/extensions/{$name}.git", "extensions/$name" );
@@ -259,12 +264,14 @@ class MakeWmfBranch {
 
 		# Apply patches
 		foreach ( $this->patches as $patch => $subpath ) {
-			// git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
+			// git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core
+			// refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
 			$this->runCmd( 'git', 'fetch', $this->repoPath . '/' . $subpath, $patch );
 			$this->runCmd( 'git', 'cherry-pick', 'FETCH_HEAD' );
 		}
 
-		$this->runWriteCmd( 'git', 'push', 'origin', 'wmf/' . $this->newVersion  );
+		$this->runWriteCmd(
+			'git', 'push', 'origin', 'wmf/' . $this->newVersion );
 	}
 
 	function fixVersion( $fileName ) {
@@ -289,7 +296,7 @@ class MakeWmfBranch {
 
 			list( $k, $v ) = $arr;
 
-			if ( trim($k) === 'defaultbranch' ) {
+			if ( trim( $k ) === 'defaultbranch' ) {
 				$v = "{$this->branchPrefix}{$this->newVersion}";
 				$changed = true;
 			}
@@ -300,8 +307,9 @@ class MakeWmfBranch {
 		$final = implode( "\n", $outputFile );
 		$final .= "\n";
 
-		if ( !$changed )
+		if ( !$changed ) {
 			$final .= '# Updated ' . date( 'c' ) . "\n";
+	 }
 
 		file_put_contents( '.gitreview', $final );
 	}
