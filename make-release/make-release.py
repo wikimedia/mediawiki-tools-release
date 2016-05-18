@@ -507,7 +507,7 @@ class MakeRelease(object):
         oldDir = os.getcwd()
         os.chdir(targetDir)
         with open(patchFile) as patchIn:
-            patchProc = subprocess.Popen(['git', 'am', '--signoff'], stdin=patchIn)
+            patchProc = subprocess.Popen(['git', 'am', '--signoff', '--3way'], stdin=patchIn)
             status = patchProc.wait()
             if status != 0:
                 logging.error("Patch failed, exiting")
