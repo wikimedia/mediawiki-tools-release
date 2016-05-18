@@ -470,7 +470,7 @@ class MakeRelease(object):
         self.getGit(gitroot + '/' + extension,
                     dir + '/' + extension, extension, branch)
         for patch in patches:
-            self.applyPatch(patch, dir)
+            self.applyPatch(patch, dir + '/' + extension)
         logging.info('Done with exporting %s', extension)
 
     def makePatch(self, destDir, patchFileName, dir1, dir2, type):
