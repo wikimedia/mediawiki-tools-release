@@ -158,7 +158,7 @@ main() {
     VERSION="${2:-$NEWVERSION}"
 
     if [ ! -f "/srv/mediawiki-staging/dblists/$GRP.dblist" ]; then
-        die 1 "$DBLIST does not exist"
+        die 1 "$GRP does not exist"
     fi
 
     assert_repository_is_clean
