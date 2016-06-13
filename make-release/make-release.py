@@ -88,13 +88,6 @@ def parse_args():
         help='which branch to use (defaults to master for snapshot)'
     )
     parser.add_argument(
-        '--destDir', dest='destDir',
-        default='/usr/local/share/make-release',
-        help='where the tarignore (and other files necessary to '
-        'create a tarball) files are stored.  (defaults to '
-        '/usr/local/share/make-release)'
-    )
-    parser.add_argument(
         '--dont-sign', dest='sign', action='store_false',
         default=True,
         help='skip gpg signing'
