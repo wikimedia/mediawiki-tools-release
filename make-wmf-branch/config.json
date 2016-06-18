@@ -92,6 +92,7 @@
 		"ORES",
 		"OpenStackManager",
 		"PagedTiffHandler",
+		"PageAssessments",
 		"PageImages",
 		"PageTriage",
 		"ParserFunctions",
