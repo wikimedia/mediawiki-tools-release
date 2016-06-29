@@ -148,11 +148,12 @@ function full_git_log_as_array( $oldRev, $newRev ) {
 		);
 	}
 	$history = array();
+	$commit = array();
 	foreach( $output as $line ) {
 		if( strpos( $line, 'commit ' ) === 0 ) {
-			if( !empty( $commit ) ) {
+			if( $commit ) {
 				array_push( $history, $commit );
-				unset( $commit );
+				$commit = array();
 			}
 			$commit['hash']   = substr( $line, strlen( 'commit' ) );
 			continue;
@@ -167,6 +168,11 @@ function full_git_log_as_array( $oldRev, $newRev ) {
 			continue;
 		}
 	}
+
+	// push the last commit from the diff to the $history array
+	if( $commit )
+		array_push( $history, $commit );
+
 	return $history;
 }
 
