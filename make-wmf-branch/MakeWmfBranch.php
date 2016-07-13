@@ -159,12 +159,6 @@ class MakeWmfBranch {
 
 		$this->fixGitReview();
 		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
-		$originUrl = trim( `git config --get remote.origin.url` );
-		$originUrl = str_replace( 'https://gerrit.wikimedia.org/r/p/',
-					 'ssh://gerrit.wikimedia.org:29418/',
-					 $originUrl );
-				$this->runCmd( 'git', 'remote', 'rm', 'origin' );
-				$this->runCmd( 'git', 'remote', 'add', 'origin', $originUrl );
 		if ( $doPush == true ) {
 			$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
 		}
@@ -211,11 +205,8 @@ class MakeWmfBranch {
 
 		$this->chdir( 'wmf' );
 
-		# If we cloned from somewhere other than SSH, update remotes
-		# and make sure our clone is up to date with origin
+		# make sure our clone is up to date with origin
 		if ( $clonePath ) {
-			$this->runCmd( 'git', 'remote', 'rm', 'origin' );
-			$this->runCmd( 'git', 'remote', 'add', 'origin', "{$this->repoPath}/core.git" );
 			$this->runCmd( 'git', 'pull', '-q', '--ff-only', 'origin', $oldVersion );
 		}
 
@@ -264,7 +255,7 @@ class MakeWmfBranch {
 
 		# Apply patches
 		foreach ( $this->patches as $patch => $subpath ) {
-			// git fetch ssh://reedy@gerrit.wikimedia.org:29418/mediawiki/core
+			// git fetch https://gerrit.wikimedia.org/mediawiki/core
 			// refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
 			$this->runCmd( 'git', 'fetch', $this->repoPath . '/' . $subpath, $patch );
 			$this->runCmd( 'git', 'cherry-pick', 'FETCH_HEAD' );
