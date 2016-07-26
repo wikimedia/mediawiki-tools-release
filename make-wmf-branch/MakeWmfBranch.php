@@ -145,13 +145,17 @@ class MakeWmfBranch {
 
 	function setupBuildDirectory() {
 		# Create a temporary build directory
-		if ( file_exists( $this->buildDir ) ) {
-			$this->runCmd( 'rm', '-rf', '--', $this->buildDir );
-		}
+		$this->teardownBuildDirectory();
 		if ( !mkdir( $this->buildDir ) ) {
 			$this->croak( "Unable to create build directory {$this->buildDir}" );
 		}
 		$this->chdir( $this->buildDir );
+	}
+
+	function teardownBuildDirectory() {
+		if ( file_exists( $this->buildDir ) ) {
+			$this->runCmd( 'rm', '-rf', '--', $this->buildDir );
+		}
 	}
 
 	function createBranch( $branchName, $doPush=true ) {

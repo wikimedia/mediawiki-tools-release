@@ -17,6 +17,8 @@ const USAGE = <<<EOF
     -c, --continue-from             Extension from which to resume
                                     branching. Mainly useful in the case
                                     where initial branching fails.
+    -k, --keep-tmp                  Whether to keep files in /tmp after
+                                    finishing. Default is to remove
 
     Example `--continue-from` Usage:
     --------------------------------
@@ -26,18 +28,21 @@ const USAGE = <<<EOF
 
 EOF;
 
-$passedArgs = getopt( 'hn:o:p:c:', array(
+$passedArgs = getopt( 'hn:o:p:c:k', array(
     'help',
     'new:',
     'old:',
     'path:',
     'continue-from:',
+    'keep-tmp',
 ) );
 
 if ( isset( $passedArgs['help'] ) || isset( $passedArgs['h'] ) ) {
     fwrite( STDERR, USAGE );
     exit( 0 );
 }
+
+$keepTmp = isset( $passedArgs['keep-tmp'] ) || isset( $passedArgs['k'] );
 
 $storedArgs = array(
     array( 'n', 'new', 'newVersion', true ),
@@ -108,3 +113,6 @@ require_once( __DIR__ . '/MakeWmfBranch.php' );
 $obj = new MakeWmfBranch( $newVersion, $oldVersion );
 $obj->setStartExtension( $firstExtension );
 $obj->execute( $clonePath );
+if ( !$keepTmp ) {
+    $obj->teardownBuildDirectory();
+}
