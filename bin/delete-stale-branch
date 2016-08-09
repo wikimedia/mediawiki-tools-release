@@ -53,7 +53,6 @@ multiversion/deleteMediaWiki php-$STALE_VERSION
 sudo -u l10nupdate rm -rf php-$STALE_VERSION/cache/l10n/*
 rm -rf php-$STALE_VERSION
 
-git add -u docroot/bits/static/
-git add -u w/static/
-git commit -m "Remove $STALE_VERSION symlinks"
-dsh -g mediawiki-installation -M -F 40 -- "sudo -u mwdeploy -- rm -rf /srv/mediawiki/php-$STALE_VERSION"
+SSH_AUTH_SOCK=/run/keyholder/proxy.sock dsh -F 20 -M -g scap-masters -r ssh -o -oUser=mwdeploy -- rm -rf /srv/mediawiki/php-$STALE_VERSION
+SSH_AUTH_SOCK=/run/keyholder/proxy.sock dsh -F 20 -M -g scap-proxies -r ssh -o -oUser=mwdeploy -- rm -rf /srv/mediawiki/php-$STALE_VERSION
+SSH_AUTH_SOCK=/run/keyholder/proxy.sock dsh -F 20 -M -g mediawiki-installation -r ssh -o -oUser=mwdeploy -- rm -rf /srv/mediawiki/php-$STALE_VERSION
