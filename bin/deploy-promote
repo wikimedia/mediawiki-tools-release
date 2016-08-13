@@ -124,14 +124,15 @@ update_versions() {
 
     /srv/mediawiki-staging/multiversion/updateWikiversions "$GRP" "php-${VERSION}"
     git add wikiversions.json
-    #git add w/static/current
-    #git add docroot/bits/static
     git add php
     MSG="${GRP} wikis to ${VERSION}"
+    if [[ "$PROMOTE_MSG" != "" ]]; then
+        MSG="${MSG} ${PROMOTE_MSG}"
+    fi
     git commit -m "$MSG"
-    git push origin "HEAD:refs/for/master/${VERSION}"
+    git push origin "HEAD:refs/for/master/${VERSION}%l=Code-Review+2"
     git reset --hard HEAD^
-    read -p "Now merge the patch and press enter to continue with git pull && scap sync-wikiversions"
+    read -p "Now wait for jenkins to merge the patch, then press enter to continue with git pull && scap sync-wikiversions"
 
     notify "Running git pull"
 
