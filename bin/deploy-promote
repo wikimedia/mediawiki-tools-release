@@ -153,8 +153,8 @@ update_versions() {
 }
 
 main() {
-    OLDVERSION=$(/srv/mediawiki-staging/multiversion/activeMWVersions | tr " " "\n" | sort --version-sort | head -1)
-    NEWVERSION=$(/srv/mediawiki-staging/multiversion/activeMWVersions | tr " " "\n" | sort --version-sort | head -2 | tail -1)
+    OLDVERSION=$(/usr/bin/scap wikiversions-inuse | tr " " "\n" | sort --version-sort | head -1)
+    NEWVERSION=$(/usr/bin/scap wikiversions-inuse | tr " " "\n" | sort --version-sort | head -2 | tail -1)
     GRP="${1:-group1}"
     VERSION="${2:-$NEWVERSION}"
 
