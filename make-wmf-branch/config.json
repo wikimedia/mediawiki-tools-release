@@ -168,7 +168,7 @@
 	"@": "Set a string for the specific commit, branch, or tag",
 	"special_extensions": {
 		"CentralNotice": "wmf_deploy",
-		"Wikidata": "wmf/1.28.0-wmf.18",
+		"Wikidata": "wmf/1.28.0-wmf.21",
 		"SemanticMediaWiki": "1.8.x",
 		"SemanticResultFormats": "1.8.x",
 		"Validator": "0.5.x"
