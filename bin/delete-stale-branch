@@ -23,7 +23,6 @@
 # This will stage symlink changes and run dsh to delete the branch remotely.
 
 export STALE_VERSION=$1
-DOLOGMSGNOLOG=1
 cd /srv/mediawiki-staging
 if [ "$1" == "" ]; then
 	echo "Usage: $0 [version|auto]"
