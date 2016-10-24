@@ -51,6 +51,7 @@ class MakeExtensionBranches {
 
 	protected $codeDir, $buildDir;
 	protected $conf, $opts;
+	protected $extRepos = array();
 
 	public function __construct( $opts ) {
 		$this->codeDir = __DIR__;
@@ -67,26 +68,24 @@ class MakeExtensionBranches {
 	}
 
 	protected function setup() {
-		if ( !$this->conf->extRepos ) {
-			// Fetch from Gerit
-			$cmd = 'ssh -p 29418 gerrit.wikimedia.org gerrit ls-projects -p';
-			$list = array_merge(
-				explode( "\n", shell_exec( "$cmd mediawiki/extensions" ) ),
-				explode( "\n", shell_exec( "$cmd mediawiki/skins" ) )
-			);
-			// Trim leading/trailing whitespace
-			$list = array_map( 'trim', $list );
-			// Ignore empty lines
-			$list = array_filter( $list );
-
-			$this->conf->extRepos = $list;
-		}
+		// Fetch from Gerit
+		$cmd = 'ssh -p 29418 gerrit.wikimedia.org gerrit ls-projects -p';
+		$list = array_merge(
+			explode( "\n", shell_exec( "$cmd mediawiki/extensions" ) ),
+			explode( "\n", shell_exec( "$cmd mediawiki/skins" ) )
+		);
+		// Trim leading/trailing whitespace
+		$list = array_map( 'trim', $list );
+		// Ignore empty lines
+		$list = array_filter( $list );
+		$list[] = 'mediawiki/vendor';
+		$this->extRepos = $list;
 	}
 
 	public function start() {
 		$this->setup();
 		$this->setupBuildDirectory();
-		array_walk( $this->conf->extRepos, array( $this, 'doExt' ), $this->opts->branchName );
+		array_walk( $this->extRepos, array( $this, 'doExt' ), $this->opts->branchName );
 		echo "Done!\n";
 	}
 
