@@ -91,6 +91,7 @@
 		"OpenStackManager",
 		"PagedTiffHandler",
 		"PageAssessments",
+		"PageForms",
 		"PageImages",
 		"PageTriage",
 		"ParserFunctions",
@@ -113,6 +114,7 @@
 		"Score",
 		"SearchExtraNS",
 		"SecurePoll",
+		"SemanticForms",
 		"ShortUrl",
 		"SiteMatrix",
 		"SpamBlacklist",
@@ -150,8 +152,7 @@
 		"WikimediaMessages",
 		"XAnalytics",
 		"ZeroBanner",
-		"ZeroPortal",
-		"SemanticForms"
+		"ZeroPortal"
 	],
 	"skins": [
 		"CologneBlue",
