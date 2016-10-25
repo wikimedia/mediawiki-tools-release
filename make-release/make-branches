@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+# vim:sw=4:ts=4:et:
+
+from __future__ import print_function
+from requests.auth import HTTPDigestAuth
+from pygerrit.rest import GerritRestAPI
+import yaml
+
+with open("make-release.yaml") as f:
+    config = yaml.load(f)
+
+auth = HTTPDigestAuth(config['username'], config['password'])
+rest = GerritRestAPI(url='https://gerrit.wikimedia.org/r/', auth=auth)
+
+things_to_branch = ['mediawiki/core', 'mediawiki/vendor']
+manual_branch_points = {
+    'mediawiki/core': 'dc0f9b3a3a75e80a0c5f09dd76b4df1fcc05080d'}
+new_branch_name = 'REL1_28'
+
+for stuff in ['skins', 'extensions']:
+    projects = rest.get('/projects/?p=mediawiki/%s' % stuff)
+    for proj in projects:
+        if projects[proj]['state'] == 'ACTIVE':
+            things_to_branch.append(proj)
+
+for repo in things_to_branch:
+    branch_point = 'HEAD'
+    if repo in manual_branch_points:
+        branch_point = manual_branch_points[repo]
+    data = '{"revision":"%s"}' % branch_point
+    print('Branching %s to %s from %s' % (repo, new_branch_name, branch_point))
+    rest.put(
+        '/projects/%s/branches/%s' % (
+            repo.replace('/', '%2F'), new_branch_name.replace('/', '%2F')),
+        data=data
+    )
