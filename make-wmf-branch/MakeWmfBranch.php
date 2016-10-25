@@ -161,8 +161,6 @@ class MakeWmfBranch {
 	function createBranch( $branchName, $doPush=true ) {
 		$this->runCmd( 'git', 'checkout', '-q', '-b', $branchName );
 
-		$this->fixGitReview();
-		$this->runWriteCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new {$branchName} branch" );
 		if ( $doPush == true ) {
 			$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
 		}
@@ -251,9 +249,6 @@ class MakeWmfBranch {
 		# Fix $wgVersion
 		$this->fixVersion( "includes/DefaultSettings.php" );
 
-		# Point gitreview defaultbranch at wmf/version
-		$this->fixGitReview();
-
 		# Do intermediate commit
 		$this->runCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new WMF {$this->newVersion} branch" );
 
@@ -274,38 +269,5 @@ class MakeWmfBranch {
 		$s = preg_replace( '/^( \$wgVersion \s+ = \s+ )  [^;]*  ( ; \s* ) $/xm',
 			"\\1'{$this->newVersion}'\\2", $s );
 		file_put_contents( $fileName, $s );
-	}
-
-	function fixGitReview() {
-		$lines = file( '.gitreview', FILE_IGNORE_NEW_LINES );
-		$outputFile = array();
-		$changed = false;
-
-		foreach ( $lines as $line ) {
-			$arr = explode( '=', $line );
-
-			if ( count( $arr ) < 2 ) {
-				$outputFile[] = $line;
-				continue;
-			}
-
-			list( $k, $v ) = $arr;
-
-			if ( trim( $k ) === 'defaultbranch' ) {
-				$v = "{$this->branchPrefix}{$this->newVersion}";
-				$changed = true;
-			}
-
-			$outputFile[] = implode( '=', array( $k, $v ) );
-		}
-
-		$final = implode( "\n", $outputFile );
-		$final .= "\n";
-
-		if ( !$changed ) {
-			$final .= '# Updated ' . date( 'c' ) . "\n";
-	 }
-
-		file_put_contents( '.gitreview', $final );
 	}
 }
