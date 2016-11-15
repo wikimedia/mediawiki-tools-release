@@ -691,6 +691,7 @@ class MakeRelease(object):
         os.chdir('..')
         return 0
 
+
 if __name__ == '__main__':
     options = parse_args()
 
