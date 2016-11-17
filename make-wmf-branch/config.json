@@ -40,6 +40,7 @@
 		"Echo",
 		"EducationProgram",
 		"Elastica",
+		"ElectronPdfService",
 		"EventBus",
 		"EventLogging",
 		"ExtensionDistributor",
