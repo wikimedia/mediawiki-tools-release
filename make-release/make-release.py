@@ -73,11 +73,6 @@ def parse_args():
         help='base git URL to fetch projects from (defaults to Gerrit)'
     )
     parser.add_argument(
-        '--git-root-ext', dest='gitrootext',
-        default=None,
-        help='base git URL to fetch extensions from (defaults to git-root)'
-    )
-    parser.add_argument(
         '--build', dest='buildroot',
         default=os.getcwd(),
         help='where the build should happen (defaults to pwd)'
@@ -456,11 +451,7 @@ class MakeRelease(object):
         logging.info('Done with exporting core')
 
     def exportExtension(self, branch, extension, dir, patches=[]):
-        gitroot = self.options.gitroot
-        if self.options.gitrootext:
-            gitroot = self.options.gitrootext
-
-        self.getGit(gitroot + '/' + extension,
+        self.getGit(self.options.gitroot + '/' + extension,
                     dir + '/' + extension, extension, branch)
         for patch in patches:
             self.applyPatch(patch, dir + '/' + extension)
