@@ -551,9 +551,6 @@ class MakeRelease(object):
         if not os.path.exists(uploadDir):
             logging.debug('Creating uploads dir: %s', uploadDir)
             os.mkdir(uploadDir)
-        if not os.path.exists(patchDir):
-            logging.debug('Creating patch directory: %s', patchDir)
-            os.mkdir(patchDir)
 
         os.chdir(buildDir)
 
