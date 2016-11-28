@@ -93,11 +93,6 @@ def parse_args():
         help='path to tar, we are expecting a GNU tar. (defaults to tar)'
     )
     parser.add_argument(
-        '--offline', dest='offline',
-        default=False, action='store_true',
-        help='Do not perform actions (e.g. git pull) that require the network'
-    )
-    parser.add_argument(
         '--list-bundled', dest='list_bundled',
         action='store_true',
         help='List all bundled extensions for the given version and quit'
@@ -406,19 +401,6 @@ class MakeRelease(object):
                                     cwd=repo)
             if proc.wait() != 0:
                 logging.error("Could not update local repository %s", repo)
-                sys.exit(1)
-
-        if not self.options.offline:
-            if os.path.exists(dir):
-                logging.debug("Updating %s in %s...", label, dir)
-                proc = subprocess.Popen(
-                    ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
-            else:
-                logging.info("Cloning %s into %s...", label, dir)
-                proc = subprocess.Popen(['git', 'clone', repo, dir])
-
-            if proc.wait() != 0:
-                logging.error("git clone failed, exiting")
                 sys.exit(1)
 
         os.chdir(dir)
