@@ -115,7 +115,6 @@
 		"Score",
 		"SearchExtraNS",
 		"SecurePoll",
-		"SemanticForms",
 		"ShortUrl",
 		"SiteMatrix",
 		"SpamBlacklist",
@@ -171,6 +170,7 @@
 	"special_extensions": {
 		"CentralNotice": "wmf_deploy",
 		"Wikidata": "wmf/1.29.0-wmf.5",
+		"SemanticForms": "3.7",
 		"SemanticMediaWiki": "1.8.x",
 		"SemanticResultFormats": "1.8.x",
 		"Validator": "0.5.x"
