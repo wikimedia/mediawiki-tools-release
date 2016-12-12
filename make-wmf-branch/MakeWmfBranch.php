@@ -174,7 +174,7 @@ class MakeWmfBranch {
 			return;
 	 }
 
-		$this->runCmd( 'git', 'clone', '-q', "{$this->repoPath}/{$path}.git", $repo );
+		$this->runCmd( 'git', 'clone', '-q', "{$this->repoPath}/{$path}", $repo );
 		$this->chdir( $repo );
 		$newVersion = $this->branchPrefix . $this->newVersion;
 
@@ -202,7 +202,7 @@ class MakeWmfBranch {
 	function branchWmf( $clonePath ) {
 		# Clone the repository
 		$oldVersion = $this->oldVersion == 'master' ? 'master' : $this->branchPrefix . $this->oldVersion;
-		$path = $clonePath ? $clonePath : "{$this->repoPath}/core.git";
+		$path = $clonePath ? $clonePath : "{$this->repoPath}/core";
 		$this->runCmd( 'git', 'clone', '-q', $path, '-b', $oldVersion, 'wmf' );
 
 		$this->chdir( 'wmf' );
@@ -233,18 +233,18 @@ class MakeWmfBranch {
 	  }
 
 			$this->runCmd( 'git', 'submodule', 'add', '-b', $submoduleBranch, '-q',
-				"{$this->repoPath}/extensions/{$name}.git", "extensions/$name" );
+				"{$this->repoPath}/extensions/{$name}", "extensions/$name" );
 		}
 
 		# Add skin submodules
 		foreach ( $this->branchedSkins as $name ) {
 			$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
-				"{$this->repoPath}/skins/{$name}.git", "skins/$name" );
+				"{$this->repoPath}/skins/{$name}", "skins/$name" );
 		}
 
 		# Add vendor submodule
 		$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
-			"{$this->repoPath}/vendor.git", 'vendor' );
+			"{$this->repoPath}/vendor", 'vendor' );
 
 		# Fix $wgVersion
 		$this->fixVersion( "includes/DefaultSettings.php" );
