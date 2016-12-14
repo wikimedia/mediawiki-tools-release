@@ -47,7 +47,7 @@ class MakeWmfBranch {
 	function setStartExtension( $extName ) {
 		if ( $extName === null ) {
 			return;
-	 }
+		}
 
 		$foundKey = false;
 		foreach ( array(
@@ -69,14 +69,14 @@ class MakeWmfBranch {
 
 			if ( $foundKey ) {
 				break;
-	  }
+			}
 		}
 
 		if ( !$foundKey ) {
 			$this->croak(
 				"Could not find extension '{$extName}' in any branched Extension list"
 			);
-	 }
+		}
 
 		// Should make searching array easier
 		$this->alreadyBranched = array_flip( $this->alreadyBranched );
@@ -172,7 +172,7 @@ class MakeWmfBranch {
 		// repo has already been branched, so just bail out
 		if ( isset( $this->alreadyBranched[$repo] ) ) {
 			return;
-	 }
+		}
 
 		$this->runCmd( 'git', 'clone', '-q', "{$this->repoPath}/{$path}", $repo );
 		$this->chdir( $repo );
@@ -230,7 +230,7 @@ class MakeWmfBranch {
 
 			if ( isset( $this->specialExtensions[$name] ) ) {
 				$submoduleBranch = $this->specialExtensions[$name];
-	  }
+			}
 
 			$this->runCmd( 'git', 'submodule', 'add', '-b', $submoduleBranch, '-q',
 				"{$this->repoPath}/extensions/{$name}", "extensions/$name" );
