@@ -302,8 +302,12 @@ function main( $argv ) {
 
 	print "=== Vendor ===\n";
 	$vendorVer = get_submodule_versions( $oldbranch, $newbranch, 'vendor' );
-	$vendorVer = $vendorVer[0];
-	print filter_git_output( useful_git_log( $vendorVer['oldrev'], $vendorVer['newrev'], null, 'vendor' ) );
+	if ( isset( $vendorVer[0] ) ) {
+		$vendorVer = $vendorVer[0];
+		print filter_git_output( useful_git_log( $vendorVer['oldrev'], $vendorVer['newrev'], null, 'vendor' ) );
+	} else {
+		print "No vendor changes\n";
+	}
 
 	print "== Extensions ==\n";
 	print get_all_submodule_change_markup( $oldbranch, $newbranch, 'extensions', $disabledExtensions );
