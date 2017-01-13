@@ -72,6 +72,7 @@
 		"LabeledSectionTransclusion",
 		"LandingCheck",
 		"LdapAuthentication",
+		"Linter",
 		"LiquidThreads",
 		"Listings",
 		"LocalisationUpdate",
