@@ -9,7 +9,7 @@ class MakeWmfBranch {
 
 	function __construct( $newVersion, $oldVersion ) {
 		$this->newVersion = $newVersion;
-		$this->oldVersion = $oldVersion;
+		$this->oldVersion = $oldVersion ?: 'master';
 		$buildDir = sys_get_temp_dir() . '/make-wmf-branch';
 
 		require __DIR__ . '/default.conf';

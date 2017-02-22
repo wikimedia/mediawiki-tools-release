@@ -6,7 +6,7 @@ const USAGE = <<<EOF
     make-wmf-branch -n <new-branch> -o <old-branch> [-p wmf-clone-path]
                     [-c extension-name]
 
-    Example: make-wmf-branch -o master -n 1.27.0-wmf.9
+    Example: make-wmf-branch -n 1.27.0-wmf.9
 
     Arguments:
     -h, --help                      Show this message
@@ -46,7 +46,7 @@ $keepTmp = isset( $passedArgs['keep-tmp'] ) || isset( $passedArgs['k'] );
 
 $storedArgs = array(
     array( 'n', 'new', 'newVersion', true ),
-    array( 'o', 'old', 'oldVersion', true ),
+    array( 'o', 'old', 'oldVersion', false ),
     array( 'p', 'path', 'clonePath', false ),
     array( 'c', 'continue-from', 'firstExtension', false ),
 );
