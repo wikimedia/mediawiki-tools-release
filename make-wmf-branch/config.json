@@ -98,6 +98,7 @@
 		"PageForms",
 		"PageImages",
 		"PageTriage",
+		"PageViewInfo",
 		"ParserFunctions",
 		"ParsoidBatchAPI",
 		"PdfHandler",
