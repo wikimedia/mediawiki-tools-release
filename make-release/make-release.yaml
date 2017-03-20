@@ -1,32 +1,22 @@
 # vim: set et ts=4 sw=4: -*- mode: yaml-mode; yaml-indent-offset: 4 -*-
 bundles:
-    base: # 1.18
+    base:
+        - extensions/Cite
         - extensions/ConfirmEdit
         - extensions/Gadgets
+        - extensions/ImageMap
+        - extensions/InputBox
+        - extensions/Interwiki
+        - extensions/LocalisationUpdate
         - extensions/Nuke
         - extensions/ParserFunctions
+        - extensions/PdfHandler
+        - extensions/Poem
         - extensions/Renameuser
-        - extensions/Vector
+        - extensions/SpamBlacklist
+        - extensions/SyntaxHighlight_GeSHi
+        - extensions/TitleBlacklist
         - extensions/WikiEditor
-    mediawiki-1.21:
-        add:
-            - extensions/PdfHandler
-            - extensions/SpamBlacklist
-    mediawiki-1.22:
-        add:
-            - extensions/Cite
-            - extensions/ImageMap
-            - extensions/InputBox
-            - extensions/Interwiki
-            - extensions/LocalisationUpdate
-            - extensions/Poem
-            - extensions/SimpleAntiSpam
-            - extensions/SyntaxHighlight_GeSHi
-            - extensions/TitleBlacklist
-    mediawiki-1.23:
-        remove:
-            - extensions/SimpleAntiSpam
-            - extensions/Vector
     mediawiki-1.24:
         add:
             - skins/CologneBlue
