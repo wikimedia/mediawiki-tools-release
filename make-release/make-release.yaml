@@ -2,6 +2,7 @@
 bundles:
     base:
         - extensions/Cite
+        - extensions/CiteThisPage
         - extensions/ConfirmEdit
         - extensions/Gadgets
         - extensions/ImageMap
@@ -17,15 +18,10 @@ bundles:
         - extensions/SyntaxHighlight_GeSHi
         - extensions/TitleBlacklist
         - extensions/WikiEditor
-    mediawiki-1.24:
-        add:
-            - skins/CologneBlue
-            - skins/Modern
-            - skins/MonoBook
-            - skins/Vector
-    mediawiki-1.25:
-        add:
-            - extensions/CiteThisPage
+        - skins/CologneBlue
+        - skins/Modern
+        - skins/MonoBook
+        - skins/Vector
     smw:
         - extensions/AdminLinks
         - extensions/ApprovedRevs
