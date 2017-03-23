@@ -77,17 +77,7 @@ function getPreviousVersion( $input ) {
 	} else {
 		$minor--;
 	}
-	// wmf branches in the 1.26 release cycle and prior has another version
-	// notation
-	// FIXME: This is useful for the time we change to semver and can
-	// (probably) be removed after
-	// four or five wmf-versions, or after REL1_27 was released.
-	if ( $major <= 26 ) {
-		return "wmf/1.{$major}wmf{$minor}";
-	} else {
-		// anything else (higher and equal 1.27) uses new semver notation
-		return "wmf/1.{$major}.0-wmf.{$minor}";
-	}
+	return "wmf/1.{$major}.0-wmf.{$minor}";
 }
 
 /**
