@@ -403,6 +403,18 @@ class MakeRelease(object):
                 logging.error("Could not update local repository %s", repo)
                 sys.exit(1)
 
+        if os.path.exists(dir):
+            logging.debug("Updating %s in %s...", label, dir)
+            proc = subprocess.Popen(
+                ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
+        else:
+            logging.info("Cloning %s into %s...", label, dir)
+            proc = subprocess.Popen(['git', 'clone', repo, dir])
+
+        if proc.wait() != 0:
+            logging.error("git clone failed, exiting")
+            sys.exit(1)
+
         os.chdir(dir)
 
         if gitRef != 'master':
