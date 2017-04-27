@@ -409,7 +409,7 @@ class MakeRelease(object):
                 ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
         else:
             logging.info("Cloning %s into %s...", label, dir)
-            proc = subprocess.Popen(['git', 'clone', repo, dir])
+            proc = subprocess.Popen(['git', 'clone', '--recursive', repo, dir])
 
         if proc.wait() != 0:
             logging.error("git clone failed, exiting")
@@ -445,8 +445,10 @@ class MakeRelease(object):
         logging.info('Done with exporting core')
 
     def exportExtension(self, branch, extension, dir, patches=[]):
-        self.getGit(self.options.gitroot + '/' + extension,
-                    dir + '/' + extension, extension, branch)
+        # We started doing them as submodules instead
+        if self.version.major < '1.29':
+            self.getGit(self.options.gitroot + '/' + extension,
+                        dir + '/' + extension, extension, branch)
         for patch in patches:
             self.applyPatch(patch, dir + '/' + extension)
         logging.info('Done with exporting %s', extension)
