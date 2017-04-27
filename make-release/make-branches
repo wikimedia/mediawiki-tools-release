@@ -14,8 +14,8 @@ rest = GerritRestAPI(url='https://gerrit.wikimedia.org/r/', auth=auth)
 
 things_to_branch = ['mediawiki/core', 'mediawiki/vendor']
 manual_branch_points = {
-    'mediawiki/core': 'dc0f9b3a3a75e80a0c5f09dd76b4df1fcc05080d'}
-new_branch_name = 'REL1_28'
+    'mediawiki/core': '273eea7357c546d1a1aafd73320e10e8ddac79eb'}
+new_branch_name = 'REL1_29'
 
 for stuff in ['skins', 'extensions']:
     projects = rest.get('/projects/?p=mediawiki/%s' % stuff)
