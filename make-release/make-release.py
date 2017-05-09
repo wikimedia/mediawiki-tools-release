@@ -395,16 +395,9 @@ class MakeRelease(object):
 
     def getGit(self, repo, dir, label, gitRef):
         oldDir = os.getcwd()
-        if os.path.exists(repo):
-            logging.debug("Updating local %s", repo)
-            proc = subprocess.Popen(['git', 'remote', 'update'],
-                                    cwd=repo)
-            if proc.wait() != 0:
-                logging.error("Could not update local repository %s", repo)
-                sys.exit(1)
 
         if os.path.exists(dir):
-            logging.debug("Updating %s in %s...", label, dir)
+            logging.info("Updating %s in %s...", label, dir)
             proc = subprocess.Popen(
                 ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
         else:
@@ -417,13 +410,12 @@ class MakeRelease(object):
 
         os.chdir(dir)
 
-        if gitRef != 'master':
-            logging.debug("Checking out %s in %s...", gitRef, dir)
-            proc = subprocess.Popen(['git', 'checkout', gitRef])
+        logging.debug("Checking out %s in %s...", gitRef, dir)
+        proc = subprocess.Popen(['git', 'checkout', gitRef])
 
-            if proc.wait() != 0:
-                logging.error("git checkout failed, exiting")
-                sys.exit(1)
+        if proc.wait() != 0:
+            logging.error("git checkout failed, exiting")
+            sys.exit(1)
 
         os.chdir(oldDir)
 
