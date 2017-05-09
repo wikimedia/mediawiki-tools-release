@@ -68,11 +68,6 @@ def parse_args():
         help='include the SemanticMediaWiki bundle'
     )
     parser.add_argument(
-        '--git-root', dest='gitroot',
-        default='https://gerrit.wikimedia.org/r/p/mediawiki',
-        help='base git URL to fetch projects from (defaults to Gerrit)'
-    )
-    parser.add_argument(
         '--build', dest='buildroot',
         default=os.getcwd(),
         help='where the build should happen (defaults to pwd)'
@@ -393,15 +388,16 @@ class MakeRelease(object):
                     return False
             print('Please type "y" for yes or "n" for no')
 
-    def getGit(self, repo, dir, label, gitRef):
+    def getGit(self, repo, dir, gitRef):
         oldDir = os.getcwd()
 
         if os.path.exists(dir):
-            logging.info("Updating %s in %s...", label, dir)
+            logging.info("Updating %s in %s...", repo, dir)
             proc = subprocess.Popen(
                 ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
         else:
-            logging.info("Cloning %s into %s...", label, dir)
+            logging.info("Cloning %s into %s...", repo, dir)
+            repo = 'https://gerrit.wikimedia.org/r/p/mediawiki/' + repo
             proc = subprocess.Popen(['git', 'clone', '--recursive', repo, dir])
 
         if proc.wait() != 0:
@@ -420,27 +416,22 @@ class MakeRelease(object):
         os.chdir(oldDir)
 
     def export(self, gitRef, module, exportDir, patches=[]):
-
-        gitRoot = self.options.gitroot
-
         dir = exportDir + '/' + module
         if patches:
             gitRef = self.version.branch
-        self.getGit(gitRoot + '/core', dir, "core", gitRef)
+        self.getGit('core', dir, gitRef)
         for patch in patches:
             self.applyPatch(patch, dir)
         # 1.25+ has composer dependencies and needs mediawiki/vendor.
         if self.version.major >= '1.25' or self.version.major == 'snapshot':
-            self.getGit(gitRoot + '/vendor', dir + '/vendor',
-                        'vendor', self.version.branch)
+            self.getGit('vendor', dir + '/vendor', self.version.branch)
 
         logging.info('Done with exporting core')
 
     def exportExtension(self, branch, extension, dir, patches=[]):
         # We started doing them as submodules instead
         if self.version.major < '1.29':
-            self.getGit(self.options.gitroot + '/' + extension,
-                        dir + '/' + extension, extension, branch)
+            self.getGit(extension, dir + '/' + extension, branch)
         for patch in patches:
             self.applyPatch(patch, dir + '/' + extension)
         logging.info('Done with exporting %s', extension)
