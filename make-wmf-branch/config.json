@@ -1,7 +1,6 @@
 {
 	"extensions": [
 		"AbuseFilter",
-		"AccountAudit",
 		"ActiveAbstract",
 		"AntiSpoof",
 		"ApiFeatureUsage",
