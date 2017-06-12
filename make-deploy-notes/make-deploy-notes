@@ -16,7 +16,7 @@ function get_args( $argv ) {
 		return array( $argv[1], $argv[2] );
 	} else {
 		print "usage: $argv[0] oldbranch newbranch\n";
-		print "  example: $argv[0] gerrit/wmf/1.20wmf2 gerrit/wmf/1.20wmf3\n";
+		print "  example: $argv[0] origin/wmf/1.30.0-wmf.1 origin/wmf/1.30.0-wmf.2\n";
 		exit(1);
 	}
 }
