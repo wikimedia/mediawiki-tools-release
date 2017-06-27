@@ -79,3 +79,4 @@ tar:
         - README.mediawiki
         - Gemfile
         - ".mailmap"
+        - "vendor/pear/net_smtp/README.rst"
