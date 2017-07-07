@@ -413,6 +413,14 @@ class MakeRelease(object):
             logging.error("git checkout failed, exiting")
             sys.exit(1)
 
+        logging.debug("Checking out submodules in %s...", dir)
+        proc = subprocess.Popen(['git', 'submodule', 'update', '--init',
+                                 '--recursive'])
+
+        if proc.wait() != 0:
+            logging.error("git submodule update failed, exiting")
+            sys.exit(1)
+
         os.chdir(oldDir)
 
     def export(self, gitRef, module, exportDir, patches=[]):
@@ -422,9 +430,6 @@ class MakeRelease(object):
         self.getGit('core', dir, gitRef)
         for patch in patches:
             self.applyPatch(patch, dir)
-        # 1.25+ has composer dependencies and needs mediawiki/vendor.
-        if self.version.major >= '1.25' or self.version.major == 'snapshot':
-            self.getGit('vendor', dir + '/vendor', self.version.branch)
 
         logging.info('Done with exporting core')
 
@@ -432,8 +437,10 @@ class MakeRelease(object):
         # We started doing them as submodules instead
         if self.version.major < '1.29':
             self.getGit(extension, dir + '/' + extension, branch)
+
         for patch in patches:
             self.applyPatch(patch, dir + '/' + extension)
+
         logging.info('Done with exporting %s', extension)
 
     def makePatch(self, destDir, patchFileName, dir1, dir2, type):
@@ -539,13 +546,16 @@ class MakeRelease(object):
         package = 'mediawiki-' + version.raw
 
         # Export the target
-        patches = self.get_patches_for_repo('core', patchDir)
-        self.export(tag, package, buildDir, patches)
+        self.export(tag, package, buildDir,
+                    self.get_patches_for_repo('core', patchDir))
+
+        self.exportExtension(branch, 'vendor', package,
+                             self.get_patches_for_repo('vendor', patchDir))
 
         extExclude = []
         for ext in self.get_extensions_for_version(version, extensions):
-            patches = self.get_patches_for_repo(ext, patchDir)
-            self.exportExtension(branch, ext, package, patches)
+            self.exportExtension(branch, ext, package,
+                                 self.get_patches_for_repo(ext, patchDir))
             extExclude.append("--exclude")
             extExclude.append(ext)
 
