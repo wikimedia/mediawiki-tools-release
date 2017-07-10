@@ -17,7 +17,7 @@
 /**
  * PHPUnit based tests.
  */
-class ReleaseTarballTestCase extends PHPUnit_Framework_TestCase {
+class ReleaseTarballTestCase extends \PHPUnit\Framework\TestCase {
 
 	/** Version we will test out */
 	protected static $version;
