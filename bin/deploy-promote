@@ -148,6 +148,12 @@ update_versions() {
 
     scap sync-wikiversions "$MSG"
 
+    # Group1 day is also the day we sync the php symlink
+    if [[ "$GRP" == "group1" ]]; then
+        notify "Running scap sync-file php"
+        scap sync-file php "$MSG"
+    fi
+
     set +e
     check_versions
 }
