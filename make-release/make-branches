@@ -8,7 +8,6 @@ from requests.auth import HTTPDigestAuth
 from requests.exceptions import HTTPError
 from pygerrit.rest import GerritRestAPI
 import yaml
-from pprint import pprint
 
 
 def main():
@@ -24,6 +23,8 @@ def main():
         'mediawiki/core': '0cd28e19cb0f9385a2a1cc11a4d8c9c21ff0b830',
         'mediawiki/vendor': '68b54dbcd8d65de64225a4ccc9dceb94429ca42a',
     }
+    shit_to_skip = ['mediawiki/extensions/BlueSpiceExtendedStatistics',
+                    'mediawiki/extensions/BlueSpiceUserManager']
     new_branch_name = 'REL1_30'
 
     for stuff in ['skins', 'extensions']:
@@ -34,6 +35,8 @@ def main():
 
     for repo in things_to_branch:
         branch_point = 'HEAD'
+        if repo in shit_to_skip:
+            continue
         if repo in manual_branch_points:
             branch_point = manual_branch_points[repo]
         data = '{"revision":"%s"}' % branch_point
