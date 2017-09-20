@@ -314,14 +314,7 @@ class MakeRelease(object):
         """return value should be usable as an exit code"""
 
         extensions = []
-        bundles = self.config.get('bundles', {})
 
-        if options.smw:
-            if 'smw' not in bundles:
-                raise Exception("No SMW extensions given.")
-
-            # Other extensions for inclusion
-            extensions.extend(bundles['smw'])
         if options.list_bundled:
             return self.print_bundled(extensions)
 
