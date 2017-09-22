@@ -2,6 +2,7 @@
 	"extensions": [
 		"AbuseFilter",
 		"ActiveAbstract",
+		"AdvancedSearch",
 		"AntiSpoof",
 		"ApiFeatureUsage",
 		"ArticleCreationWorkflow",
