@@ -191,7 +191,11 @@ class MakeWmfBranch {
 				$this->chdir( $repo );
 				$this->runCmd( 'git', 'add', $submodule );
 			}
-			$this->runCmd( 'git', 'commit', '-q', '--amend', '-m', "Creating new {$newVersion} branch" );
+			$diffRet = 0;
+			passthru( '/usr/bin/git diff --cached --no-ext-diff --quiet', $diffRet );
+			if ( $diffRet > 0 ) {
+				$this->runCmd( 'git', 'commit', '-q', '-m', "Creating new {$newVersion} branch" );
+			}
 			$this->runWriteCmd( 'git', 'push', 'origin', $newVersion );
 		} else {
 			$this->createBranch( $newVersion, true );
