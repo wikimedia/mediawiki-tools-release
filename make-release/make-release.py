@@ -64,10 +64,6 @@ def parse_args():
         help='disable the diff with previous version'
     )
     parser.add_argument(
-        '--smw', dest='smw', action='store_true',
-        help='include the SemanticMediaWiki bundle'
-    )
-    parser.add_argument(
         '--build', dest='buildroot',
         default=os.getcwd(),
         help='where the build should happen (defaults to pwd)'
