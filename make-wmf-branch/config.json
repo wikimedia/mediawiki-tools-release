@@ -159,6 +159,7 @@
 		"Wikibase",
 		"WikibaseQuality",
 		"WikibaseQualityConstraints",
+		"Wikidata",
 		"WikidataPageBanner",
 		"WikiEditor",
 		"wikihiero",
@@ -189,7 +190,6 @@
 	},
 	"@": "Set a string for the specific commit, branch, or tag",
 	"special_extensions": {
-		"CentralNotice": "wmf_deploy",
-		"Wikidata": "wmf/1.31.0-wmf.6"
+		"CentralNotice": "wmf_deploy"
 	}
 }
