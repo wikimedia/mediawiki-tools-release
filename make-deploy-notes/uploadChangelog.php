@@ -20,8 +20,8 @@
  * @file
  */
 
-if ( count( $argv ) !== 2 ) {
-	print "usage: $argv[0] wmf/1.27.0-wmf.1\n";
+if ( count( $argv ) !== 2 && count( $argv ) !== 4 ) {
+	print "usage: $argv[0] wmf/1.31.0-wmf.11 [username password]\n";
 	exit( 1 );
 }
 
@@ -29,7 +29,7 @@ $version = $argv[1];
 $previousVersion = getPreviousVersion( $version );
 
 if ( $previousVersion === null ) {
-	print "usage: $argv[0] wmf/1.27.0-wmf.1\n";
+	print "usage: $argv[0] wmf/1.31.0-wmf.11 [username password]\n";
 	exit( 1 );
 }
 
@@ -47,11 +47,12 @@ if ( stripos( $output, "array\n(" ) !== false ) {
 require_once ( __DIR__ . '/botclasses.php' );
 $wiki = new wikipedia( 'https://www.mediawiki.org/w/api.php' );
 
-// auth.php should contain the following:
-// <?php
-// $wiki->login( 'username', 'password' );
-
-if ( file_exists( __DIR__.'/auth.php' ) ) {
+if ( isset( $argv[2] ) && isset( $argv[3] ) ) {
+	$wiki->login( $argv[2], $argv[3] );
+} elseif ( file_exists( __DIR__.'/auth.php' ) ) {
+	// auth.php should contain the following:
+	// <?php
+	// $wiki->login( 'username', 'password' );
 	require_once ( __DIR__.'/auth.php' );
 }
 
