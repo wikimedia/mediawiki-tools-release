@@ -29,7 +29,7 @@ $version = $argv[1];
 $previousVersion = getPreviousVersion( $version );
 
 if ( $previousVersion === null ) {
-	print "usage: $argv[0] wmf/1.31.0-wmf.11 [username password]\n";
+	print "Unable to determine prior branch, given $version as current\n";
 	exit( 1 );
 }
 
@@ -88,14 +88,8 @@ function getPreviousVersion( $input ) {
  * @return string
  */
 function getPreviousMinorVersion( $major ) {
-	// check, which filter should be used for the filter
-	// Note, that 27 is used here, because the previous version would be 26,
-	// which uses the old non semantic versioning notation.
-	if ( $major <= 27 ) {
-		$filter = "wmf/1.{$major}wmf";
-	} else {
-		$filter = "wmf/1.{$major}.0-wmf";
-	}
+	$filter = "wmf/1.{$major}.0-wmf";
+
 	// get the list in a raw output format which would be visible in the
 	// console for this command, sorted by version numbers
 	$rawList = shell_exec( "git branch -a --list */{$filter}* | sort -V" );
@@ -125,7 +119,7 @@ function getPreviousMinorVersion( $major ) {
 function getMajorMinor( $input ) {
 	$matches = array();
 	// match any version like wmf/1.26wmf22 or the new semver wmf/1.27.0-wmf1
-	if ( preg_match( "/^wmf\/1\.(\d{2})(?:\.[0-9]\-)?wmf\.?(\d{1,2})/", $input, $matches ) ) {
+	if ( preg_match( "/wmf\/1\.(\d{2})\.0\-wmf\.(\d{1,2})/", $input, $matches ) ) {
 		// var_dump( $matches );
 		$major = intval( $matches[1] );
 		$minor = intval( $matches[2] );
