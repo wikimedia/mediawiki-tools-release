@@ -1,4 +1,5 @@
 # vim: set et ts=4 sw=4: -*- mode: yaml-mode; yaml-indent-offset: 4 -*-
+clone_base: https://gerrit.wikimedia.org/r/mediawiki
 bundles:
     base:
         - extensions/Cite
@@ -22,6 +23,13 @@ bundles:
         - skins/Modern
         - skins/MonoBook
         - skins/Vector
+manual_branch_points:
+    REL1_27:
+        core: 0cd28e19cb0f9385a2a1cc11a4d8c9c21ff0b830
+    REL1_29:
+        core: 0cd28e19cb0f9385a2a1cc11a4d8c9c21ff0b830
+    REL1_30:
+        core: 0cd28e19cb0f9385a2a1cc11a4d8c9c21ff0b830
 diff:
     ignore:
         - "*~"
