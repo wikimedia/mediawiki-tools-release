@@ -1,6 +1,5 @@
 #!/usr/bin/env php
 <?php
-require __DIR__ . '/cli.php';
 
 const USAGE = <<<EOF
     make-wmf-branch -n <new-branch> -o <old-branch> [-p wmf-clone-path]
