@@ -6,7 +6,7 @@
 
 import unittest
 
-makerelease = __import__('make-release')
+makerelease = __import__('makerelease')
 
 
 class FakeVersion(makerelease.MwVersion):

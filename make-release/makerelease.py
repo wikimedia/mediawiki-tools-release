@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # vim:sw=4:ts=4:et:
-from __future__ import print_function
 """
 Helper to generate a MediaWiki tarball.
 
@@ -9,7 +8,7 @@ and you will be prompted to confirm that the version number is correct.
 
 If no arguments are given, a snapshot is created.
 """
-
+from __future__ import print_function
 import argparse
 import glob
 import logging
@@ -44,7 +43,6 @@ def parse_args():
         help='version that came before')
 
     # Optional arguments:
-
     log_options = parser.add_mutually_exclusive_group()
     log_options.add_argument(
         '--debug', dest='log_level',
@@ -96,13 +94,13 @@ class MwVersion(object):
     """Abstract out a MediaWiki version"""
 
     def __init__(self, version):
-        decomposed = self.decomposeVersion(version)
+        decomposed = self.decompose(version)
 
         self.raw = version
         self.major = decomposed.get('major', None)
         self.branch = decomposed.get('branch', None)
         self.tag = decomposed.get('tag', None)
-        self.prev_version = decomposed.get('prevVersion', None)
+        self.prev_version = decomposed.get('prev_version', None)
         self.prev_tag = decomposed.get('prevTag', None)
 
         # alpha / beta / rc ..
@@ -126,7 +124,7 @@ class MwVersion(object):
             self.branch
         )
 
-    def decomposeVersion(self, version):
+    def decompose(self, version):
         """Split a version number to branch / major
 
         Whenever a version is recognized, a dict is returned with keys:
@@ -134,7 +132,7 @@ class MwVersion(object):
             - minor
             - branch
             - tag
-            - prevVersion
+            - prev_version
             - prevTag
 
         When one or more letters are found after the minor version we consider
@@ -156,7 +154,7 @@ class MwVersion(object):
                 'tag': 'master',
             }
 
-        m = re.compile(r"""
+        matches = re.compile(r"""
             (?P<major>(?P<major1>\d+)\.(?P<major2>\d+))
             \.
             (?P<minor>\d+)
@@ -166,11 +164,11 @@ class MwVersion(object):
             )?
         """, re.X).match(version)
 
-        if m is None:
+        if matches is None:
             raise ValueError('%s is in the wrong format' % version)
 
         # Clear out unneed phase/cycle
-        ret = dict((k, v) for k, v in m.groupdict().iteritems()
+        ret = dict((k, v) for k, v in matches.groupdict().iteritems()
                    if v is not None)
 
         ret['branch'] = 'REL%s_%s' % (
@@ -193,7 +191,7 @@ class MwVersion(object):
                     ret.get('phase', ''),
                     ret.get('cycle', '')
                 )
-            elif('phase' in ret):
+            elif 'phase' in ret:
                 ret['tag'] = 'tags/%s.%s-%s.%s' % (
                     ret['major'],
                     ret['minor'],
@@ -211,14 +209,14 @@ class MwVersion(object):
                 ret['minor']
             )
 
-        last = m.group(m.lastindex)
+        last = matches.group(matches.lastindex)
         if last != '' and int(last) == 0:
-            ret['prevVersion'] = None
+            ret['prev_version'] = None
             ret['prevTag'] = None
             return ret
 
-        bits = [d for d in m.groups('')]
-        last = m.lastindex - 3
+        bits = [d for d in matches.groups('')]
+        last = matches.lastindex - 3
         del bits[1]
         del bits[1]
 
@@ -229,38 +227,34 @@ class MwVersion(object):
             bits[1] == '0' and
             (bits[2] == 'rc' and
              bits[3] == '0'))):
-            ret['prevVersion'] = '%s.%s%s%s' % tuple(bits)
+            ret['prev_version'] = '%s.%s%s%s' % tuple(bits)
         elif 'phase' in ret:
-            ret['prevVersion'] = '%s.%s-%s.%s' % tuple(bits)
+            ret['prev_version'] = '%s.%s-%s.%s' % tuple(bits)
         else:
-            ret['prevVersion'] = '%s.%s' % (bits[0], bits[1])
+            ret['prev_version'] = '%s.%s' % (bits[0], bits[1])
 
-        ret['prevTag'] = 'tags/' + ret['prevVersion']
+        ret['prevTag'] = 'tags/' + ret['prev_version']
 
         return ret
 
 
 class MakeRelease(object):
     """Surprisingly: do a MediaWiki release"""
-
-    options = None
-    version = None  # MwVersion object
-    config = None
-
-    def __init__(self, options):
-        if options.version is None:
+    def __init__(self, ops):
+        if ops.version is None:
             self.version = MwVersion.new_snapshot()
         else:
-            self.version = MwVersion(options.version)
-        self.options = options
+            self.version = MwVersion(ops.version)
+        self.options = ops
 
         if not os.path.isfile(self.options.conffile):
             logging.error("Configuration file not found: %s",
                           self.options.conffile)
             sys.exit(1)
 
-        with open(self.options.conffile) as f:
-            self.config = yaml.load(f)
+        self.config = None
+        with open(self.options.conffile) as conf:
+            self.config = yaml.load(conf)
 
     def get_extensions_for_version(self, version, extensions=None):
         """
@@ -290,10 +284,10 @@ class MakeRelease(object):
                         base.remove(repo)
         return sorted(extensions + list(base))
 
-    def get_patches_for_repo(self, repo, patchDir):
+    def get_patches_for_repo(self, repo, patch_dir):
         patch_file_pattern = '*-%s.patch' % self.version.branch
         return sorted(
-            glob.glob(os.path.join(patchDir, repo, patch_file_pattern)))
+            glob.glob(os.path.join(patch_dir, repo, patch_file_pattern)))
 
     def print_bundled(self, extensions):
         """
@@ -311,32 +305,30 @@ class MakeRelease(object):
 
         extensions = []
 
-        if options.list_bundled:
+        if self.options.list_bundled:
             return self.print_bundled(extensions)
 
         logging.info("Doing release for %s", self.version.raw)
 
         if self.version.branch is None:
             logging.debug("No branch, assuming '%s'. Override with --branch.",
-                          options.branch)
-            self.version.branch = options.branch
+                          self.options.branch)
+            self.version.branch = self.options.branch
 
         # No version specified, assuming a snapshot release
-        if options.version is None:
-            self.makeRelease(
-                version=MwVersion.new_snapshot(),
-                dir='snapshots')
+        if self.options.version is None:
+            self.do_release(
+                version=MwVersion.new_snapshot())
             return 0
 
-        if options.previousversion:
+        if self.options.previousversion:
             # Given the previous version on the command line
-            self.makeRelease(
+            self.do_release(
                 extensions=extensions,
-                version=self.version,
-                dir=self.version.major)
+                version=self.version)
             return 0
 
-        noPrevious = False
+        no_previous = False
         if self.version.prev_version is None:
             if not self.ask("No previous release found. Do you want to make a "
                             "release with no patch?"):
@@ -344,12 +336,11 @@ class MakeRelease(object):
                               'on the command line')
                 return 1
             else:
-                noPrevious = True
-        if noPrevious or options.no_previous:
-            self.makeRelease(
+                no_previous = True
+        if no_previous or self.options.no_previous:
+            self.do_release(
                 extensions=extensions,
-                version=self.version,
-                dir=self.version.major)
+                version=self.version)
         else:
             if not self.ask("Was %s the previous release?" %
                             self.version.prev_version):
@@ -357,10 +348,9 @@ class MakeRelease(object):
                               'on the command line')
                 return 1
 
-            self.makeRelease(
+            self.do_release(
                 extensions=extensions,
-                version=self.version,
-                dir=options.buildroot)
+                version=self.version)
         return 0
 
     def ask(self, question):
@@ -370,39 +360,39 @@ class MakeRelease(object):
         while True:
             print(question + ' [y/n] ')
             response = sys.stdin.readline()
-            if len(response) > 0:
+            if response:
                 if response[0].lower() == 'y':
                     return True
                 elif response[0].lower() == 'n':
                     return False
             print('Please type "y" for yes or "n" for no')
 
-    def getGit(self, repo, dir, gitRef):
-        oldDir = os.getcwd()
+    def get_git(self, repo, target, git_ref):
+        old_dir = os.getcwd()
 
-        if os.path.exists(dir):
-            logging.info("Updating %s in %s...", repo, dir)
+        if os.path.exists(target):
+            logging.info("Updating %s in %s...", repo, target)
             proc = subprocess.Popen(
-                ['sh', '-c', 'cd ' + dir + '; git fetch -q --all'])
+                ['sh', '-c', 'cd ' + target + '; git fetch -q --all'])
         else:
-            logging.info("Cloning %s into %s...", repo, dir)
+            logging.info("Cloning %s into %s...", repo, target)
             repo = 'https://gerrit.wikimedia.org/r/p/mediawiki/' + repo
-            proc = subprocess.Popen(['git', 'clone', '--recursive', repo, dir])
+            proc = subprocess.Popen(['git', 'clone', '--recursive', repo, target])
 
         if proc.wait() != 0:
             logging.error("git clone failed, exiting")
             sys.exit(1)
 
-        os.chdir(dir)
+        os.chdir(target)
 
-        logging.debug("Checking out %s in %s...", gitRef, dir)
-        proc = subprocess.Popen(['git', 'checkout', gitRef])
+        logging.debug("Checking out %s in %s...", git_ref, target)
+        proc = subprocess.Popen(['git', 'checkout', git_ref])
 
         if proc.wait() != 0:
             logging.error("git checkout failed, exiting")
             sys.exit(1)
 
-        logging.debug("Checking out submodules in %s...", dir)
+        logging.debug("Checking out submodules in %s...", target)
         proc = subprocess.Popen(['git', 'submodule', 'update', '--init',
                                  '--recursive'])
 
@@ -410,32 +400,31 @@ class MakeRelease(object):
             logging.error("git submodule update failed, exiting")
             sys.exit(1)
 
-        os.chdir(oldDir)
+        os.chdir(old_dir)
 
-    def export(self, gitRef, module, exportDir, patches=[]):
-        dir = exportDir + '/' + module
+    def export(self, git_ref, module, export_dir, patches=None):
         if patches:
-            gitRef = self.version.branch
-        self.getGit('core', dir, gitRef)
-        for patch in patches:
-            self.applyPatch(patch, dir)
+            git_ref = self.version.branch
+        self.get_git('core', os.path.join(export_dir, module), git_ref)
+        if patches:
+            self.apply_patches(patches, export_dir)
 
         logging.info('Done with exporting core')
 
-    def exportExtension(self, branch, extension, dir, patches=[]):
+    def export_ext(self, branch, extension, input_dir, patches=None):
         # We started doing them as submodules instead
         if self.version.major < '1.29':
-            self.getGit(extension, dir + '/' + extension, branch)
+            self.get_git(extension, input_dir + '/' + extension, branch)
 
-        for patch in patches:
-            self.applyPatch(patch, dir + '/' + extension)
+        if patches:
+            self.apply_patches(patches, input_dir + '/' + extension)
 
         logging.info('Done with exporting %s', extension)
 
-    def makePatch(self, destDir, patchFileName, dir1, dir2, type):
-        patchFile = open(destDir + "/" + patchFileName, 'w')
+    def make_patch(self, dest_dir, patch_file_name, dir1, dir2, patch_type):
+        patch_file = open(dest_dir + "/" + patch_file_name, 'w')
         args = ['diff', '-Nruw']
-        if type == 'i18n':
+        if patch_type == 'i18n':
             logging.debug("Generating i18n patch file...")
             dir1 += '/languages/messages'
             dir2 += '/languages/messages'
@@ -446,171 +435,171 @@ class MakeRelease(object):
 
         args.extend([dir1, dir2])
         logging.debug(' '.join(args))
-        diffProc = subprocess.Popen(args, stdout=subprocess.PIPE)
-        gzipProc = subprocess.Popen(['gzip', '-9'], stdin=diffProc.stdout,
-                                    stdout=patchFile)
+        diff_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+        gzip_proc = subprocess.Popen(['gzip', '-9'], stdin=diff_proc.stdout,
+                                     stdout=patch_file)
 
-        diffStatus = diffProc.wait()
-        gzipStatus = gzipProc.wait()
+        diff_status = diff_proc.wait()
+        gzip_status = gzip_proc.wait()
 
-        if diffStatus > 1 or gzipStatus != 0:
+        if diff_status > 1 or gzip_status != 0:
             logging.error("diff failed, exiting")
-            logging.error("diff: %s", diffStatus)
-            logging.error("gzip: %s", gzipStatus)
+            logging.error("diff: %s", diff_status)
+            logging.error("gzip: %s", gzip_status)
             sys.exit(1)
-        patchFile.close()
+        patch_file.close()
         logging.info('Done with making patch')
-        return diffStatus == 1
+        return diff_status == 1
 
-    def applyPatch(self, patchFile, targetDir):
-        oldDir = os.getcwd()
-        os.chdir(targetDir)
-        with open(patchFile) as patchIn:
-            patchProc = subprocess.Popen(['git', 'am', '--3way'],
-                                         stdin=patchIn)
-            status = patchProc.wait()
-            if status != 0:
-                logging.error("Patch failed, exiting")
-                logging.error("git: %s", status)
-                sys.exit(1)
-        logging.info("Finished applying patch %s", patchFile)
-        os.chdir(oldDir)
+    def apply_patches(self, patch_files, input_dir):
+        old_dir = os.getcwd()
+        os.chdir(input_dir)
+        for patch_file in patch_files:
+            with open(patch_file) as patch_in:
+                patch_proc = subprocess.Popen(['git', 'am', '--3way'],
+                                              stdin=patch_in)
+                status = patch_proc.wait()
+                if status != 0:
+                    logging.error("Patch failed, exiting")
+                    logging.error("git: %s", status)
+                    sys.exit(1)
+            logging.info("Finished applying patch %s", patch_file)
+        os.chdir(old_dir)
 
-    def makeTarFile(self, package, targetDir, dir, argAdd=[]):
+    def make_tar(self, package, input_dir, build_dir, add_args=None):
         tar = self.options.tar_command
 
         # Generate the .tar.gz file
         filename = package + '.tar.gz'
-        outFile = open(dir + '/' + filename, "w")
-        args = [tar, '--format=gnu', '--exclude-vcs', '-C', dir]
+        out_file = open(build_dir + '/' + filename, "w")
+        args = [tar, '--format=gnu', '--exclude-vcs', '-C', build_dir]
         if self.config.get('tar', {}).get('ignore', []):
             for patt in self.config['tar']['ignore']:
                 args += ['--exclude', patt]
-        args += argAdd
-        args += ['-c', targetDir]
+        if add_args:
+            args += add_args
+        args += ['-c', input_dir]
         logging.debug("Creating %s", filename)
-        tarProc = subprocess.Popen(args, stdout=subprocess.PIPE)
-        gzipProc = subprocess.Popen(['gzip', '-9'], stdin=tarProc.stdout,
-                                    stdout=outFile)
+        tar_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+        gzip_proc = subprocess.Popen(['gzip', '-9'], stdin=tar_proc.stdout,
+                                     stdout=out_file)
 
-        if tarProc.wait() != 0 or gzipProc.wait() != 0:
+        if tar_proc.wait() != 0 or gzip_proc.wait() != 0:
             logging.error("tar/gzip failed, exiting")
             sys.exit(1)
-        outFile.close()
+        out_file.close()
         logging.info('%s written', filename)
         return filename
 
-    def makeRelease(self, version, dir, extensions=[]):
+    def do_release(self, version, extensions=None):
 
-        rootDir = self.options.buildroot
+        root_dir = self.options.buildroot
 
         # variables related to the version
-        branch = self.version.branch
-        tag = self.version.tag
-        prevVersion = self.version.prev_version
+        branch = version.branch
+        tag = version.tag
+        prev_version = version.prev_version
+        major_ver = version.major
 
-        if rootDir is None:
-            rootDir = os.getcwd()
+        if root_dir is None:
+            root_dir = os.getcwd()
 
-        if not os.path.exists(rootDir):
-            logging.debug('Creating %s', rootDir)
-            os.mkdir(rootDir)
+        if not os.path.exists(root_dir):
+            logging.debug('Creating %s', root_dir)
+            os.mkdir(root_dir)
 
-        buildDir = rootDir + '/build'
-        uploadDir = rootDir + '/uploads'
-        patchDir = rootDir + '/patches'
+        build_dir = root_dir + '/build'
+        upload_dir = root_dir + '/uploads'
+        patch_dir = root_dir + '/patches'
 
-        if not os.path.exists(buildDir):
-            logging.debug('Creating build dir: %s', buildDir)
-            os.mkdir(buildDir)
-        if not os.path.exists(uploadDir):
-            logging.debug('Creating uploads dir: %s', uploadDir)
-            os.mkdir(uploadDir)
+        if not os.path.exists(build_dir):
+            logging.debug('Creating build dir: %s', build_dir)
+            os.mkdir(build_dir)
+        if not os.path.exists(upload_dir):
+            logging.debug('Creating uploads dir: %s', upload_dir)
+            os.mkdir(upload_dir)
 
-        os.chdir(buildDir)
-
-        if not os.path.exists(dir):
-            os.mkdir(dir)
+        os.chdir(build_dir)
 
         package = 'mediawiki-' + version.raw
 
         # Export the target
-        self.export(tag, package, buildDir,
-                    self.get_patches_for_repo('core', patchDir))
+        self.export(tag, package, build_dir,
+                    self.get_patches_for_repo('core', patch_dir))
 
-        self.exportExtension(branch, 'vendor', package,
-                             self.get_patches_for_repo('vendor', patchDir))
+        self.export_ext(branch, 'vendor', package,
+                        self.get_patches_for_repo('vendor', patch_dir))
 
-        extExclude = []
+        ext_exclude = []
         for ext in self.get_extensions_for_version(version, extensions):
-            self.exportExtension(branch, ext, package,
-                                 self.get_patches_for_repo(ext, patchDir))
-            extExclude.append("--exclude")
-            extExclude.append(ext)
+            self.export_ext(branch, ext, package,
+                            self.get_patches_for_repo(ext, patch_dir))
+            ext_exclude.append("--exclude")
+            ext_exclude.append(ext)
 
         # Generate the .tar.gz files
-        outFiles = []
-        outFiles.append(
-            self.makeTarFile(
+        out_files = []
+        out_files.append(
+            self.make_tar(
                 package='mediawiki-core-' + version.raw,
-                targetDir=package,
-                dir=buildDir,
-                argAdd=extExclude)
+                input_dir=package,
+                build_dir=build_dir,
+                add_args=ext_exclude)
         )
-        outFiles.append(
-            self.makeTarFile(
+        out_files.append(
+            self.make_tar(
                 package=package,
-                targetDir=package,
-                dir=buildDir)
+                input_dir=package,
+                build_dir=build_dir)
         )
 
         # Patch
-        haveI18n = False
-        if not self.options.no_previous and prevVersion is not None:
-            prevDir = 'mediawiki-' + prevVersion
-            prev_mw_version = MwVersion(prevVersion)
+        have_i18n = False
+        if not self.options.no_previous and prev_version is not None:
+            prev_dir = 'mediawiki-' + prev_version
+            prev_mw_version = MwVersion(prev_version)
             self.export(prev_mw_version.tag,
-                        prevDir, buildDir)
+                        prev_dir, build_dir)
 
-            for ext in self.get_extensions_for_version(MwVersion(prevVersion),
+            for ext in self.get_extensions_for_version(MwVersion(prev_version),
                                                        extensions):
-                self.exportExtension(branch, ext, prevDir)
+                self.export_ext(branch, ext, prev_dir)
 
-            self.makePatch(
-                buildDir, package + '.patch.gz', prevDir, package, 'normal')
-            outFiles.append(package + '.patch.gz')
+            self.make_patch(
+                build_dir, package + '.patch.gz', prev_dir, package, 'normal')
+            out_files.append(package + '.patch.gz')
             logging.debug('%s.patch.gz written', package)
             if os.path.exists(package + '/languages/messages'):
-                i18nPatch = 'mediawiki-i18n-' + version.raw + '.patch.gz'
-                if (self.makePatch(
-                        buildDir, i18nPatch, prevDir, package, 'i18n')):
-                    outFiles.append(i18nPatch)
-                    logging.info('%s written', i18nPatch)
-                    haveI18n = True
+                i18n_patch = 'mediawiki-i18n-' + version.raw + '.patch.gz'
+                if (self.make_patch(
+                        build_dir, i18n_patch, prev_dir, package, 'i18n')):
+                    out_files.append(i18n_patch)
+                    logging.info('%s written', i18n_patch)
+                    have_i18n = True
 
         # Sign
-        uploadFiles = []
-        for fileName in outFiles:
-            if options.sign:
+        upload_files = []
+        for file_name in out_files:
+            if self.options.sign:
                 try:
                     proc = subprocess.Popen([
-                        'gpg', '--detach-sign', buildDir + '/' + fileName])
-                except OSError as e:
+                        'gpg', '--detach-sign', build_dir + '/' + file_name])
+                except OSError as ose:
                     logging.error("gpg failed, does it exist? Skip with " +
                                   "--dont-sign.")
-                    logging.error("Error %s: %s", e.errno, e.strerror)
+                    logging.error("Error %s: %s", ose.errno, ose.strerror)
                     sys.exit(1)
                 if proc.wait() != 0:
                     logging.error("gpg failed, exiting")
                     sys.exit(1)
-                uploadFiles.append(fileName + '.sig')
-            uploadFiles.append(fileName)
+                upload_files.append(file_name + '.sig')
+            upload_files.append(file_name)
 
         # Generate upload tarball
         tar = self.options.tar_command
-        args = [tar, '-C', buildDir,
-                '-cf', uploadDir + '/upload-' + version.raw + '.tar']
-        args.extend(uploadFiles)
+        args = [tar, '-C', build_dir,
+                '-cf', upload_dir + '/upload-' + version.raw + '.tar']
+        args.extend(upload_files)
         proc = subprocess.Popen(args)
         if proc.wait() != 0:
             logging.error("Failed to generate upload.tar")
@@ -620,50 +609,48 @@ class MakeRelease(object):
         print()
         print("Full release notes:")
         url = ('https://phabricator.wikimedia.org/diffusion/MW/browse/' +
-               branch + '/RELEASE-NOTES-' + dir)
+               branch + '/RELEASE-NOTES-' + major_ver)
 
         print(url)
-        print('https://www.mediawiki.org/wiki/Release_notes/' + dir)
+        print('https://www.mediawiki.org/wiki/Release_notes/' + major_ver)
         print()
         print()
         print('*' * 70)
 
-        releaseServer = 'https://releases.wikimedia.org/mediawiki/'
+        server = 'https://releases.wikimedia.org/mediawiki/'
         print('Download:')
-        print(releaseServer + dir + '/' + package + '.tar.gz')
+        print(server + major_ver + '/' + package + '.tar.gz')
         print()
 
-        if prevVersion is not None:
-            if haveI18n:
-                print("Patch to previous version (" + prevVersion +
+        if prev_version is not None:
+            if have_i18n:
+                print("Patch to previous version (" + prev_version +
                       "), without interface text:")
-                print(releaseServer + dir + '/' + package + '.patch.gz')
+                print(server + major_ver + '/' + package + '.patch.gz')
                 print("Interface text changes:")
-                print(releaseServer + dir + '/' + i18nPatch)
+                print(server + major_ver + '/' + i18n_patch)
             else:
-                print("Patch to previous version (" + prevVersion + "):")
-                print(releaseServer + dir + '/' + package + '.patch.gz')
+                print("Patch to previous version (" + prev_version + "):")
+                print(server + major_ver + '/' + package + '.patch.gz')
             print()
 
         print('GPG signatures:')
-        for fileName in outFiles:
-            print(releaseServer + dir + '/' + fileName + '.sig')
+        for file_name in out_files:
+            print(server + major_ver + '/' + file_name + '.sig')
         print()
 
         print('Public keys:')
         print('https://www.mediawiki.org/keys/keys.html')
         print()
 
-        os.chdir('..')
         return 0
 
 
 if __name__ == '__main__':
-    options = parse_args()
+    _OPTS = parse_args()
 
-    if options.log_level is None:
-        options.log_level = logging.INFO
+    if _OPTS.log_level is None:
+        _OPTS.log_level = logging.INFO
 
-    logging.basicConfig(level=options.log_level, stream=sys.stderr)
-    app = MakeRelease(options)
-    sys.exit(app.main())
+    logging.basicConfig(level=_OPTS.log_level, stream=sys.stderr)
+    sys.exit(MakeRelease(_OPTS).main())
