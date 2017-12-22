@@ -108,8 +108,9 @@ class MwVersion(object):
         self.cycle = decomposed.get('cycle', None)
 
     @classmethod
-    def new_snapshot(cls):
-        return cls('snapshot-' + time.strftime('%Y%m%d', time.gmtime()))
+    def new_snapshot(cls, branch='master'):
+        return cls('snapshot-{}-{}'.format(
+            branch, time.strftime('%Y%m%d', time.gmtime())))
 
     def __repr__(self):
         if self.raw is None:
@@ -224,7 +225,7 @@ class MakeRelease(object):
     """Surprisingly: do a MediaWiki release"""
     def __init__(self, ops):
         if ops.version is None:
-            self.version = MwVersion.new_snapshot()
+            self.version = MwVersion.new_snapshot(ops.branch)
         else:
             self.version = MwVersion(ops.version)
         self.options = ops
@@ -300,7 +301,7 @@ class MakeRelease(object):
         # No version specified, assuming a snapshot release
         if self.options.version is None:
             self.do_release(
-                version=MwVersion.new_snapshot())
+                version=MwVersion.new_snapshot(self.options.branch))
             return 0
 
         if self.options.previousversion:
