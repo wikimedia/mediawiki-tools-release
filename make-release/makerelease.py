@@ -505,6 +505,8 @@ class MakeRelease(object):
         self.export(tag, package, build_dir,
                     self.get_patches_for_repo('core', patch_dir))
 
+        os.chdir(os.path.join(build_dir, package))
+        subprocess.check_output(['composer', 'update', '--no-dev'])
         self.export_ext(branch, 'vendor', package,
                         self.get_patches_for_repo('vendor', patch_dir))
 
