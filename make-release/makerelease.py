@@ -179,19 +179,7 @@ class MwVersion(object):
         del ret['major2']
 
         try:
-            # Special case for when we switched to semantic versioning
-            if(ret['major'] <= '1.22' or
-               (ret['major'] == '1.23' and
-                ret['minor'] == '0' and
-                (ret['phase'] == 'rc' and
-                 ret['cycle'] == '0'))):
-                ret['tag'] = 'tags/%s.%s%s%s' % (
-                    ret['major'],
-                    ret['minor'],
-                    ret.get('phase', ''),
-                    ret.get('cycle', '')
-                )
-            elif 'phase' in ret:
+            if 'phase' in ret:
                 ret['tag'] = 'tags/%s.%s-%s.%s' % (
                     ret['major'],
                     ret['minor'],
@@ -222,13 +210,7 @@ class MwVersion(object):
 
         bits[last] = str(int(bits[last]) - 1)
 
-        if(bits[0] <= '1.22' or
-           (bits[0] == '1.23' and
-            bits[1] == '0' and
-            (bits[2] == 'rc' and
-             bits[3] == '0'))):
-            ret['prev_version'] = '%s.%s%s%s' % tuple(bits)
-        elif 'phase' in ret:
+        if 'phase' in ret:
             ret['prev_version'] = '%s.%s-%s.%s' % tuple(bits)
         else:
             ret['prev_version'] = '%s.%s' % (bits[0], bits[1])
