@@ -412,10 +412,6 @@ class MakeRelease(object):
         logging.info('Done with exporting core')
 
     def export_ext(self, branch, extension, input_dir, patches=None):
-        # We started doing them as submodules instead
-        if self.version.major < '1.29':
-            self.get_git(extension, input_dir + '/' + extension, branch)
-
         if patches:
             self.apply_patches(patches, input_dir + '/' + extension)
 
