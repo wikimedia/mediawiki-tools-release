@@ -18,10 +18,9 @@ def main():
     auth = HTTPDigestAuth(config['username'], config['password'])
     rest = GerritRestAPI(url='https://gerrit.wikimedia.org/r/', auth=auth)
 
-    things_to_branch = ['mediawiki/core', 'mediawiki/vendor']
+    things_to_branch = ['mediawiki/core']
     manual_branch_points = {
         'mediawiki/core': '0cd28e19cb0f9385a2a1cc11a4d8c9c21ff0b830',
-        'mediawiki/vendor': '68b54dbcd8d65de64225a4ccc9dceb94429ca42a',
     }
     shit_to_skip = ['mediawiki/extensions/BlueSpiceExtendedStatistics',
                     'mediawiki/extensions/BlueSpiceUserManager']
