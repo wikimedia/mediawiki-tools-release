@@ -1,8 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # vim:sw=4:ts=4:et:
 """Stuff about making branches and so forth."""
-
-from __future__ import print_function
 
 import argparse
 import logging
@@ -16,7 +14,7 @@ import yaml
 from pygerrit.rest import GerritRestAPI
 
 with open("make-release.yaml") as conf:
-    CONFIG = yaml.load(conf)
+    CONFIG = yaml.safe_load(conf)
 
 
 def _get_client():
