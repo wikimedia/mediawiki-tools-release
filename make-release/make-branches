@@ -2,12 +2,11 @@
 # vim:sw=4:ts=4:et:
 """Stuff about making branches and so forth"""
 
-
 from __future__ import print_function
 from requests.auth import HTTPDigestAuth
 from requests.exceptions import HTTPError
-from pygerrit.rest import GerritRestAPI
 import yaml
+from pygerrit.rest import GerritRestAPI
 
 
 def main():
