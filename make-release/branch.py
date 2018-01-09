@@ -50,6 +50,13 @@ def create_branch(repository, branch, revision):
         else:
             raise
 
+    # If we've got a sub-submodule we care about, branch it too
+    try:
+        subrepo = CONFIG['sub_submodules'][repo]
+        create_branch(subrepo, branch, revision)
+    except KeyError:
+        pass
+
 
 def get_bundle(bundle):
     """Return the list of all/some extensions, skins, and vendor."""
@@ -69,10 +76,11 @@ def get_bundle(bundle):
 
 
 def do_core_work(branch, bundle, version):
+    """Add submodules, bump $wgVersion, etc"""
     cwd = os.getcwd()
     with tempfile.TemporaryDirectory() as temp:
         subprocess.check_call(['/usr/bin/git', 'clone', '-b', branch,
-                              CONFIG['clone_base'] + '/core', temp])
+                               CONFIG['clone_base'] + '/core', temp])
         os.chdir(temp)
         for submodule in bundle:
             url = CONFIG['clone_base'] + '/' + submodule
