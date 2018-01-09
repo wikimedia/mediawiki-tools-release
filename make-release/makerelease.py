@@ -591,26 +591,26 @@ class MakeRelease(object):
         print()
         print('*' * 70)
 
-        server = 'https://releases.wikimedia.org/mediawiki/'
+        server = 'https://releases.wikimedia.org/mediawiki/{}/'.format(major_ver)
         print('Download:')
-        print(server + major_ver + '/' + package + '.tar.gz')
+        print(server + package + '.tar.gz')
         print()
 
         if prev_version is not None:
             if have_i18n:
                 print("Patch to previous version (" + prev_version +
                       "), without interface text:")
-                print(server + major_ver + '/' + package + '.patch.gz')
+                print(server + package + '.patch.gz')
                 print("Interface text changes:")
-                print(server + major_ver + '/' + i18n_patch)
+                print(server + i18n_patch)
             else:
                 print("Patch to previous version (" + prev_version + "):")
-                print(server + major_ver + '/' + package + '.patch.gz')
+                print(server + package + '.patch.gz')
             print()
 
         print('GPG signatures:')
         for file_name in out_files:
-            print(server + major_ver + '/' + file_name + '.sig')
+            print(server + file_name + '.sig')
         print()
 
         print('Public keys:')
