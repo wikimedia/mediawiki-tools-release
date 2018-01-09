@@ -24,9 +24,14 @@ def _get_client():
         auth=HTTPDigestAuth(CONFIG['username'], CONFIG['password']))
 
 
-def create_branch(repository, branch, revision='HEAD'):
+def create_branch(repository, branch, revision):
     """Create a branch for a given repo."""
     try:
+        try:
+            revision = CONFIG['manual_branch_points'][branch][repository]
+        except KeyError:
+            pass
+
         _get_client().put(
             '/projects/%s/branches/%s' % (
                 repository.replace('/', '%2F'),
@@ -40,22 +45,12 @@ def create_branch(repository, branch, revision='HEAD'):
             raise
 
 
-def branch_core(branch, branch_point='HEAD'):
-    """Just branch core."""
-    create_branch('core', branch, branch_point)
-
-
-def branch_everything(branch, branch_point='HEAD', bundle=None):
+def branch_everything(branch, branch_point, bundle=None):
     """Branch stuff."""
-    if not bundle:
+    if bundle == '*':
         repos_to_branch = get_star_bundle()
 
     for repo in repos_to_branch:
-        try:
-            branch_point = CONFIG['manual_branch_points'][branch][repo]
-        except KeyError:
-            pass
-
         print('Branching %s to %s from %s' % (
             repo, branch, branch_point))
         create_branch(repo, branch, branch_point)
@@ -83,10 +78,10 @@ def parse_args():
     parser.add_argument('branch', nargs='?', help='Branch we want to make')
     parser.add_argument('--branchpoint', dest='branch_point', default='HEAD',
                         help='Where to branch from')
-    parser.add_argument('--submodules', dest='submodules', action='store_true',
-                        help='Add the newly branched repos as submodules?')
-    parser.add_argument('--set-version', dest='set_version',
-                        help='Update $wgVersion?')
+    parser.add_argument('--core', dest='core', action='store_true',
+                        help='If we branch core or not')
+    parser.add_argument('--bundle', dest='bundle', default=None,
+                        help='What bundle of extensions & skins to branch')
 
     return parser.parse_args()
 
@@ -95,5 +90,7 @@ if __name__ == '__main__':
     OPTIONS = parse_args()
     logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 
-    branch_core(OPTIONS.branch, OPTIONS.branch_point)
-    branch_everything(OPTIONS.branch, OPTIONS.branch_point)
+    if OPTIONS.core:
+        create_branch('core', OPTIONS.branch, OPTIONS.branch_point)
+    if OPTIONS.bundle:
+        branch_everything(OPTIONS.branch, OPTIONS.branch_point, OPTIONS.bundle)
