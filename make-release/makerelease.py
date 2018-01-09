@@ -389,16 +389,7 @@ class MakeRelease(object):
         if patches:
             git_ref = self.version.branch
         self.get_git('core', os.path.join(export_dir, module), git_ref)
-        if patches:
-            self.apply_patches(patches, export_dir)
-
-        logging.info('Done with exporting core')
-
-    def export_ext(self, branch, extension, input_dir, patches=None):
-        if patches:
-            self.apply_patches(patches, input_dir + '/' + extension)
-
-        logging.info('Done with exporting %s', extension)
+        self.maybe_apply_patches(export_dir, patches)
 
     def make_patch(self, dest_dir, patch_file_name, dir1, dir2, patch_type):
         patch_file = open(dest_dir + "/" + patch_file_name, 'w')
@@ -430,7 +421,9 @@ class MakeRelease(object):
         logging.info('Done with making patch')
         return diff_status == 1
 
-    def apply_patches(self, patch_files, input_dir):
+    def maybe_apply_patches(self, input_dir, patch_files=None):
+        if not patch_files:
+            return
         old_dir = os.getcwd()
         os.chdir(input_dir)
         for patch_file in patch_files:
@@ -508,13 +501,15 @@ class MakeRelease(object):
 
         os.chdir(os.path.join(build_dir, package))
         subprocess.check_output(['composer', 'update', '--no-dev'])
-        self.export_ext(branch, 'vendor', package,
-                        self.get_patches_for_repo('vendor', patch_dir))
+        self.maybe_apply_patches(
+            os.path.join(package, 'vendor'),
+            self.get_patches_for_repo('vendor', patch_dir))
 
         ext_exclude = []
         for ext in self.get_extensions_for_version(version, extensions):
-            self.export_ext(branch, ext, package,
-                            self.get_patches_for_repo(ext, patch_dir))
+            self.maybe_apply_patches(
+                os.path.join(package, ext),
+                self.get_patches_for_repo(ext, patch_dir))
             ext_exclude.append("--exclude")
             ext_exclude.append(ext)
 
@@ -541,10 +536,8 @@ class MakeRelease(object):
             prev_mw_version = MwVersion(prev_version)
             self.export(prev_mw_version.tag,
                         prev_dir, build_dir)
-
-            for ext in self.get_extensions_for_version(MwVersion(prev_version),
-                                                       extensions):
-                self.export_ext(branch, ext, prev_dir)
+            os.chdir(os.path.join(build_dir, prev_dir))
+            subprocess.check_output(['composer', 'update', '--no-dev'])
 
             self.make_patch(
                 build_dir, package + '.patch.gz', prev_dir, package, 'normal')
