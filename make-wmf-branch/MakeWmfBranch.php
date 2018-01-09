@@ -3,7 +3,7 @@
 class MakeWmfBranch {
 	public $dryRun;
 	public $newVersion, $oldVersion, $buildDir;
-	public $specialExtensions, $branchedExtensions, $branchedSkins, $patches;
+	public $specialExtensions, $branchedExtensions, $patches;
 	public $repoPath;
 	public $noisy;
 
@@ -29,7 +29,6 @@ class MakeWmfBranch {
 		$this->buildDir = $buildDir;
 		$this->branchedExtensions = $branchLists['extensions'];
 		$this->branchedSubmodules = $branchLists['submodules'];
-		$this->branchedSkins = $branchLists['skins'];
 		$this->specialExtensions = $branchLists['special_extensions'];
 		$this->alreadyBranched = array();
 		$this->noisy = $noisy;
@@ -50,11 +49,7 @@ class MakeWmfBranch {
 		}
 
 		$foundKey = false;
-		foreach ( array(
-			$this->branchedExtensions,
-			$this->branchedSkins,
-			array( 'vendor' ),
-		) as $branchedArr ) {
+		foreach ( array( $this->branchedExtensions ) as $branchedArr ) {
 			$key = array_search( $extName, $branchedArr );
 
 			if ( $key !== false ) {
@@ -134,12 +129,8 @@ class MakeWmfBranch {
 	function execute( $clonePath ) {
 		$this->setupBuildDirectory();
 		foreach ( $this->branchedExtensions as $ext ) {
-			$this->branchRepo( "extensions/{$ext}" );
+			$this->branchRepo( $ext );
 		}
-		foreach ( $this->branchedSkins as $skin ) {
-			$this->branchRepo( "skins/{$skin}" );
-		}
-		$this->branchRepo( 'vendor' );
 		$this->branchWmf( $clonePath );
 	}
 
@@ -220,35 +211,17 @@ class MakeWmfBranch {
 		$newVersion = $this->branchPrefix . $this->newVersion;
 		$this->runCmd( 'git', 'checkout', '-q', '-b', $newVersion );
 
-		# Delete extensions/README and extensions/.gitignore if we branched master
-		if ( $this->oldVersion == 'master' ) {
-			$this->runCmd( 'git', 'rm', '-q', "extensions/README", "extensions/.gitignore" );
+		# Add extensions/skins/vendor
+		foreach ( $this->branchedExtensions as $name ) {
+			$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
+				"{$this->repoPath}/{$name}", $name );
 		}
 
 		# Add extension submodules
-		foreach (
-			array_merge( array_keys( $this->specialExtensions ), $this->branchedExtensions )
-				as $name ) {
-
-			$submoduleBranch = $newVersion;
-
-			if ( isset( $this->specialExtensions[$name] ) ) {
-				$submoduleBranch = $this->specialExtensions[$name];
-			}
-
-			$this->runCmd( 'git', 'submodule', 'add', '-b', $submoduleBranch, '-q',
-				"{$this->repoPath}/extensions/{$name}", "extensions/$name" );
+		foreach ( $this->specialExtensions as $name => $specialBranch ) {
+			$this->runCmd( 'git', 'submodule', 'add', '-b', $specialBranch, '-q',
+			"{$this->repoPath}/{$name}", $name );
 		}
-
-		# Add skin submodules
-		foreach ( $this->branchedSkins as $name ) {
-			$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
-				"{$this->repoPath}/skins/{$name}", "skins/$name" );
-		}
-
-		# Add vendor submodule
-		$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
-			"{$this->repoPath}/vendor", 'vendor' );
 
 		# Fix $wgVersion
 		$this->fixVersion( "includes/DefaultSettings.php" );
