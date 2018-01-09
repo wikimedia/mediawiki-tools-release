@@ -3,8 +3,10 @@
 """Stuff about making branches and so forth."""
 
 import argparse
+from contextlib import contextmanager
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -27,13 +29,26 @@ def _get_client():
         auth=HTTPDigestAuth(CONFIG['username'], CONFIG['password']))
 
 
+def get_branchpoint(branch, repository, default):
+    try:
+        return CONFIG['manual_branch_points'][branch][repository]
+    except KeyError:
+        return default
+
+
 def create_branch(repository, branch, revision):
     """Create a branch for a given repo."""
+    # If we've got a sub-submodule we care about, branch it first so we can
+    # do some magic stuff
     try:
-        try:
-            revision = CONFIG['manual_branch_points'][branch][repository]
-        except KeyError:
-            pass
+        subrepo = CONFIG['sub_submodules'][repository]
+        create_branch(subrepo, branch, revision)
+    except KeyError:
+        # This is the normal case, actually
+        pass
+
+    try:
+        revision = get_branchpoint(branch, repository, revision)
 
         print('Branching {} to {} from {}'.format(repository, branch, revision))
         _get_client().put(
@@ -49,13 +64,6 @@ def create_branch(repository, branch, revision):
             print('Already branched!')
         else:
             raise
-
-    # If we've got a sub-submodule we care about, branch it too
-    try:
-        subrepo = CONFIG['sub_submodules'][repo]
-        create_branch(subrepo, branch, revision)
-    except KeyError:
-        pass
 
 
 def get_bundle(bundle):
@@ -75,13 +83,22 @@ def get_bundle(bundle):
             return []
 
 
+@contextmanager
+def clone(repository):
+    url = CONFIG['clone_base'] + '/' + repository
+    temp = tempfile.mkdtemp()
+    subprocess.check_call(['/usr/bin/git', 'clone', url, temp])
+    cwd = os.getcwd()
+    os.chdir(temp)
+    yield temp
+    os.chdir(cwd)
+    shutil.rmtree(temp)
+
+
 def do_core_work(branch, bundle, version):
     """Add submodules, bump $wgVersion, etc"""
     cwd = os.getcwd()
-    with tempfile.TemporaryDirectory() as temp:
-        subprocess.check_call(['/usr/bin/git', 'clone', '-b', branch,
-                               CONFIG['clone_base'] + '/core', temp])
-        os.chdir(temp)
+    with clone('core'):
         for submodule in bundle:
             url = CONFIG['clone_base'] + '/' + submodule
             subprocess.check_call(['/usr/bin/git', 'submodule', 'add',

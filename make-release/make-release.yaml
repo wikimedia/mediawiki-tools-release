@@ -31,7 +31,7 @@ manual_branch_points:
     REL1_30:
         core: 0cd28e19cb0f9385a2a1cc11a4d8c9c21ff0b830
 sub_submodules:
-    - extensions/VisualEditor: lib/ve
+    extensions/VisualEditor: lib/ve
 diff:
     ignore:
         - "*~"
