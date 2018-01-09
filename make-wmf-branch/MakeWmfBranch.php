@@ -3,7 +3,7 @@
 class MakeWmfBranch {
 	public $dryRun;
 	public $newVersion, $oldVersion, $buildDir;
-	public $specialExtensions, $branchedExtensions, $patches;
+	public $specialExtensions, $branchedExtensions;
 	public $repoPath;
 	public $noisy;
 
@@ -32,7 +32,6 @@ class MakeWmfBranch {
 		$this->specialExtensions = $branchLists['special_extensions'];
 		$this->alreadyBranched = array();
 		$this->noisy = $noisy;
-		$this->patches = $patches;
 		$this->repoPath = $repoPath;
 		$this->branchPrefix = $branchPrefix;
 	}
@@ -228,14 +227,6 @@ class MakeWmfBranch {
 
 		# Do intermediate commit
 		$this->runCmd( 'git', 'commit', '-a', '-q', '-m', "Creating new WMF {$this->newVersion} branch" );
-
-		# Apply patches
-		foreach ( $this->patches as $patch => $subpath ) {
-			// git fetch https://gerrit.wikimedia.org/mediawiki/core
-			// refs/changes/06/7606/1 && git cherry-pick FETCH_HEAD
-			$this->runCmd( 'git', 'fetch', $this->repoPath . '/' . $subpath, $patch );
-			$this->runCmd( 'git', 'cherry-pick', 'FETCH_HEAD' );
-		}
 
 		$this->runWriteCmd(
 			'git', 'push', 'origin', 'wmf/' . $this->newVersion );
