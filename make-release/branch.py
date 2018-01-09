@@ -79,7 +79,11 @@ def do_core_work(branch, bundle, version):
             subprocess.check_call(['/usr/bin/git', 'submodule', 'add',
                                    '--force', '--branch', branch, url,
                                    submodule])
-
+        # something with defaultsettings
+        subprocess.check_call(['/usr/bin/git', 'commit', '-a', '-m',
+                               'Creating new %s branch' % branch])
+        subprocess.check_call(['/usr/bin/git', 'push', 'origin',
+                               'HEAD:refs/for/%s' % branch])
     os.chdir(cwd)
 
 
