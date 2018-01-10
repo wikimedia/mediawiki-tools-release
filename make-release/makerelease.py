@@ -128,6 +128,40 @@ def maybe_apply_patches(input_dir, patch_files=None):
     os.chdir(old_dir)
 
 
+def get_git(target, git_ref):
+    """Clone core"""
+    old_dir = os.getcwd()
+
+    if os.path.exists(target):
+        logging.info('Updating core in %s...', target)
+        proc = subprocess.Popen(
+            ['sh', '-c', 'cd ' + target + '; git fetch -q --all'])
+    else:
+        logging.info('Cloning core into %s...', target)
+        repo = 'https://gerrit.wikimedia.org/r/p/mediawiki/core'
+        proc = subprocess.Popen(['git', 'clone', '--recursive', repo, target])
+
+    if proc.wait() != 0:
+        raise RuntimeError('git clone failed')
+
+    os.chdir(target)
+
+    logging.debug("Checking out %s in %s...", git_ref, target)
+    proc = subprocess.Popen(['git', 'checkout', git_ref])
+
+    if proc.wait() != 0:
+        raise RuntimeError('git checkout failed')
+
+    logging.debug("Checking out submodules in %s...", target)
+    proc = subprocess.Popen(['git', 'submodule', 'update', '--init',
+                             '--recursive'])
+
+    if proc.wait() != 0:
+        raise RuntimeError('git submodule update failed, exiting')
+
+    os.chdir(old_dir)
+
+
 class MwVersion(object):
     """Abstract out a MediaWiki version"""
 
@@ -384,45 +418,10 @@ class MakeRelease(object):
                     return False
             print('Please type "y" for yes or "n" for no')
 
-    def get_git(self, repo, target, git_ref):
-        old_dir = os.getcwd()
-
-        if os.path.exists(target):
-            logging.info("Updating %s in %s...", repo, target)
-            proc = subprocess.Popen(
-                ['sh', '-c', 'cd ' + target + '; git fetch -q --all'])
-        else:
-            logging.info("Cloning %s into %s...", repo, target)
-            repo = 'https://gerrit.wikimedia.org/r/p/mediawiki/' + repo
-            proc = subprocess.Popen(['git', 'clone', '--recursive', repo, target])
-
-        if proc.wait() != 0:
-            logging.error("git clone failed, exiting")
-            sys.exit(1)
-
-        os.chdir(target)
-
-        logging.debug("Checking out %s in %s...", git_ref, target)
-        proc = subprocess.Popen(['git', 'checkout', git_ref])
-
-        if proc.wait() != 0:
-            logging.error("git checkout failed, exiting")
-            sys.exit(1)
-
-        logging.debug("Checking out submodules in %s...", target)
-        proc = subprocess.Popen(['git', 'submodule', 'update', '--init',
-                                 '--recursive'])
-
-        if proc.wait() != 0:
-            logging.error("git submodule update failed, exiting")
-            sys.exit(1)
-
-        os.chdir(old_dir)
-
-    def export(self, git_ref, module, export_dir, patches=None):
+    def export(self, git_ref, export_dir, patches=None):
         if patches:
             git_ref = self.version.branch
-        self.get_git('core', os.path.join(export_dir, module), git_ref)
+        get_git(export_dir, git_ref)
         maybe_apply_patches(export_dir, patches)
 
     def make_patch(self, dest_dir, patch_file_name, dir1, dir2, patch_type):
@@ -505,7 +504,7 @@ class MakeRelease(object):
         package = 'mediawiki-' + version.raw
 
         # Export the target
-        self.export(tag, package, build_dir,
+        self.export(tag, os.path.join(build_dir, package),
                     get_patches_for_repo(patch_dir, 'core', version.branch))
 
         os.chdir(os.path.join(build_dir, package))
