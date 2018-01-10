@@ -104,6 +104,9 @@ def get_patches_for_repo(patch_dir, repo, branch):
     :param branch: branch we care about patching
     :return: all patches that are appropriate
     """
+    # Sometimes patch_dir isn't given!
+    if patch_dir is None:
+        return []
     patch_path_pattern = os.path.join(patch_dir, branch, repo, '*.patch')
     return sorted(glob.glob(patch_path_pattern))
 
@@ -479,7 +482,7 @@ class MakeRelease(object):
 
     def do_release(self, version, extensions=None):
 
-        root_dir = self.options.buildroot
+        build_dir = self.options.buildroot
         patch_dir = self.options.patch_dir
 
         # variables related to the version
@@ -488,14 +491,10 @@ class MakeRelease(object):
         prev_version = version.prev_version
         major_ver = version.major
 
-        if root_dir is None:
-            root_dir = os.getcwd()
-
-        if not os.path.exists(root_dir):
-            logging.debug('Creating %s', root_dir)
-            os.mkdir(root_dir)
-
-        build_dir = root_dir + '/build'
+        # If we're operating in the same repo as this script, kindly make it
+        # in a subdirectory to avoid polluting things
+        if build_dir == os.path.dirname(os.path.abspath(__file__)):
+            build_dir = os.path.join(build_dir, 'build')
 
         if not os.path.exists(build_dir):
             logging.debug('Creating build dir: %s', build_dir)
