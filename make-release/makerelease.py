@@ -86,6 +86,10 @@ def parse_args():
         action='store_true',
         help='List all bundled extensions for the given version and quit'
     )
+    parser.add_argument(
+        '--patch-dir', dest='patch_dir', default=None,
+        help='Where to source patch files from'
+    )
 
     return parser.parse_args()
 
@@ -476,6 +480,7 @@ class MakeRelease(object):
     def do_release(self, version, extensions=None):
 
         root_dir = self.options.buildroot
+        patch_dir = self.options.patch_dir
 
         # variables related to the version
         branch = version.branch
@@ -491,7 +496,6 @@ class MakeRelease(object):
             os.mkdir(root_dir)
 
         build_dir = root_dir + '/build'
-        patch_dir = root_dir + '/patches'
 
         if not os.path.exists(build_dir):
             logging.debug('Creating build dir: %s', build_dir)
@@ -507,15 +511,17 @@ class MakeRelease(object):
 
         os.chdir(os.path.join(build_dir, package))
         subprocess.check_output(['composer', 'update', '--no-dev'])
-        maybe_apply_patches(
-            os.path.join(package, 'vendor'),
-            get_patches_for_repo(patch_dir, 'vendor', version.branch))
+        if patch_dir:
+            maybe_apply_patches(
+                os.path.join(package, 'vendor'),
+                get_patches_for_repo(patch_dir, 'vendor', version.branch))
 
         ext_exclude = []
         for ext in self.get_extensions_for_version(version, extensions):
-            maybe_apply_patches(
-                os.path.join(package, ext),
-                get_patches_for_repo(patch_dir, ext, version.branch))
+            if patch_dir:
+                maybe_apply_patches(
+                    os.path.join(package, ext),
+                    get_patches_for_repo(patch_dir, ext, version.branch))
             ext_exclude.append("--exclude")
             ext_exclude.append(ext)
 
