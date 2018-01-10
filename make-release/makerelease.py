@@ -90,6 +90,37 @@ def parse_args():
     return parser.parse_args()
 
 
+def get_patches_for_repo(patch_dir, repo, branch):
+    """
+    Given a repository, a branch and a directory to find patches in,
+    return all the patches that apply to our repository.
+
+    :param patch_dir: where patches are to be found
+    :param repo: repository to care about
+    :param branch: branch we care about patching
+    :return: all patches that are appropriate
+    """
+    patch_path_pattern = os.path.join(patch_dir, branch, repo, '*.patch')
+    return sorted(glob.glob(patch_path_pattern))
+
+
+def maybe_apply_patches(input_dir, patch_files=None):
+    """If given some patch files, attempt to apply them to given directory"""
+    if not patch_files:
+        return
+    old_dir = os.getcwd()
+    os.chdir(input_dir)
+    for patch_file in patch_files:
+        with open(patch_file) as patch_in:
+            patch_proc = subprocess.Popen(['git', 'am', '--3way'],
+                                          stdin=patch_in)
+            status = patch_proc.wait()
+            if status != 0:
+                raise RuntimeError('Patch failed; git output: %s' % status)
+        logging.info("Finished applying patch %s", patch_file)
+    os.chdir(old_dir)
+
+
 class MwVersion(object):
     """Abstract out a MediaWiki version"""
 
@@ -109,6 +140,7 @@ class MwVersion(object):
 
     @classmethod
     def new_snapshot(cls, branch='master'):
+        """Create a new MwVersion for a snapshot"""
         return cls('snapshot-{}-{}'.format(
             branch, time.strftime('%Y%m%d', time.gmtime())))
 
@@ -267,11 +299,6 @@ class MakeRelease(object):
                         base.remove(repo)
         return sorted(extensions + list(base))
 
-    def get_patches_for_repo(self, repo, patch_dir):
-        patch_file_pattern = '*-%s.patch' % self.version.branch
-        return sorted(
-            glob.glob(os.path.join(patch_dir, repo, patch_file_pattern)))
-
     def print_bundled(self, extensions):
         """
         Print all bundled extensions and skins
@@ -389,7 +416,7 @@ class MakeRelease(object):
         if patches:
             git_ref = self.version.branch
         self.get_git('core', os.path.join(export_dir, module), git_ref)
-        self.maybe_apply_patches(export_dir, patches)
+        maybe_apply_patches(export_dir, patches)
 
     def make_patch(self, dest_dir, patch_file_name, dir1, dir2, patch_type):
         patch_file = open(dest_dir + "/" + patch_file_name, 'w')
@@ -420,23 +447,6 @@ class MakeRelease(object):
         patch_file.close()
         logging.info('Done with making patch')
         return diff_status == 1
-
-    def maybe_apply_patches(self, input_dir, patch_files=None):
-        if not patch_files:
-            return
-        old_dir = os.getcwd()
-        os.chdir(input_dir)
-        for patch_file in patch_files:
-            with open(patch_file) as patch_in:
-                patch_proc = subprocess.Popen(['git', 'am', '--3way'],
-                                              stdin=patch_in)
-                status = patch_proc.wait()
-                if status != 0:
-                    logging.error("Patch failed, exiting")
-                    logging.error("git: %s", status)
-                    sys.exit(1)
-            logging.info("Finished applying patch %s", patch_file)
-        os.chdir(old_dir)
 
     def make_tar(self, package, input_dir, build_dir, add_args=None):
         tar = self.options.tar_command
@@ -493,19 +503,19 @@ class MakeRelease(object):
 
         # Export the target
         self.export(tag, package, build_dir,
-                    self.get_patches_for_repo('core', patch_dir))
+                    get_patches_for_repo(patch_dir, 'core', version.branch))
 
         os.chdir(os.path.join(build_dir, package))
         subprocess.check_output(['composer', 'update', '--no-dev'])
-        self.maybe_apply_patches(
+        maybe_apply_patches(
             os.path.join(package, 'vendor'),
-            self.get_patches_for_repo('vendor', patch_dir))
+            get_patches_for_repo(patch_dir, 'vendor', version.branch))
 
         ext_exclude = []
         for ext in self.get_extensions_for_version(version, extensions):
-            self.maybe_apply_patches(
+            maybe_apply_patches(
                 os.path.join(package, ext),
-                self.get_patches_for_repo(ext, patch_dir))
+                get_patches_for_repo(patch_dir, ext, version.branch))
             ext_exclude.append("--exclude")
             ext_exclude.append(ext)
 
