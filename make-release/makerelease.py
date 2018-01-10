@@ -481,15 +481,11 @@ class MakeRelease(object):
             os.mkdir(root_dir)
 
         build_dir = root_dir + '/build'
-        upload_dir = root_dir + '/uploads'
         patch_dir = root_dir + '/patches'
 
         if not os.path.exists(build_dir):
             logging.debug('Creating build dir: %s', build_dir)
             os.mkdir(build_dir)
-        if not os.path.exists(upload_dir):
-            logging.debug('Creating uploads dir: %s', upload_dir)
-            os.mkdir(upload_dir)
 
         os.chdir(build_dir)
 
@@ -552,7 +548,6 @@ class MakeRelease(object):
                     have_i18n = True
 
         # Sign
-        upload_files = []
         for file_name in out_files:
             if self.options.sign:
                 try:
@@ -566,18 +561,6 @@ class MakeRelease(object):
                 if proc.wait() != 0:
                     logging.error("gpg failed, exiting")
                     sys.exit(1)
-                upload_files.append(file_name + '.sig')
-            upload_files.append(file_name)
-
-        # Generate upload tarball
-        tar = self.options.tar_command
-        args = [tar, '-C', build_dir,
-                '-cf', upload_dir + '/upload-' + version.raw + '.tar']
-        args.extend(upload_files)
-        proc = subprocess.Popen(args)
-        if proc.wait() != 0:
-            logging.error("Failed to generate upload.tar")
-            return 1
 
         # Write email template
         print()
