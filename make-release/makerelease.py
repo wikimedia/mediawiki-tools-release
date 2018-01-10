@@ -426,12 +426,12 @@ class MakeRelease(object):
         maybe_apply_patches(export_dir, patches)
 
     def make_patch(self, dest_dir, patch_file_name, dir1, dir2, patch_type):
-        patch_file = open(dest_dir + "/" + patch_file_name, 'w')
+        patch_file = open(os.path.join(dest_dir, patch_file_name), 'w')
         args = ['diff', '-Nruw']
         if patch_type == 'i18n':
             logging.debug("Generating i18n patch file...")
-            dir1 += '/languages/messages'
-            dir2 += '/languages/messages'
+            dir1 = os.path.join(dir1, 'languages', 'messages')
+            dir1 = os.path.join(dir2, 'languages', 'messages')
         else:
             logging.debug("Generating normal patch file...")
             for excl in self.config['diff']['ignore']:
@@ -460,7 +460,7 @@ class MakeRelease(object):
 
         # Generate the .tar.gz file
         filename = package + '.tar.gz'
-        out_file = open(build_dir + '/' + filename, "w")
+        out_file = open(os.path.join(build_dir, filename), "w")
         args = [tar, '--format=gnu', '--exclude-vcs', '-C', build_dir]
         if self.config.get('tar', {}).get('ignore', []):
             for patt in self.config['tar']['ignore']:
@@ -554,7 +554,7 @@ class MakeRelease(object):
                 build_dir, package + '.patch.gz', prev_dir, package, 'normal')
             out_files.append(package + '.patch.gz')
             logging.debug('%s.patch.gz written', package)
-            if os.path.exists(package + '/languages/messages'):
+            if os.path.exists(os.path.join(package, 'languages', 'messages')):
                 i18n_patch = 'mediawiki-i18n-' + version.raw + '.patch.gz'
                 if (self.make_patch(
                         build_dir, i18n_patch, prev_dir, package, 'i18n')):
@@ -567,7 +567,7 @@ class MakeRelease(object):
             if self.options.sign:
                 try:
                     proc = subprocess.Popen([
-                        'gpg', '--detach-sign', build_dir + '/' + file_name])
+                        'gpg', '--detach-sign', os.path.join(build_dir, file_name)])
                 except OSError as ose:
                     logging.error("gpg failed, does it exist? Skip with " +
                                   "--dont-sign.")
