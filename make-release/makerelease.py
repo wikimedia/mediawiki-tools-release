@@ -408,15 +408,18 @@ class MakeRelease(object):
         if self.options.yes:
             return True
 
+        result = False
         while True:
             print(question + ' [y/n] ')
             response = sys.stdin.readline()
             if response:
                 if response[0].lower() == 'y':
-                    return True
+                    result = True
+                    break
                 elif response[0].lower() == 'n':
-                    return False
+                    break
             print('Please type "y" for yes or "n" for no')
+        return result
 
     def export(self, git_ref, export_dir, patches=None):
         if patches:
