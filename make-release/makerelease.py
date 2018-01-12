@@ -405,6 +405,7 @@ class MakeRelease(object):
         return 0
 
     def ask(self, question):
+        """What does the user want?"""
         if self.options.yes:
             return True
 
@@ -422,12 +423,14 @@ class MakeRelease(object):
         return result
 
     def export(self, git_ref, export_dir, patches=None):
+        """Clone core and possibly apply some patches"""
         if patches:
             git_ref = self.version.branch
         get_git(export_dir, git_ref)
         maybe_apply_patches(export_dir, patches)
 
     def make_patch(self, dest_dir, patch_file_name, dir1, dir2, patch_type):
+        """Make a patch file, given two directories"""
         patch_file = open(os.path.join(dest_dir, patch_file_name), 'w')
         args = ['diff', '-Nruw']
         if patch_type == 'i18n':
@@ -458,6 +461,7 @@ class MakeRelease(object):
         return diff_status == 1
 
     def make_tar(self, package, input_dir, build_dir, add_args=None):
+        """Tar up a directory"""
         tar = self.options.tar_command
 
         # Generate the .tar.gz file
@@ -483,7 +487,7 @@ class MakeRelease(object):
         return filename
 
     def do_release(self, version, extensions=None):
-
+        """Do all the nasty work of building a release"""
         build_dir = self.options.buildroot
         patch_dir = self.options.patch_dir
 
@@ -543,7 +547,6 @@ class MakeRelease(object):
         )
 
         # Patch
-        have_i18n = False
         if not self.options.no_previous and prev_version is not None:
             prev_dir = 'mediawiki-' + prev_version
             prev_mw_version = MwVersion(prev_version)
@@ -562,7 +565,8 @@ class MakeRelease(object):
                         build_dir, i18n_patch, prev_dir, package, 'i18n')):
                     out_files.append(i18n_patch)
                     logging.info('%s written', i18n_patch)
-                    have_i18n = True
+                else:
+                    i18n_patch = None
 
         # Sign
         for file_name in out_files:
@@ -597,7 +601,7 @@ class MakeRelease(object):
         print()
 
         if prev_version is not None:
-            if have_i18n:
+            if i18n_patch:
                 print("Patch to previous version (" + prev_version +
                       "), without interface text:")
                 print(server + package + '.patch.gz')
