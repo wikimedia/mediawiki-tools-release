@@ -82,11 +82,6 @@ def parse_args():
         help='path to tar, we are expecting a GNU tar. (defaults to tar)'
     )
     parser.add_argument(
-        '--list-bundled', dest='list_bundled',
-        action='store_true',
-        help='List all bundled extensions for the given version and quit'
-    )
-    parser.add_argument(
         '--patch-dir', dest='patch_dir', default=None,
         help='Where to source patch files from'
     )
@@ -340,24 +335,10 @@ class MakeRelease(object):
                         base.remove(repo)
         return sorted(extensions + list(base))
 
-    def print_bundled(self, extensions):
-        """
-        Print all bundled extensions and skins
-
-        :param extensions: Extensions that are already being included
-        :return: exit code
-        """
-        for repo in self.get_extensions_for_version(self.version, extensions):
-            print(repo)
-        return 0
-
     def main(self):
         """return value should be usable as an exit code"""
 
         extensions = []
-
-        if self.options.list_bundled:
-            return self.print_bundled(extensions)
 
         logging.info("Doing release for %s", self.version.raw)
 
