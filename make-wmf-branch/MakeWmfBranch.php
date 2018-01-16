@@ -164,7 +164,7 @@ class MakeWmfBranch {
 			return;
 		}
 
-		$this->runCmd( 'git', 'clone', '-q', "{$this->repoPath}/{$path}", $repo );
+		$this->runCmd( 'git', 'clone', '-q', '--depth', '1', "{$this->repoPath}/{$path}", $repo );
 		$this->chdir( $repo );
 		$newVersion = $this->branchPrefix . $this->newVersion;
 
