@@ -148,12 +148,9 @@ class MakeWmfBranch {
 		}
 	}
 
-	function createBranch( $branchName, $doPush=true ) {
+	function createBranch( $branchName ) {
 		$this->runCmd( 'git', 'checkout', '-q', '-b', $branchName );
-
-		if ( $doPush == true ) {
-			$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
-		}
+		$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
 	}
 
 	function branchRepo( $path ) {
@@ -169,7 +166,6 @@ class MakeWmfBranch {
 		$newVersion = $this->branchPrefix . $this->newVersion;
 
 		if ( isset( $this->branchedSubmodules[$path] ) ) {
-			$this->createBranch( $newVersion, false );
 			foreach ( (array)$this->branchedSubmodules[$path] as $submodule ) {
 				$this->runCmd( 'git', 'submodule', 'update', '--init', $submodule );
 				$this->chdir( $submodule );
@@ -179,17 +175,9 @@ class MakeWmfBranch {
 				// may be inside a subdirectory
 				$this->chdir( $this->buildDir );
 				$this->chdir( $repo );
-				$this->runCmd( 'git', 'add', $submodule );
 			}
-			$diffRet = 0;
-			passthru( '/usr/bin/git diff --cached --no-ext-diff --quiet', $diffRet );
-			if ( $diffRet > 0 ) {
-				$this->runCmd( 'git', 'commit', '-q', '-m', "Creating new {$newVersion} branch" );
-			}
-			$this->runWriteCmd( 'git', 'push', 'origin', $newVersion );
-		} else {
-			$this->createBranch( $newVersion, true );
 		}
+		$this->createBranch( $newVersion );
 		$this->chdir( $this->buildDir );
 	}
 
