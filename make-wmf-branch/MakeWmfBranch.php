@@ -218,7 +218,7 @@ class MakeWmfBranch {
 
 		# Add extension submodules
 		foreach ( $this->specialExtensions as $name => $specialBranch ) {
-			$this->runCmd( 'git', 'submodule', 'add', '-b', $specialBranch, '-q',
+			$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $specialBranch, '-q',
 			"{$this->repoPath}/{$name}", $name );
 		}
 
