@@ -187,6 +187,6 @@
 	},
 	"@": "Set a string for the specific commit, branch, or tag. DO NOT USE THIS OR CHAD WILL BE ANGRY",
 	"special_extensions": {
-		"CentralNotice": "wmf_deploy"
+		"extensions/CentralNotice": "wmf_deploy"
 	}
 }
