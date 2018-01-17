@@ -31,6 +31,7 @@ def _get_client():
 
 
 def get_branchpoint(branch, repository, default):
+    """See if a repo has an overridden branchpoint"""
     try:
         return CONFIG['manual_branch_points'][branch][repository]
     except KeyError:
@@ -87,6 +88,7 @@ def get_bundle(bundle):
 
 @contextmanager
 def clone(repository):
+    """Clone a repository. Basically clone core"""
     url = CONFIG['clone_base'] + '/' + repository
     temp = tempfile.mkdtemp()
     subprocess.check_call(['/usr/bin/git', 'clone', url, temp])
