@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # vim:sw=4:ts=4:et:
 """Stuff about making branches and so forth."""
 
@@ -17,7 +17,7 @@ from requests.exceptions import HTTPError
 
 import yaml
 
-from pygerrit.rest import GerritRestAPI
+from pygerrit2.rest import GerritRestAPI
 
 with open("make-release.yaml") as conf:
     CONFIG = yaml.safe_load(conf)
