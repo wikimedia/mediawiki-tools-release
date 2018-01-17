@@ -6,6 +6,7 @@ import argparse
 from contextlib import contextmanager
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -95,6 +96,11 @@ def clone(repository):
     shutil.rmtree(temp)
 
 
+WGVERSION_REGEX = re.compile(
+    r'^( \$wgVersion \s+ = \s+ )  [^;]*  ( ; \s* ) $',
+    re.MULTILINE | re.VERBOSE)
+
+
 def do_core_work(branch, bundle, version):
     """Add submodules, bump $wgVersion, etc"""
     cwd = os.getcwd()
@@ -104,7 +110,14 @@ def do_core_work(branch, bundle, version):
             subprocess.check_call(['/usr/bin/git', 'submodule', 'add',
                                    '--force', '--branch', branch, url,
                                    submodule])
-        # something with defaultsettings
+
+        with open('includes/DefaultSettings.php', 'r') as defaultsettings:
+            contents = defaultsettings.read()
+
+        with open('includes/DefaultSettings.php', 'w') as defaultsettings:
+            defaultsettings.write(WGVERSION_REGEX.sub(
+                r"\1'" + version + r"'\2", contents))
+
         subprocess.check_call(['/usr/bin/git', 'commit', '-a', '-m',
                                'Creating new %s branch' % branch])
         subprocess.check_call(['/usr/bin/git', 'push', 'origin',
