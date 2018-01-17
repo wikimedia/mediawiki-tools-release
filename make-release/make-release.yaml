@@ -1,5 +1,5 @@
 # vim: set et ts=4 sw=4: -*- mode: yaml-mode; yaml-indent-offset: 4 -*-
-clone_base: https://gerrit.wikimedia.org/r/mediawiki
+base_url: https://gerrit.wikimedia.org/r/
 bundles:
     base:
         - extensions/Cite

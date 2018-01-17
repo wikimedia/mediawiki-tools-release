@@ -12,7 +12,7 @@ import subprocess
 import sys
 import tempfile
 
-from requests.auth import HTTPDigestAuth
+from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 
 import yaml
@@ -27,7 +27,7 @@ def _get_client():
     """Get the client for making requests."""
     return GerritRestAPI(
         url=CONFIG['base_url'],
-        auth=HTTPDigestAuth(CONFIG['username'], CONFIG['password']))
+        auth=HTTPBasicAuth(CONFIG['username'], CONFIG['password']))
 
 
 def get_branchpoint(branch, repository, default):
@@ -41,6 +41,7 @@ def create_branch(repository, branch, revision):
     """Create a branch for a given repo."""
     # If we've got a sub-submodule we care about, branch it first so we can
     # do some magic stuff
+    repository = 'mediawiki/{}'.format(repository)
     try:
         subrepo = CONFIG['sub_submodules'][repository]
         create_branch(subrepo, branch, revision)
