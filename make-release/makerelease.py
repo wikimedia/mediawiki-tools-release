@@ -362,13 +362,12 @@ class MakeRelease(object):
 
         no_previous = False
         if self.version.prev_version is None:
+            no_previous = True
             if not self.ask("No previous release found. Do you want to make a "
                             "release with no patch?"):
                 logging.error('Please specify the correct previous release ' +
                               'on the command line')
                 return 1
-            else:
-                no_previous = True
         if no_previous or self.options.no_previous:
             self.do_release(
                 extensions=extensions,
@@ -473,10 +472,7 @@ class MakeRelease(object):
         patch_dir = self.options.patch_dir
 
         # variables related to the version
-        branch = version.branch
-        tag = version.tag
         prev_version = version.prev_version
-        major_ver = version.major
 
         # If we're operating in the same repo as this script, kindly make it
         # in a subdirectory to avoid polluting things
@@ -492,7 +488,7 @@ class MakeRelease(object):
         package = 'mediawiki-' + version.raw
 
         # Export the target
-        self.export(tag, os.path.join(build_dir, package),
+        self.export(version.tag, os.path.join(build_dir, package),
                     get_patches_for_repo(patch_dir, 'core', version.branch))
 
         os.chdir(os.path.join(build_dir, package))
@@ -512,26 +508,22 @@ class MakeRelease(object):
             ext_exclude.append(ext)
 
         # Generate the .tar.gz files
-        out_files = []
-        out_files.append(
+        out_files = [
             self.make_tar(
                 package=package,
                 input_dir=package,
-                build_dir=build_dir)
-        )
-        out_files.append(
+                build_dir=build_dir),
             self.make_tar(
                 package='mediawiki-core-' + version.raw,
                 input_dir=package,
                 build_dir=build_dir,
                 add_args=ext_exclude)
-        )
+        ]
 
         # Patch
         if not self.options.no_previous and prev_version is not None:
             prev_dir = 'mediawiki-' + prev_version
-            prev_mw_version = MwVersion(prev_version)
-            self.export(prev_mw_version.tag,
+            self.export(MwVersion(prev_version),
                         prev_dir, build_dir)
             os.chdir(os.path.join(build_dir, prev_dir))
             subprocess.check_output(['composer', 'update', '--no-dev'])
@@ -563,35 +555,37 @@ class MakeRelease(object):
                 if proc.wait() != 0:
                     logging.error("gpg failed, exiting")
                     sys.exit(1)
-
-        # Write email template
-        print()
-        print("Full release notes:")
-        url = ('https://phabricator.wikimedia.org/diffusion/MW/browse/' +
-               branch + '/RELEASE-NOTES-' + major_ver)
-
-        print(url)
-        print('https://www.mediawiki.org/wiki/Release_notes/' + major_ver)
-        print()
-        print()
-        print('*' * 70)
-
-        server = 'https://releases.wikimedia.org/mediawiki/{}/'.format(major_ver)
-        print('Download:')
-        for file_name in out_files:
-            print(server + file_name)
-        print()
-
-        print('GPG signatures:')
-        for file_name in out_files:
-            print(server + file_name + '.sig')
-        print()
-
-        print('Public keys:')
-        print('https://www.mediawiki.org/keys/keys.html')
-        print()
-
+        output(version, out_files)
         return 0
+
+
+def output(version, out_files):
+    """Write email template"""
+    print()
+    print("Full release notes:")
+    url = ('https://phabricator.wikimedia.org/diffusion/MW/browse/' +
+           version.branch + '/RELEASE-NOTES-' + version.major)
+
+    print(url)
+    print('https://www.mediawiki.org/wiki/Release_notes/' + version.major)
+    print()
+    print()
+    print('*' * 70)
+
+    server = 'https://releases.wikimedia.org/mediawiki/{}/'.format(version.major)
+    print('Download:')
+    for file_name in out_files:
+        print(server + file_name)
+    print()
+
+    print('GPG signatures:')
+    for file_name in out_files:
+        print(server + file_name + '.sig')
+    print()
+
+    print('Public keys:')
+    print('https://www.mediawiki.org/keys/keys.html')
+    print()
 
 
 if __name__ == '__main__':
