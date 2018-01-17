@@ -31,7 +31,7 @@ def parse_args():
         '--conf', dest='conffile',
         default=os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
-            'make-release.yaml'),
+            'settings.yaml'),
         help='specify the configuration file')
 
     # Positional arguments:
@@ -515,16 +515,16 @@ class MakeRelease(object):
         out_files = []
         out_files.append(
             self.make_tar(
+                package=package,
+                input_dir=package,
+                build_dir=build_dir)
+        )
+        out_files.append(
+            self.make_tar(
                 package='mediawiki-core-' + version.raw,
                 input_dir=package,
                 build_dir=build_dir,
                 add_args=ext_exclude)
-        )
-        out_files.append(
-            self.make_tar(
-                package=package,
-                input_dir=package,
-                build_dir=build_dir)
         )
 
         # Patch
@@ -578,20 +578,9 @@ class MakeRelease(object):
 
         server = 'https://releases.wikimedia.org/mediawiki/{}/'.format(major_ver)
         print('Download:')
-        print(server + package + '.tar.gz')
+        for file_name in out_files:
+            print(server + file_name)
         print()
-
-        if prev_version is not None:
-            if i18n_patch:
-                print("Patch to previous version (" + prev_version +
-                      "), without interface text:")
-                print(server + package + '.patch.gz')
-                print("Interface text changes:")
-                print(server + i18n_patch)
-            else:
-                print("Patch to previous version (" + prev_version + "):")
-                print(server + package + '.patch.gz')
-            print()
 
         print('GPG signatures:')
         for file_name in out_files:
