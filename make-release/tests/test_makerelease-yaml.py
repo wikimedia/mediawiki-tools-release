@@ -5,7 +5,7 @@ import yaml
 def test_valid_syntax():
     fname = os.path.join(
         os.path.dirname(os.path.dirname(__file__)),
-        'make-release.yaml'
+        'settings.yaml'
     )
 
     with open(fname) as conf:

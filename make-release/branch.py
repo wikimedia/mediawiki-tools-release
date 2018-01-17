@@ -19,8 +19,14 @@ import yaml
 
 from pygerrit2.rest import GerritRestAPI
 
-with open("make-release.yaml") as conf:
-    CONFIG = yaml.safe_load(conf)
+# Setup config with local overrides
+with open('settings.yaml') as globalconf:
+    CONFIG = yaml.safe_load(globalconf)
+if os.path.exists('.settings.yaml'):
+    with open(".settings.yaml") as localconf:
+        LOCAL_CONFIG = yaml.safe_load(localconf)
+        if LOCAL_CONFIG:
+            CONFIG.update(LOCAL_CONFIG)
 
 
 def _get_client():
