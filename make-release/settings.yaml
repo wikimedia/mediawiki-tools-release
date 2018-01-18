@@ -56,14 +56,9 @@ diff:
 tar:
     ignore:
         - "*~"
-        - ".js*"
-        - ".git*"
-        - ".rubocop*"
         - "#*#"
-        - ".#*"
-        - .travis.yml
+        - ".*"
         - package.json
         - README.mediawiki
         - "Gemfile*"
-        - ".mailmap"
         - "vendor/pear/net_smtp/README.rst"
