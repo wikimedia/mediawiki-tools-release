@@ -18,6 +18,7 @@ from requests.exceptions import HTTPError
 import yaml
 
 from pygerrit2.rest import GerritRestAPI
+from pygerrit2.rest.auth import HTTPBasicAuthFromNetrc
 
 # Setup config with local overrides
 with open('settings.yaml') as globalconf:
@@ -31,9 +32,12 @@ if os.path.exists('.settings.yaml'):
 
 def _get_client():
     """Get the client for making requests."""
-    return GerritRestAPI(
-        url=CONFIG['base_url'],
-        auth=HTTPBasicAuth(CONFIG['username'], CONFIG['password']))
+    try:
+        auth = HTTPBasicAuth(CONFIG['username'], CONFIG['password'])
+    except KeyError:
+        # Username and password weren't provided, try falling back to .netrc
+        auth = HTTPBasicAuthFromNetrc(CONFIG['base_url'])
+    return GerritRestAPI(url=CONFIG['base_url'], auth=auth)
 
 
 def get_branchpoint(branch, repository, default):
@@ -64,7 +68,7 @@ def create_branch(repository, branch, revision):
             '/projects/%s/branches/%s' % (
                 repository.replace('/', '%2F'),
                 branch.replace('/', '%2F')),
-            data='{"revision":"%s"}' % revision
+            data={'revision': revision}
         )
     except HTTPError as httpe:
         # Gerrit responds 409 for edit conflicts
