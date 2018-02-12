@@ -126,6 +126,7 @@
 		"extensions/Score",
 		"extensions/SearchExtraNS",
 		"extensions/SecurePoll",
+		"extensions/Sentry",
 		"extensions/ShortUrl",
 		"extensions/SiteMatrix",
 		"extensions/SpamBlacklist",
