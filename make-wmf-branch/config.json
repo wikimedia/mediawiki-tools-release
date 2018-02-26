@@ -50,6 +50,8 @@
 		"extensions/EventLogging",
 		"extensions/ExtensionDistributor",
 		"extensions/FeaturedFeeds",
+		"extensions/FileExporter",
+		"extensions/FileImporter",
 		"extensions/FlaggedRevs",
 		"extensions/Flow",
 		"extensions/FundraiserLandingPage",
