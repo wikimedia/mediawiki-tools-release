@@ -109,6 +109,7 @@
 		"extensions/ParserMigration",
 		"extensions/ParsoidBatchAPI",
 		"extensions/PdfHandler",
+		"extensions/PerformanceInspector",
 		"extensions/Petition",
 		"extensions/Poem",
 		"extensions/PoolCounter",
