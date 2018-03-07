@@ -14,6 +14,11 @@ import re
 
 import requests
 
+TOTALS = {
+    'changes': 0,
+    'repos': 0,
+    'unique_committers': set(),
+}
 GITILES_URL = 'https://gerrit.wikimedia.org/r/plugins/gitiles'
 
 # Messages we don't want to see in the git log
@@ -65,7 +70,12 @@ def git_log(old, new, repo):
     Fetches and loads the json git log from gitiles
     """
     r = requests.get(gitiles_changelog_url(old, new, repo))
-    r.raise_for_status()
+
+    if r.status_code != 200:
+        if r.status_code == 404:
+            return {'log': []}
+        raise requests.exceptions.HTTPError(r)
+
     log_json = r.text
     # remove )]}' since because gerrit.
     return json.loads(log_json[4:])
@@ -109,13 +119,21 @@ def format_changes(old, new, repo):
             continue
 
         link = patch_url(change['commit'].strip())
+
         committer = change['committer']['name'].strip()
+        TOTALS['unique_committers'].add(committer)
+
         message = change['message'].splitlines()[0].strip()
 
         formatted_change = '* {} - <nowiki>{}</nowiki>{} by {}'.format(
             link, message, maybe_task(change['message']), committer)
 
         valid_changes.append(formatted_change)
+
+    TOTALS['changes'] += len(valid_changes)
+
+    if valid_changes:
+        TOTALS['repos'] += 1
 
     return '\n'.join(valid_changes)
 
@@ -197,6 +215,14 @@ def main():
 
         print('=== {} ==='.format(extension_name))
         print_formatted_changes(old, new, extension, display_name=extension_name)
+
+    print("== Total Changes ==\n"
+          "'''{}''' Changes "
+          "in '''{}''' repos "
+          "by '''{}''' committers".format(
+            TOTALS['changes'],
+            TOTALS['repos'],
+            len(TOTALS['unique_committers'])))
 
 
 if __name__ == '__main__':
