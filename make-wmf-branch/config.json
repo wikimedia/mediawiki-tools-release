@@ -74,6 +74,7 @@
 		"extensions/intersection",
 		"extensions/Interwiki",
 		"extensions/InterwikiSorting",
+		"extensions/JADE",
 		"extensions/Josa",
 		"extensions/JsonConfig",
 		"extensions/Kartographer",
