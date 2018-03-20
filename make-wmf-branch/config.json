@@ -62,6 +62,7 @@
 		"extensions/Graph",
 		"extensions/GlobalBlocking",
 		"extensions/GlobalCssJs",
+		"extensions/GlobalPreferences",
 		"extensions/GlobalUsage",
 		"extensions/GlobalUserPage",
 		"extensions/GoogleNewsSitemap",
