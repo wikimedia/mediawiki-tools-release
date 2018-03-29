@@ -19,8 +19,6 @@ bundles:
         - extensions/SyntaxHighlight_GeSHi
         - extensions/TitleBlacklist
         - extensions/WikiEditor
-        - skins/CologneBlue
-        - skins/Modern
         - skins/MonoBook
         - skins/Vector
 manual_branch_points:
