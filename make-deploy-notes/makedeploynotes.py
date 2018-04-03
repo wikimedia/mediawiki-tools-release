@@ -26,12 +26,12 @@ SKIP_MESSAGES = [
     'Localisation updates from',
     # Fix for escaping fail leaving a commit summary of $COMMITMSG
     'COMMITMSG',
-    'Add (\.gitreview( and )?)?\.gitignore',
+    r'Add (\.gitreview( and )?)?\.gitignore',
     # Branching commit; set $wgVersion, defaultbranch, add submodules
     'Creating new WMF',
     'Updating development dependencies',
     # git submodule autobumps
-    'Updated mediawiki\/core',
+    r'Updated mediawiki\/core',
 ]
 
 
@@ -51,11 +51,11 @@ def gitiles_changelog_url(old_branch, new_branch, repo):
     Create url for valid git log
     """
     return '{}/{}/+log/{}..{}?format=JSON&no-merges'.format(
-            GITILES_URL,
-            repo,
-            old_branch,
-            new_branch
-        )
+        GITILES_URL,
+        repo,
+        old_branch,
+        new_branch
+    )
 
 
 def patch_url(change):
@@ -69,14 +69,14 @@ def git_log(old, new, repo):
     """
     Fetches and loads the json git log from gitiles
     """
-    r = requests.get(gitiles_changelog_url(old, new, repo))
+    req = requests.get(gitiles_changelog_url(old, new, repo))
 
-    if r.status_code != 200:
-        if r.status_code == 404:
+    if req.status_code != 200:
+        if req.status_code == 404:
             return {'log': []}
-        raise requests.exceptions.HTTPError(r)
+        raise requests.exceptions.HTTPError(req)
 
-    log_json = r.text
+    log_json = req.text
     # remove )]}' since because gerrit.
     return json.loads(log_json[4:])
 
@@ -156,20 +156,20 @@ def parse_args():
     """
     Parse arguments
     """
-    ap = argparse.ArgumentParser()
-    ap.add_argument(
+    argp = argparse.ArgumentParser()
+    argp.add_argument(
         'oldbranch',
         metavar='OLD BRANCH',
         type=version_parser,
         help='Old branch (e.g., 1.31.0-wmf.23)'
     )
-    ap.add_argument(
+    argp.add_argument(
         'newbranch',
         metavar='NEW BRANCH',
         type=version_parser,
         help='New branch (e.g., 1.31.0-wmf.24)'
     )
-    branches = vars(ap.parse_args())
+    branches = vars(argp.parse_args())
     return (
         os.path.join('wmf', branches['oldbranch']),
         os.path.join('wmf', branches['newbranch'])
@@ -177,14 +177,17 @@ def parse_args():
 
 
 def main():
+    """
+    Entry point
+    """
     old, new = parse_args()
 
     base_path = os.path.dirname(os.path.realpath(__file__))
     branch_config_file = os.path.join(
         base_path, '..', 'make-wmf-branch', 'config.json')
 
-    with open(branch_config_file) as f:
-        branch_config = json.load(f)
+    with open(branch_config_file) as bcf:
+        branch_config = json.load(bcf)
 
     extensions = list(
         map(
@@ -205,7 +208,7 @@ def main():
         extension_name = os.path.basename(extension)
 
         # We already did vendor
-        if 'vendor' == extension_name:
+        if extension_name == 'vendor':
             continue
 
         # Print a skin header at the start of the skins
@@ -220,9 +223,9 @@ def main():
           "'''{}''' Changes "
           "in '''{}''' repos "
           "by '''{}''' committers".format(
-            TOTALS['changes'],
-            TOTALS['repos'],
-            len(TOTALS['unique_committers'])))
+              TOTALS['changes'],
+              TOTALS['repos'],
+              len(TOTALS['unique_committers'])))
 
 
 if __name__ == '__main__':
