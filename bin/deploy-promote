@@ -91,6 +91,8 @@ check_versions() {
         CHECKDOMAIN="en.wikinews.org"
     elif [[ "$GRP" == "group0" ]]; then
         CHECKDOMAIN="www.mediawiki.org"
+    elif [[ "$GRP" == "testwikis" ]]; then
+        CHECKDOMAIN="test.wikipedia.org"
     fi
 
     URLTOCHECK="https://$CHECKDOMAIN/wiki/Special:Version"
@@ -107,9 +109,9 @@ assert_repository_is_clean() {
     if [ "$(git status --porcelain)" != "" ]; then
         echo 'Git repo is not clean!'
         echo
-	git status
+        git status
         echo
-	if ask "Continue anyway?" N; then
+        if ask "Continue anyway?" N; then
             echo 'continuing...'
         else
             abort
@@ -122,7 +124,7 @@ update_versions() {
 
     cd /srv/mediawiki-staging/
 
-    /srv/mediawiki-staging/multiversion/updateWikiversions "$GRP" "php-${VERSION}"
+    scap update-wikiversions "$GRP" "${VERSION}"
     git add wikiversions.json
     git add php
     MSG="${GRP} wikis to ${VERSION}"
@@ -144,9 +146,14 @@ update_versions() {
         die 1 "Pulled Revision ${MSG} did not match ${HEADMSG}"
     fi
 
-    notify "Running scap sync-wikiversions"
 
-    scap sync-wikiversions "$MSG"
+    if [[ "$GRP" == "testwikis" ]]; then
+        notify "Running scap sync"
+        scap sync "$MSG"
+    else
+       notify "Running scap sync-wikiversions"
+       scap sync-wikiversions "$MSG"
+    fi
 
     # Group1 day is also the day we sync the php symlink
     if [[ "$GRP" == "group1" ]]; then
@@ -170,7 +177,11 @@ main() {
 
     assert_repository_is_clean
 
-    if ask "Promote $GRP from ${OLDVERSION} to ${VERSION}?" N; then
+    if [[ -n "$PHABTASK" ]]; then
+        PROMOTE_MSG=" refs ${PHABTASK}"
+    fi
+
+    if ask "Promote $GRP from ${OLDVERSION} to ${VERSION}${PROMOTE_MSG}" N; then
         update_versions
     else
         abort
