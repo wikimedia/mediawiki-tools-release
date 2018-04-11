@@ -11,6 +11,7 @@ bundles:
         - extensions/Interwiki
         - extensions/LocalisationUpdate
         - extensions/Nuke
+        - extensions/OATHAuth
         - extensions/ParserFunctions
         - extensions/PdfHandler
         - extensions/Poem
