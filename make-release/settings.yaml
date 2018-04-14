@@ -4,6 +4,7 @@ bundles:
     base:
         - extensions/Cite
         - extensions/CiteThisPage
+        - extensions/CodeEditor
         - extensions/ConfirmEdit
         - extensions/Gadgets
         - extensions/ImageMap
