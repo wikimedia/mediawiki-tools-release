@@ -11,6 +11,7 @@ bundles:
         - extensions/InputBox
         - extensions/Interwiki
         - extensions/LocalisationUpdate
+        - extensions/MultimediaViewer
         - extensions/Nuke
         - extensions/OATHAuth
         - extensions/ParserFunctions
