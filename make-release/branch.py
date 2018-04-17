@@ -52,7 +52,6 @@ def create_branch(repository, branch, revision):
     """Create a branch for a given repo."""
     # If we've got a sub-submodule we care about, branch it first so we can
     # do some magic stuff
-    repository = 'mediawiki/{}'.format(repository)
     try:
         subrepo = CONFIG['sub_submodules'][repository]
         create_branch(subrepo, branch, revision)
@@ -68,7 +67,7 @@ def create_branch(repository, branch, revision):
             '/projects/%s/branches/%s' % (
                 repository.replace('/', '%2F'),
                 branch.replace('/', '%2F')),
-            data={'revision': revision}
+            json={'revision': revision}
         )
     except HTTPError as httpe:
         # Gerrit responds 409 for edit conflicts
@@ -79,12 +78,13 @@ def create_branch(repository, branch, revision):
             raise
 
 
-def get_bundle(bundle):
+def get_bundle(bundle, branch):
     """Return the list of all/some extensions, skins, and vendor."""
     if bundle == '*':
         things_to_branch = []
         for stuff in ['skins', 'extensions']:
-            projects = _get_client().get('/projects/?p=mediawiki/%s' % stuff)
+            projects = _get_client().get(
+                '/projects/?p=mediawiki/%s&b=%s' % (stuff, branch))
             for proj in projects:
                 if projects[proj]['state'] == 'ACTIVE':
                     things_to_branch.append(proj)
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 
     if OPTIONS.bundle:
-        for repo in get_bundle(OPTIONS.bundle):
+        for repo in get_bundle(OPTIONS.bundle, OPTIONS.branch_point):
             create_branch(repo, OPTIONS.branch, OPTIONS.branch_point)
 
     if OPTIONS.core:
