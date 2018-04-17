@@ -147,7 +147,7 @@ def parse_args():
 
     # Positional arguments:
     parser.add_argument('branch', nargs='?', help='Branch we want to make')
-    parser.add_argument('--branchpoint', dest='branch_point', default='HEAD',
+    parser.add_argument('--branchpoint', dest='branch_point', default='master',
                         help='Where to branch from')
     parser.add_argument('--core', dest='core', action='store_true',
                         help='If we branch core or not')
@@ -170,6 +170,6 @@ if __name__ == '__main__':
             create_branch(repo, OPTIONS.branch, OPTIONS.branch_point)
 
     if OPTIONS.core:
-        create_branch('core', OPTIONS.branch, OPTIONS.branch_point)
+        create_branch('mediawiki/core', OPTIONS.branch, OPTIONS.branch_point)
         if OPTIONS.core_version:
             do_core_work(OPTIONS.branch, OPTIONS.bundle, OPTIONS.core_version)
