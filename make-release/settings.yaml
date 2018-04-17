@@ -2,6 +2,7 @@
 base_url: https://gerrit.wikimedia.org/r/
 bundles:
     base:
+        - extensions/CategoryTree
         - extensions/Cite
         - extensions/CiteThisPage
         - extensions/CodeEditor
