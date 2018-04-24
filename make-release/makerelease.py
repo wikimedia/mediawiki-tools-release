@@ -217,10 +217,11 @@ class MwVersion(object):
         if version is None:
             raise ValueError('Invalid version')
         if version.startswith('snapshot-'):
+            snapshot_branch = version.split('-')[1]
             return {
-                'branch': 'master',
+                'branch': snapshot_branch,
                 'major': 'snapshot',
-                'tag': 'master',
+                'tag': snapshot_branch,
             }
 
         matches = re.compile(r"""
