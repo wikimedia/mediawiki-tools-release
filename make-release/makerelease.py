@@ -313,39 +313,8 @@ class MakeRelease(object):
         with open(self.options.conffile) as conf:
             self.config = yaml.load(conf)
 
-    def get_extensions_for_version(self, version, extensions=None):
-        """
-        Get the list of extensions to bundle for the given
-        MediaWiki core version
-
-        :param version: A MWVersion object.
-        :param extensions: Extensions that are already being included
-        :type extensions: list
-        :return: List of extensions to include
-        """
-        if extensions is None:
-            extensions = []
-        if 'bundles' not in self.config:
-            return extensions
-        bundles = self.config['bundles']
-        base = set(bundles['base'])
-        for release in sorted(list(bundles)):
-            if release.startswith('mediawiki-') and \
-                    release <= 'mediawiki-' + version.major:
-                changes = bundles[release]
-                if 'add' in changes:
-                    for repo in changes['add']:
-                        base.add(repo)
-                if 'remove' in changes:
-                    for repo in changes['remove']:
-                        base.remove(repo)
-        return sorted(extensions + list(base))
-
     def main(self):
         """return value should be usable as an exit code"""
-
-        extensions = []
-
         logging.info("Doing release for %s", self.version.raw)
 
         if self.version.branch is None:
@@ -361,9 +330,7 @@ class MakeRelease(object):
 
         if self.options.previousversion:
             # Given the previous version on the command line
-            self.do_release(
-                extensions=extensions,
-                version=self.version)
+            self.do_release(version=self.version)
             return 0
 
         no_previous = False
@@ -375,9 +342,7 @@ class MakeRelease(object):
                               'on the command line')
                 return 1
         if no_previous or self.options.no_previous:
-            self.do_release(
-                extensions=extensions,
-                version=self.version)
+            self.do_release(version=self.version)
         else:
             if not self.ask("Was %s the previous release?" %
                             self.version.prev_version):
@@ -385,9 +350,7 @@ class MakeRelease(object):
                               'on the command line')
                 return 1
 
-            self.do_release(
-                extensions=extensions,
-                version=self.version)
+            self.do_release(version=self.version)
         return 0
 
     def ask(self, question):
@@ -472,7 +435,7 @@ class MakeRelease(object):
         logging.info('%s written', filename)
         return filename
 
-    def do_release(self, version, extensions=None):
+    def do_release(self, version):
         """Do all the nasty work of building a release"""
         build_dir = self.options.buildroot
         patch_dir = self.options.patch_dir
@@ -505,7 +468,7 @@ class MakeRelease(object):
                 get_patches_for_repo(patch_dir, 'vendor', version.branch))
 
         ext_exclude = []
-        for ext in self.get_extensions_for_version(version, extensions):
+        for ext in get_skins_and_extensions(build_dir):
             if patch_dir:
                 maybe_apply_patches(
                     os.path.join(package, ext),
@@ -563,6 +526,15 @@ class MakeRelease(object):
                     sys.exit(1)
         output(version, out_files)
         return 0
+
+
+def get_skins_and_extensions(base_dir):
+    """Find all extensions and skins"""
+    ext_paths = []
+    for subdir in ['extensions', 'skins']:
+        for name in os.listdir(os.path.join(base_dir, subdir)):
+            if os.path.isdir(os.path.join(base_dir, subdir, name)):
+                ext_paths.append(os.path.join(subdir, name))
 
 
 def output(version, out_files):
