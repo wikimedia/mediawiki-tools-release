@@ -1,3 +1,4 @@
 *.gz
 /build/
 .settings.yaml
+.pytest_cache
