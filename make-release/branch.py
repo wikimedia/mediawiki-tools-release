@@ -122,7 +122,7 @@ def do_core_work(branch, bundle, version):
     with clone('mediawiki/core'):
         subprocess.check_call(['/usr/bin/git', 'checkout', '-b', branch])
 
-        for submodule in get_bundle(branch, bundle):
+        for submodule in get_bundle(bundle, branch):
             url = CONFIG['base_url'] + submodule
             subprocess.check_call(['/usr/bin/git', 'submodule', 'add',
                                    '--force', '--branch', branch, url,
