@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # vim:sw=4:ts=4:et:
 """
 Helper to generate a MediaWiki tarball.
@@ -244,7 +244,7 @@ class MwVersion(object):
             raise ValueError('%s is in the wrong format' % version)
 
         # Clear out unneed phase/cycle
-        ret = dict((k, v) for k, v in matches.groupdict().iteritems()
+        ret = dict((k, v) for k, v in matches.groupdict().items()
                    if v is not None)
 
         ret['branch'] = 'REL%s_%s' % (
