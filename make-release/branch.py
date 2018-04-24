@@ -59,6 +59,8 @@ def create_branch(repository, branch, revision):
         # This is the normal case, actually
         pass
 
+    if not repository.startswith('mediawiki/'):
+        repository = 'mediawiki/{}'.format(repository)
     try:
         revision = get_branchpoint(branch, repository, revision)
 
@@ -99,8 +101,8 @@ def get_bundle(bundle, branch):
 @contextmanager
 def clone(repository):
     """Clone a repository. Basically clone core"""
-    url = CONFIG['clone_base'] + '/' + repository
-    temp = tempfile.mkdtemp()
+    url = CONFIG['base_url'] + repository
+    temp = tempfile.mkdtemp(prefix='mw-branching-')
     subprocess.check_call(['/usr/bin/git', 'clone', url, temp])
     cwd = os.getcwd()
     os.chdir(temp)
@@ -117,9 +119,11 @@ WGVERSION_REGEX = re.compile(
 def do_core_work(branch, bundle, version):
     """Add submodules, bump $wgVersion, etc"""
     cwd = os.getcwd()
-    with clone('core'):
-        for submodule in bundle:
-            url = CONFIG['clone_base'] + '/' + submodule
+    with clone('mediawiki/core'):
+        subprocess.check_call(['/usr/bin/git', 'checkout', '-b', branch])
+
+        for submodule in get_bundle(branch, bundle):
+            url = CONFIG['base_url'] + submodule
             subprocess.check_call(['/usr/bin/git', 'submodule', 'add',
                                    '--force', '--branch', branch, url,
                                    submodule])
