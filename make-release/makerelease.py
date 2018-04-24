@@ -218,9 +218,15 @@ class MwVersion(object):
             raise ValueError('Invalid version')
         if version.startswith('snapshot-'):
             snapshot_branch = version.split('-')[1]
+            if snapshot_branch.startswith('REL1_'):
+                snapshot_major = '1.{}'.format(
+                    snapshot_branch.split('_')[1]
+                )
+            else:
+                snapshot_major = 'snapshot'
             return {
                 'branch': snapshot_branch,
-                'major': 'snapshot',
+                'major': snapshot_major,
                 'tag': snapshot_branch,
             }
 
