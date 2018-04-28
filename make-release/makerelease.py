@@ -8,7 +8,6 @@ and you will be prompted to confirm that the version number is correct.
 
 If no arguments are given, a snapshot is created.
 """
-from __future__ import print_function
 import argparse
 import glob
 import logging
@@ -570,8 +569,9 @@ def output(version, out_files):
     """Write email template"""
     print()
     print("Full release notes:")
-    url = ('https://phabricator.wikimedia.org/diffusion/MW/browse/' +
-           version.branch + '/RELEASE-NOTES-' + version.major)
+    url = (
+        'https://gerrit.wikimedia.org/g/mediawiki/core/+/%s/RELEASE-NOTES-%s' %
+        (version.branch, version.major))
 
     print(url)
     print('https://www.mediawiki.org/wiki/Release_notes/' + version.major)
