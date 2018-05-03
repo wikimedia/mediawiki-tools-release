@@ -7,10 +7,10 @@ Copyright 2013, Wikimedia Foundation Inc.
 
 import pytest
 
-MAKERELEASE = __import__('makerelease')
+from mwrelease import MwVersion
 
 
-class FakeVersion(MAKERELEASE.MwVersion):
+class FakeVersion(MwVersion):
     """Dummy wrapper around MwVersion"""
     def __init__(self, attributes):
         self.raw = None
@@ -33,7 +33,7 @@ def assert_mw_versions_equal(expected, observed):
 
 def test_new_snapshot():
     """Make sure a new snapshot release spits out expected version info"""
-    version = MAKERELEASE.MwVersion.new_snapshot()
+    version = MwVersion.new_snapshot()
     assert version.raw.startswith('snapshot-')
     assert version.branch == 'master'
     assert version.major == 'snapshot'
@@ -41,7 +41,7 @@ def test_new_snapshot():
 
 def test_major_version():
     """Make sure major versions are proper"""
-    observed = MAKERELEASE.MwVersion('1.30.0')
+    observed = MwVersion('1.30.0')
     expected = FakeVersion({
         'raw': '1.30.0',
         'major': '1.30',
@@ -53,7 +53,7 @@ def test_major_version():
 
 def test_minor_version():
     """Minor versions too"""
-    observed = MAKERELEASE.MwVersion('1.30.1')
+    observed = MwVersion('1.30.1')
     expected = FakeVersion({
         'raw': '1.30.1',
         'major': '1.30',
@@ -67,7 +67,7 @@ def test_minor_version():
 
 def test_release_candidate():
     """Don't forget about release candidates"""
-    observed = MAKERELEASE.MwVersion('1.30.0-rc.0')
+    observed = MwVersion('1.30.0-rc.0')
     expected = FakeVersion({
         'raw': '1.30.0-rc.0',
         'major': '1.30',
@@ -81,7 +81,7 @@ def test_release_candidate():
 
 def test_release_candidate_bumps():
     """Or a second release candidate...."""
-    observed = MAKERELEASE.MwVersion('1.30.0-rc.0')
+    observed = MwVersion('1.30.0-rc.0')
     expected = FakeVersion({
         'raw': '1.30.0-rc.0',
         'major': '1.30',
@@ -92,7 +92,7 @@ def test_release_candidate_bumps():
         })
     assert_mw_versions_equal(expected, observed)
 
-    observed = MAKERELEASE.MwVersion('1.30.0-rc.1')
+    observed = MwVersion('1.30.0-rc.1')
     expected = FakeVersion({
         'raw': '1.30.0-rc.1',
         'major': '1.30',
@@ -110,7 +110,7 @@ def test_incomplete_version():
     """Bogus versions are verboten"""
     for version in ['1.30', 'bad', None]:
         with pytest.raises(ValueError):
-            MAKERELEASE.MwVersion(version)
+            MwVersion(version)
 
 
 def test_tag():
@@ -120,4 +120,4 @@ def test_tag():
         '1.24.0': 'tags/1.24.0'
     }
     for version, tag in data.items():
-        assert tag == MAKERELEASE.MwVersion(version).tag
+        assert tag == MwVersion(version).tag
