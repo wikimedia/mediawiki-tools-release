@@ -19,6 +19,7 @@ bundles:
         - extensions/PdfHandler
         - extensions/Poem
         - extensions/Renameuser
+        - extensions/ReplaceText
         - extensions/SpamBlacklist
         - extensions/SyntaxHighlight_GeSHi
         - extensions/TitleBlacklist
