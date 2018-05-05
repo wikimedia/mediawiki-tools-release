@@ -24,6 +24,7 @@ bundles:
         - extensions/TitleBlacklist
         - extensions/WikiEditor
         - skins/MonoBook
+        - skins/Timeless
         - skins/Vector
 manual_branch_points:
     REL1_27:
