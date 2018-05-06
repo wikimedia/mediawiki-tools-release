@@ -161,6 +161,7 @@
 		"extensions/VipsScaler",
 		"extensions/VisualEditor",
 		"extensions/Wikibase",
+		"extensions/WikibaseLexeme",
 		"extensions/WikibaseQuality",
 		"extensions/WikibaseQualityConstraints",
 		"extensions/WikidataPageBanner",
