@@ -376,7 +376,8 @@ class MakeRelease(object):
             if self.options.sign:
                 try:
                     proc = subprocess.Popen([
-                        'gpg', '--detach-sign', os.path.join(build_dir, file_name)])
+                        'gpg', '--detach-sign',
+                        os.path.join(build_dir, file_name)])
                 except OSError as ose:
                     logging.error("gpg failed, does it exist? Skip with " +
                                   "--dont-sign.")
@@ -412,7 +413,8 @@ def output(version, out_files):
     print()
     print('*' * 70)
 
-    server = 'https://releases.wikimedia.org/mediawiki/{}/'.format(version.major)
+    server = 'https://releases.wikimedia.org/mediawiki/{}/'.format(
+        version.major)
     print('Download:')
     for file_name in out_files:
         print(server + file_name)

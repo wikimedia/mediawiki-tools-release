@@ -64,7 +64,8 @@ def create_branch(repository, branch, revision):
     try:
         revision = get_branchpoint(branch, repository, revision)
 
-        print('Branching {} to {} from {}'.format(repository, branch, revision))
+        print('Branching {} to {} from {}'.format(
+            repository, branch, revision))
         _get_client().put(
             '/projects/%s/branches/%s' % (
                 repository.replace('/', '%2F'),
@@ -157,10 +158,8 @@ def parse_args():
                         help='If we branch core or not')
     parser.add_argument('--bundle', dest='bundle', default=None,
                         help='What bundle of extensions & skins to branch')
-    parser.add_argument(
-        '--core-version',
-        dest='core_version',
-        help='If set, core will be given submodules with the bundle, plus this version number')
+    parser.add_argument('--core-version', dest='core_version',
+                        help='Update core version number and adds submodules')
 
     return parser.parse_args()
 
