@@ -124,7 +124,10 @@ def do_core_work(branch, bundle, version):
         subprocess.check_call(['/usr/bin/git', 'checkout', '-b', branch])
 
         for submodule in get_bundle(bundle, branch):
-            url = CONFIG['base_url'] + submodule
+            if not submodule.startswith('mediawiki/'):
+                url = CONFIG['base_url'] + 'mediawiki/' + submodule
+            else:
+                url = CONFIG['base_url'] + submodule
             subprocess.check_call(['/usr/bin/git', 'submodule', 'add',
                                    '--force', '--branch', branch, url,
                                    submodule])
