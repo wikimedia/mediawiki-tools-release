@@ -19,7 +19,7 @@ TOTALS = {
     'repos': 0,
     'unique_committers': set(),
 }
-GITILES_URL = 'https://gerrit.wikimedia.org/r/plugins/gitiles'
+GITILES_URL = 'https://gerrit.wikimedia.org/g'
 
 # Messages we don't want to see in the git log
 SKIP_MESSAGES = [
