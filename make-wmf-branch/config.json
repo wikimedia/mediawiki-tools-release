@@ -31,6 +31,7 @@
 		"extensions/Collection",
 		"extensions/CommonsMetadata",
 		"extensions/ConfirmEdit",
+		"extensions/CongressLookup",
 		"extensions/ContactPage",
 		"extensions/ContentTranslation",
 		"extensions/ContributionTracking",
