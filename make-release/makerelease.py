@@ -232,13 +232,6 @@ class MakeRelease(object):
             print('Please type "y" for yes or "n" for no')
         return result
 
-    def export(self, git_ref, export_dir, patches=None):
-        """Clone core and possibly apply some patches"""
-        if patches:
-            git_ref = self.version.branch
-        get_git(export_dir, git_ref)
-        maybe_apply_patches(export_dir, patches)
-
     def make_patch(self, dest_dir, patch_file_name, dir1, dir2, patch_type):
         """Make a patch file, given two directories"""
         patch_file = open(os.path.join(dest_dir, patch_file_name), 'w')
@@ -318,13 +311,18 @@ class MakeRelease(object):
         package = 'mediawiki-' + version.raw
         package_dir = os.path.join(build_dir, package)
 
-        # Export the target
-        self.export(version.tag, package_dir,
-                    get_patches_for_repo(patch_dir, 'core', version.branch))
+        # Export the target. If we're going to patch later, use the branch
+        if patch_dir:
+            get_git(package_dir, version.branch)
+        else:
+            get_git(package_dir, version.tag)
 
         os.chdir(package_dir)
         subprocess.check_output(['composer', 'update', '--no-dev'])
         if patch_dir:
+            maybe_apply_patches(
+                package,
+                get_patches_for_repo(patch_dir, 'core', version.branch))
             maybe_apply_patches(
                 os.path.join(package, 'vendor'),
                 get_patches_for_repo(patch_dir, 'vendor', version.branch))
@@ -354,8 +352,8 @@ class MakeRelease(object):
         # Patch
         if not self.options.no_previous and prev_version is not None:
             prev_dir = 'mediawiki-' + prev_version
-            self.export(MwVersion(prev_version),
-                        prev_dir, build_dir)
+            get_git(os.path.join(build_dir, prev_dir),
+                    MwVersion(prev_version).tag)
             os.chdir(os.path.join(build_dir, prev_dir))
             subprocess.check_output(['composer', 'update', '--no-dev'])
 
