@@ -316,12 +316,13 @@ class MakeRelease(object):
         os.chdir(build_dir)
 
         package = 'mediawiki-' + version.raw
+        package_dir = os.path.join(build_dir, package)
 
         # Export the target
-        self.export(version.tag, os.path.join(build_dir, package),
+        self.export(version.tag, package_dir,
                     get_patches_for_repo(patch_dir, 'core', version.branch))
 
-        os.chdir(os.path.join(build_dir, package))
+        os.chdir(package_dir)
         subprocess.check_output(['composer', 'update', '--no-dev'])
         if patch_dir:
             maybe_apply_patches(
@@ -329,7 +330,7 @@ class MakeRelease(object):
                 get_patches_for_repo(patch_dir, 'vendor', version.branch))
 
         ext_exclude = []
-        for ext in get_skins_and_extensions(build_dir):
+        for ext in get_skins_and_extensions(package_dir):
             if patch_dir:
                 maybe_apply_patches(
                     os.path.join(package, ext),
@@ -397,6 +398,7 @@ def get_skins_and_extensions(base_dir):
         for name in os.listdir(os.path.join(base_dir, subdir)):
             if os.path.isdir(os.path.join(base_dir, subdir, name)):
                 ext_paths.append(os.path.join(subdir, name))
+    return ext_paths
 
 
 def output(version, out_files):
