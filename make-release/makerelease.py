@@ -234,12 +234,13 @@ class MakeRelease(object):
 
     def make_patch(self, dest_dir, patch_file_name, dir1, dir2, patch_type):
         """Make a patch file, given two directories"""
+        os.chdir(dest_dir)
         patch_file = open(os.path.join(dest_dir, patch_file_name), 'w')
         args = ['diff', '-Nruw']
         if patch_type == 'i18n':
             logging.debug("Generating i18n patch file...")
             dir1 = os.path.join(dir1, 'languages', 'messages')
-            dir1 = os.path.join(dir2, 'languages', 'messages')
+            dir2 = os.path.join(dir2, 'languages', 'messages')
         else:
             logging.debug("Generating normal patch file...")
             for excl in self.config['diff']['ignore']:
@@ -319,6 +320,7 @@ class MakeRelease(object):
 
         os.chdir(package_dir)
         subprocess.check_output(['composer', 'update', '--no-dev'])
+        os.chdir(build_dir)
         if patch_dir:
             maybe_apply_patches(
                 package,
@@ -356,6 +358,7 @@ class MakeRelease(object):
                     MwVersion(prev_version).tag)
             os.chdir(os.path.join(build_dir, prev_dir))
             subprocess.check_output(['composer', 'update', '--no-dev'])
+            os.chdir(build_dir)
 
             self.make_patch(
                 build_dir, package + '.patch.gz', prev_dir, package, 'normal')
