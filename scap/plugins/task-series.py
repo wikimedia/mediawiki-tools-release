@@ -93,10 +93,31 @@ def map_transactions(obj):
     return trns
 
 
-@cli.command('task-series', subcommands=True)
-class ReleaseTagger(cli.Application):
+@cli.command('blockers', subcommands=True)
+class ReleaseBlockers(cli.Application):
     """
-    Create a series of phabricator tasks with content generated from a template
+    Manage the deployment-blockers task series in phabricator.
+
+
+    Command Usage:
+
+        Create 10 release-blocker tasks, beginning with version 1.30.0-wmf.1
+        on 2017-01-01:
+
+        $ scap blockers create --count 10 --date 2017-01-01 1.30.0-wmf.1
+
+        Show the phabricator task id for 1.32.0-wmf.5:
+
+        $ scap blockers show --release 1.32.0-wmf.5
+
+        List the 10 upcoming release versions and the corresponding task ids:
+
+        $ scap blockers show --count 10
+
+        Show the task id of the oldest open release task:
+
+        $ scap blockers show
+
     """
     action = None
 
@@ -115,17 +136,10 @@ class ReleaseTagger(cli.Application):
                   type=date_str, default=datetime.datetime.utcnow())
     @cli.argument('release', help='Create tasks beginning with VERSION',
                   metavar='VERSION', type=mediawiki_version)
-    @cli.subcommand('blockers')
+    @cli.subcommand('create')
     def blockers(self, *args):
         '''
         Create Release Blockers.
-
-        Command Usage:
-
-          $ scap task-series blockers --count 10 --date 2017-01-01 1.30.0-wmf.1
-
-        Creates 10 release-blocker tasks, beginning with version 1.30.0-wmf.1
-        on 2017-01-01.
         '''
         v = self.arguments.release.split('-')
         wmfnum = int(v[-1].split('.')[-1])
@@ -151,3 +165,39 @@ class ReleaseTagger(cli.Application):
             print("%s : %s, %s" % (vs, week, ts))
             var_dump(phab.maniphest.edit(transactions=trns))
             week += ONEWEEK
+
+    @cli.argument('--count', help='Show at most this many tasks',
+                  metavar='NUM', default=1, type=int)
+    @cli.argument('--current', help='Show the current release branch version',
+                  action='store_true')
+    @cli.argument('--release', help="Show the task id for a specific version",
+                  metavar='VERSION', type=mediawiki_version)
+    @cli.subcommand('show')
+    def show(self, *args):
+        '''
+        Show a list of deployment blockers tasks
+        '''
+        limit = self.arguments.count
+        constraints = {}
+        if self.arguments.current:
+            limit = 1
+        if self.arguments.release:
+            constraints['query'] = self.arguments.release
+            limit = 1
+
+        res = phab.maniphest.search(
+            queryKey="GTbIUdDaMLqV",
+            constraints=constraints,
+            limit=limit)
+
+        for task in res.data:
+            if self.arguments.current:
+                print(task['fields']['custom.release.version'])
+            elif limit > 1:
+                print(
+                    "T%d %s %s" %
+                    (task["id"],
+                     task['fields']['status']['name'],
+                     task['fields']['custom.release.version']))
+            else:
+                print("T%d" % task["id"])
