@@ -80,7 +80,7 @@ print_results() {
     printf "==================================================\n"
     printf "Checking version on %s\n" "$URLTOCHECK"
     printf "Expect: %s\n" "$VERSION"
-    printf "Result: %s\n" "$res\n"
+    printf "Result: %s\n" "$res"
     printf "==================================================\n"
 }
 
