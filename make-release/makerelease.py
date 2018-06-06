@@ -318,9 +318,6 @@ class MakeRelease(object):
         else:
             get_git(package_dir, version.tag)
 
-        os.chdir(package_dir)
-        subprocess.check_output(['composer', 'update', '--no-dev'])
-        os.chdir(build_dir)
         if patch_dir:
             maybe_apply_patches(
                 package,
@@ -356,9 +353,6 @@ class MakeRelease(object):
             prev_dir = 'mediawiki-' + prev_version
             get_git(os.path.join(build_dir, prev_dir),
                     MwVersion(prev_version).tag)
-            os.chdir(os.path.join(build_dir, prev_dir))
-            subprocess.check_output(['composer', 'update', '--no-dev'])
-            os.chdir(build_dir)
 
             self.make_patch(
                 build_dir, package + '.patch.gz', prev_dir, package, 'normal')
