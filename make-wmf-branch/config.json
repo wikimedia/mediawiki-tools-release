@@ -94,7 +94,6 @@
 		"extensions/MobileApp",
 		"extensions/MobileFrontend",
 		"extensions/MultimediaViewer",
-		"extensions/MwEmbedSupport",
 		"extensions/NavigationTiming",
 		"extensions/Newsletter",
 		"extensions/NewUserMessage",
