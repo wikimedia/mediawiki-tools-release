@@ -28,6 +28,8 @@
 # The above command promotes all group0 wikis (testwiki and mediawiki.org)
 # to version 1.26wmf10.
 
+REPO=$(cd "$(dirname $(dirname "$0"))"; pwd -P)
+
 notify() {
     printf "[INFO] %s\n" "$@"
 }
@@ -106,7 +108,7 @@ check_versions() {
 }
 
 assert_repository_is_clean() {
-    if [ "$(git status --porcelain)" != "" ]; then
+    if [ "$(git -C "$REPO" status --porcelain)" != "" ]; then
         echo 'Git repo is not clean!'
         echo
         git status
