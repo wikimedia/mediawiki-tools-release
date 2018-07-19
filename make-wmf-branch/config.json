@@ -164,6 +164,7 @@
 		"extensions/VisualEditor",
 		"extensions/Wikibase",
 		"extensions/WikibaseLexeme",
+		"extensions/WikibaseMediaInfo",
 		"extensions/WikibaseQuality",
 		"extensions/WikibaseQualityConstraints",
 		"extensions/WikidataPageBanner",
