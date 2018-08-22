@@ -1,9 +1,23 @@
 Handy-dandy tool to pull a tagged release out of Git and generate:
+
 * a tarball
-* a patch to previous revision (if >= x.x.1)
+* a patch to previous revision
 * GPG signatures for the above
-* a template release announcement
 
-Usage:
-  ./make-release.sh 1.12.1
+You will first need to `pip install git-archive-all` (maybe with pip3)
 
+usage: makerelease2.py [-h] [--previous PREVIOUS] [--sign]
+                       [--output_dir OUTPUT_DIR]
+                       repository tag
+
+positional arguments:
+  repository            Path to the MediaWiki git repository
+  tag                   Git tag (or branch) to archive
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --previous PREVIOUS   Previous tarball to create a patch against
+  --sign                Sign the generated contents with GPG
+  --output_dir OUTPUT_DIR
+                        Location to put tarballs, relative to current
+                        directory
