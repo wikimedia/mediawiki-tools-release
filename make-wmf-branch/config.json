@@ -141,6 +141,7 @@
 		"extensions/TemplateData",
 		"extensions/TemplateSandbox",
 		"extensions/TemplateStyles",
+		"extensions/TemplateWizard",
 		"extensions/TextExtracts",
 		"extensions/Thanks",
 		"extensions/TimedMediaHandler",
