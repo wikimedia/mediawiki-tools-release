@@ -37,7 +37,6 @@
 		"extensions/ContributionTracking",
 		"extensions/CreditsSource",
 		"extensions/Dashiki",
-		"extensions/DisableAccount",
 		"extensions/Disambiguator",
 		"extensions/DismissableSiteNotice",
 		"extensions/DonationInterface",
