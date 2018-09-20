@@ -109,6 +109,7 @@ def archive(repo, tag, output_dir, previous=None, sign=False):
     if sign:
         for fname in to_sign:
             print('Signing %s:' % fname)
+            print("\a")
             subprocess.check_call(['gpg', '--detach-sign', fname])
 
     # TODO: Surely there's a better way to do this
