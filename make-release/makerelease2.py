@@ -30,6 +30,7 @@ import os
 import requests
 import subprocess
 import sys
+import tarfile
 import tempfile
 
 
@@ -62,7 +63,7 @@ def tarball_name(output_dir, ref, prefix='mediawiki'):
     return os.path.abspath(os.path.join(output_dir, '%s-%s.tar.gz' % (prefix, ref)))
 
 
-def archive(repo, tag, output_dir, previous=None, sign=False):
+def archive(repo, tag, output_dir, previous=None, sign=False, upload_tar=False):
     os.chdir(repo)
     call_git(['checkout', tag])
     # Use -ff to remove deleted submodules
@@ -122,6 +123,16 @@ def archive(repo, tag, output_dir, previous=None, sign=False):
             print('Signing %s:' % fname)
             print("\a")
             subprocess.check_call(['gpg', '--detach-sign', fname])
+
+    if upload_tar:
+        # Create a final tar for easy upload to the releases server
+        with tarfile.open(upload_tar, 'a') as upload:
+            folder = major_version(tag)
+            files = to_sign
+            if sign:
+                files += [fname + '.sig' for fname in to_sign]
+            for fname in files:
+                upload.add(fname, os.path.join(folder, os.path.basename(fname)))
 
     # TODO: Surely there's a better way to do this
     if is_tag:
@@ -211,8 +222,10 @@ def main():
     parser.add_argument('--output_dir', help='Location to put tarballs, relative to current '
                                              'directory',
                         default=os.getcwd())
+    parser.add_argument('--upload-tar', help='Tarfile to put generated tarballs into')
     args = parser.parse_args()
-    archive(args.repository, args.tag, args.output_dir, args.previous, sign=args.sign)
+    archive(args.repository, args.tag, args.output_dir, args.previous, sign=args.sign,
+            upload_tar=args.upload_tar)
 
 
 if __name__ == '__main__':
