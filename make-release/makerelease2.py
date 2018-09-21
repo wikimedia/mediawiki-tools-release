@@ -32,14 +32,18 @@ import subprocess
 import tempfile
 
 
-def call_git(args):
-    subprocess.check_call(['git'] + args)
+def call_git(args, quiet=False):
+    cmd = ['git'] + args
+    if quiet:
+        subprocess.check_output(cmd)
+    else:
+        subprocess.check_call(cmd)
 
 
 def is_git_tag(ref):
     """Whether the provided ref refers to a tag"""
     try:
-        call_git(['rev-parse', '--verify', '%s^{tag}' % ref])
+        call_git(['rev-parse', 'refs/tags/%s' % ref], quiet=True)
         return True
     except subprocess.CalledProcessError:
         return False
