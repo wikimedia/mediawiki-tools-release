@@ -29,6 +29,7 @@ import gzip
 import os
 import requests
 import subprocess
+import sys
 import tempfile
 
 
@@ -75,6 +76,12 @@ def archive(repo, tag, output_dir, previous=None, sign=False):
         # If we're releasing a tag, verify that
         # $wgVersion matches exactly to the tag.
         check_wg_version(tag)
+        if sign:
+            try:
+                call_git(['tag', '-v', tag])
+            except subprocess.CalledProcessError:
+                print('Error: git tag %s is not GPG signed' % tag)
+                sys.exit(1)
 
     # First, we create the mediawiki-core tarball
     # Explicitly ignore all extensions & skins via .gitattributes,
