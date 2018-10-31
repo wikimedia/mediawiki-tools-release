@@ -67,6 +67,7 @@
 		"extensions/GlobalUserPage",
 		"extensions/GoogleNewsSitemap",
 		"extensions/Graph",
+		"extensions/GrowthExperiments",
 		"extensions/GuidedTour",
 		"extensions/GWToolset",
 		"extensions/ImageMap",
