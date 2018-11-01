@@ -60,7 +60,7 @@ def phab_taskid(taskid):
 def mediawiki_version(ver):
     """Validation our version number formats"""
     try:
-        return re.match("(\d+\.\d+(\.\d+-)?wmf\.?\d+)", ver).group(0)
+        return re.match("(\\d+\\.\\d+(\\.\\d+-)?wmf\\.?\\d+)", ver).group(0)
     except Exception:
         raise argparse.ArgumentTypeError(
             "Invalid wmf version '%s' expected: #.##.#-wmf.#" % ver)
