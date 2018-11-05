@@ -34,6 +34,121 @@ SKIP_MESSAGES = [
     r'Updated mediawiki\/core',
 ]
 
+ALL_CHANGE_SHA1S = []
+
+
+def flatten_for_post(h, result=None, kk=None):
+    """
+    Since phab expects x-url-encoded form post data (meaning each
+    individual list element is named). AND because, evidently, requests
+    can't do this for me, I found a solution via stackoverflow.
+
+    See also:
+    <https://secure.phabricator.com/T12447>
+    <https://stackoverflow.com/questions/26266664/requests-form-urlencoded-data/36411923>
+    """
+    if result is None:
+        result = {}
+
+    if isinstance(h, str) or isinstance(h, bool):
+        result[kk] = h
+    elif isinstance(h, list) or isinstance(h, tuple):
+        for i, v1 in enumerate(h):
+            flatten_for_post(v1, result, '%s[%d]' % (kk, i))
+    elif isinstance(h, dict):
+        for (k, v) in h.items():
+            key = k if kk is None else "%s[%s]" % (kk, k)
+            if isinstance(v, dict):
+                for i, v1 in v.items():
+                    flatten_for_post(v1, result, '%s[%s]' % (key, i))
+            else:
+                flatten_for_post(v, result, key)
+    return result
+
+
+class PhabChanges(object):
+    def __init__(self, changes):
+        self.phab_url = 'https://phabricator.wikimedia.org/api/'
+
+        self.changes = changes
+        self.conduit_token = self._get_token()
+        self.authors = self.find_authors()
+        self.train_task = self.find_train_task()
+
+    def _get_token(self):
+        """
+        Use the $CONDUIT_TOKEN envvar, fallback to whatever is in ~/.arcrc
+        """
+        token = None
+        token_path = os.path.expanduser('~/.arcrc')
+        if os.path.exists(token_path):
+            with open(token_path) as f:
+                arcrc = json.load(f)
+                token = arcrc['hosts'][self.phab_url]['token']
+
+        return os.environ.get('CONDUIT_TOKEN', token)
+
+    def _query_phab(self, method, data):
+        """
+        Helper method to query phab via requests and return json
+        """
+        data['api.token'] = self.conduit_token
+        data = flatten_for_post(data)
+        r = requests.post(
+            os.path.join(self.phab_url, method),
+            data=data)
+        r.raise_for_status()
+        return r.json()
+
+    def find_authors(self):
+        """
+        Get a set of authors from a list of commit sha1s
+        """
+        commits = self._query_phab(
+            'diffusion.querycommits',
+            {'names': self.changes}
+        )
+
+        commits = commits['result']['data']
+        authors = set()
+        for commit in commits:
+            phid = commits[commit]['authorPHID']
+            if phid:
+                authors.add(phid)
+
+        return authors
+
+    def find_train_task(self):
+        """
+        Uses stored query to find oldest open train blocker task returns PHID
+
+        This should be the current train...in theory :)
+        """
+        task = self._query_phab(
+            'maniphest.search',
+            {
+                'queryKey': '17I5JVZeNrOf',
+                'limit': 1
+            }
+        )
+        # print(task['result']['data'][0]['fields']['name'])
+        return task['result']['data'][0]['phid']
+
+    def subscribe_authors(self):
+        """
+        Subscribe patch authors for branch to train task
+        """
+        self._query_phab(
+            'maniphest.edit',
+            {
+                'transactions': [{
+                    'type': 'subscribers.add',
+                    'value': self.authors
+                }],
+                'objectIdentifier': self.train_task
+            }
+        )
+
 
 def version_parser(ver):
     """
@@ -62,6 +177,7 @@ def patch_url(change):
     """
     Create patch url for gitiles
     """
+    ALL_CHANGE_SHA1S.append(change)
     return '{{git|%s}}' % change[:8]
 
 
@@ -226,6 +342,9 @@ def main():
               TOTALS['changes'],
               TOTALS['repos'],
               len(TOTALS['unique_committers'])))
+
+    phab_changes = PhabChanges(ALL_CHANGE_SHA1S)
+    phab_changes.subscribe_authors()
 
 
 if __name__ == '__main__':
