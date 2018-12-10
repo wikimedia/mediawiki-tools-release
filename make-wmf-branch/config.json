@@ -108,7 +108,6 @@
 		"extensions/PageTriage",
 		"extensions/PageViewInfo",
 		"extensions/ParserFunctions",
-		"extensions/ParserMigration",
 		"extensions/ParsoidBatchAPI",
 		"extensions/PdfHandler",
 		"extensions/PerformanceInspector",
