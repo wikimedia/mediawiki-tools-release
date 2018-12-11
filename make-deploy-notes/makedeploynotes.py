@@ -285,18 +285,21 @@ def parse_args():
         type=version_parser,
         help='New branch (e.g., 1.31.0-wmf.24)'
     )
-    branches = vars(argp.parse_args())
-    return (
-        os.path.join('wmf', branches['oldbranch']),
-        os.path.join('wmf', branches['newbranch'])
+    argp.add_argument(
+        '--add-commiters',
+        action='store_true',
+        help='Add commiters to task'
     )
+    return argp.parse_args()
 
 
 def main():
     """
     Entry point
     """
-    old, new = parse_args()
+    args = parse_args()
+    old = os.path.join('wmf', args.oldbranch)
+    new = os.path.join('wmf', args.newbranch)
 
     base_path = os.path.dirname(os.path.realpath(__file__))
     branch_config_file = os.path.join(
@@ -343,8 +346,9 @@ def main():
               TOTALS['repos'],
               len(TOTALS['unique_committers'])))
 
-    phab_changes = PhabChanges(ALL_CHANGE_SHA1S)
-    phab_changes.subscribe_authors()
+    if args.add_commiters:
+        phab_changes = PhabChanges(ALL_CHANGE_SHA1S)
+        phab_changes.subscribe_authors()
 
 
 if __name__ == '__main__':
