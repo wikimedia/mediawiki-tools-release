@@ -406,12 +406,10 @@ class wikipedia {
      **/
     function login ($user,$pass) {
     	$post = array('lgname' => $user, 'lgpassword' => $pass);
-        $ret = $this->query('?action=login&format=php',$post);
+	$ret = $this->query('?action=query&meta=tokens&format=json&type=login',$post);
         /* This is now required - see https://bugzilla.wikimedia.org/show_bug.cgi?id=23076 */
-        if ($ret['login']['result'] == 'NeedToken') {
-        	$post['lgtoken'] = $ret['login']['token'];
-        	$ret = $this->query( '?action=login&format=php', $post );
-        }
+	$post['lgtoken'] = $ret['query']['tokens']['logintoken'];
+	$ret = $this->query('?action=login&format=json', $post );
         if ($ret['login']['result'] != 'Success') {
             echo "Login error: \n";
             print_r($ret);
@@ -460,10 +458,8 @@ class wikipedia {
      * @return edit token.
      **/
     function getedittoken () {
-        $x = $this->query('?action=query&prop=info&intoken=edit&titles=Main%20Page&format=php');
-        foreach ($x['query']['pages'] as $ret) {
-            return $ret['edittoken'];
-        }
+        $x = $this->query('?action=query&meta=tokens&format=json');
+        return $x['query']['tokens']['csrftoken'];
     }
 
     /**
