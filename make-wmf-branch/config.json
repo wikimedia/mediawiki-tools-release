@@ -162,7 +162,6 @@
 		"extensions/Wikibase",
 		"extensions/WikibaseLexeme",
 		"extensions/WikibaseMediaInfo",
-		"extensions/WikibaseQuality",
 		"extensions/WikibaseQualityConstraints",
 		"extensions/Wikidata.org",
 		"extensions/WikidataPageBanner",
