@@ -87,6 +87,8 @@ def parse_args():
         usage='wikiversionsfordblist [group0|group1|all]',
         description=__doc__,
         formatter_class=argparse.RawTextHelpFormatter)
+    ap.add_argument('-v', '--verbose', action='store_true',
+                    help="Show wikis and versions")
     ap.add_argument('dblist', help='dblist to check for versions')
     return ap.parse_args()
 
@@ -99,6 +101,8 @@ if __name__ == '__main__':
     dblist_versions = set()
 
     for wiki in dblist:
+        if args.verbose:
+            print('{} -> {}'.format(wiki, active_wikiversions[wiki]))
         dblist_versions.add(active_wikiversions[wiki])
 
     print('DBList "{}" uses version(s)'.format(dblist_name))
