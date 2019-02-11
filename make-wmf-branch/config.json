@@ -49,6 +49,7 @@
 		"extensions/EventBus",
 		"extensions/EventLogging",
 		"extensions/ExtensionDistributor",
+		"extensions/ExternalGuidance",
 		"extensions/FeaturedFeeds",
 		"extensions/FileExporter",
 		"extensions/FileImporter",
