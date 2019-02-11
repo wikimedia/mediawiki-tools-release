@@ -130,6 +130,9 @@ class MakeWmfBranch {
 		foreach ( $this->branchedExtensions as $ext ) {
 			$this->branchRepo( $ext );
 		}
+		foreach ( $this->specialExtensions as $ext => $branch ) {
+			$this->branchRepo( $ext, $branch );
+		}
 		$this->branchWmf( $clonePath );
 	}
 
@@ -153,7 +156,7 @@ class MakeWmfBranch {
 		$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
 	}
 
-	function branchRepo( $path ) {
+	function branchRepo( $path , $branch = 'master' ) {
 		$repo = basename( $path );
 
 		// repo has already been branched, so just bail out
@@ -161,7 +164,17 @@ class MakeWmfBranch {
 			return;
 		}
 
-		$this->runCmd( 'git', 'clone', '-q', '--depth', '1', "{$this->repoPath}/{$path}", $repo );
+		$this->runCmd(
+			'git',
+			'clone',
+			'-q',
+			'--branch',
+			$branch,
+			'--depth',
+			'1',
+			"{$this->repoPath}/{$path}", $repo
+		);
+
 		$this->chdir( $repo );
 		$newVersion = $this->branchPrefix . $this->newVersion;
 
@@ -206,7 +219,7 @@ class MakeWmfBranch {
 
 		# Add extension submodules
 		foreach ( $this->specialExtensions as $name => $specialBranch ) {
-			$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $specialBranch, '-q',
+			$this->runCmd( 'git', 'submodule', 'add', '-f', '-b', $newVersion, '-q',
 			"{$this->repoPath}/{$name}", $name );
 		}
 
