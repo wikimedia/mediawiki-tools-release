@@ -163,6 +163,7 @@
 		"extensions/Wikibase",
 		"extensions/WikibaseCirrusSearch",
 		"extensions/WikibaseLexeme",
+		"extensions/WikibaseLexemeCirrusSearch",
 		"extensions/WikibaseMediaInfo",
 		"extensions/WikibaseQualityConstraints",
 		"extensions/Wikidata.org",
