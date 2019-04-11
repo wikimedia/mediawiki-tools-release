@@ -17,7 +17,7 @@ import requests
 TOTALS = {
     'changes': 0,
     'repos': 0,
-    'unique_committers': set(),
+    'unique_authors': set(),
 }
 GITILES_URL = 'https://gerrit.wikimedia.org/g'
 
@@ -236,13 +236,13 @@ def format_changes(old, new, repo):
 
         link = patch_url(change['commit'].strip())
 
-        committer = change['committer']['name'].strip()
-        TOTALS['unique_committers'].add(committer)
+        author = change['author']['name'].strip()
+        TOTALS['unique_authors'].add(author)
 
         message = change['message'].splitlines()[0].strip()
 
         formatted_change = '* {} - <nowiki>{}</nowiki>{} by {}'.format(
-            link, message, maybe_task(change['message']), committer)
+            link, message, maybe_task(change['message']), author)
 
         valid_changes.append(formatted_change)
 
@@ -341,10 +341,10 @@ def main():
     print("== Total Changes ==\n"
           "'''{}''' Changes "
           "in '''{}''' repos "
-          "by '''{}''' committers".format(
+          "by '''{}''' authors".format(
               TOTALS['changes'],
               TOTALS['repos'],
-              len(TOTALS['unique_committers'])))
+              len(TOTALS['unique_authors'])))
 
     if args.add_commiters:
         phab_changes = PhabChanges(ALL_CHANGE_SHA1S)
