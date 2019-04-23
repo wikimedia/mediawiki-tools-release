@@ -166,6 +166,7 @@
 		"extensions/WikibaseLexemeCirrusSearch",
 		"extensions/WikibaseMediaInfo",
 		"extensions/WikibaseQualityConstraints",
+		"extensions/WikibaseSchema",
 		"extensions/Wikidata.org",
 		"extensions/WikidataPageBanner",
 		"extensions/WikiEditor",
