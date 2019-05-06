@@ -46,6 +46,7 @@
 		"extensions/Echo",
 		"extensions/Elastica",
 		"extensions/ElectronPdfService",
+		"extensions/EntitySchema",
 		"extensions/EventBus",
 		"extensions/EventLogging",
 		"extensions/ExtensionDistributor",
