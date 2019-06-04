@@ -157,12 +157,12 @@ class MakeWmfBranch {
 	}
 
 	function branchRepo( $path , $branch = 'master' ) {
-		$repo = basename( $path );
-
 		// repo has already been branched, so just bail out
-		if ( isset( $this->alreadyBranched[$repo] ) ) {
+		if ( isset( $this->alreadyBranched[$path] ) ) {
 			return;
 		}
+
+		$repo = basename( $path );
 
 		$this->runCmd(
 			'git',
