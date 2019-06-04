@@ -23,3 +23,13 @@ optional arguments:
                         directory
   --upload-tar UPLOAD_TAR
                         Tarfile to put generated tarballs into
+
+Example:
+After you have created (and signed!) the git tag in your git repo, you can run a command like:
+
+`makerelease2.py --sign --upload-tar /tmp/upload.tar --previous 1.27.4 /path/to/mediawiki/core 1.27.5`
+
+This is will make a release for the 1.27.5 tag in the repo at `/path/to/mediawiki/core`, create
+patches to the previous release 1.27.4 and generate signature files for all the created files.
+It will then put all the generated files in `/tmp/upload.tar` in a folder called `1.27`. You can
+reuse this tar to put numerous different MediaWiki releases for upload to the releases server.
