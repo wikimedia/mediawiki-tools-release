@@ -7,7 +7,7 @@ Handy-dandy tool to pull a tagged release out of Git and generate:
 You will first need to `pip install git-archive-all` (maybe with pip3)
 
 usage: makerelease2.py [-h] [--previous PREVIOUS] [--sign]
-                       [--output_dir OUTPUT_DIR]
+                       [--output_dir OUTPUT_DIR] [--upload-tar UPLOAD_TAR]
                        repository tag
 
 positional arguments:
@@ -21,3 +21,5 @@ optional arguments:
   --output_dir OUTPUT_DIR
                         Location to put tarballs, relative to current
                         directory
+  --upload-tar UPLOAD_TAR
+                        Tarfile to put generated tarballs into
