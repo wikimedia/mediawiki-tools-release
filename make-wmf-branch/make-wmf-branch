@@ -71,17 +71,17 @@ foreach ( $storedArgs as $args ) {
         : $passedArgs[$long];
 }
 $CWD = getcwd();
-chdir(__DIR__);
+chdir( __DIR__ );
 
-$current_branch = trim(`git symbolic-ref HEAD`);
+$current_branch = trim( `git symbolic-ref HEAD` );
 $abort = false;
-if ($current_branch == 'refs/heads/master') {
+if ( $current_branch == 'refs/heads/master' ) {
     echo "Verifying that make-wmf-branch is up to date with origin/master...";
-    shell_exec('git fetch');
+    shell_exec( 'git fetch' );
     $log = `git log HEAD..origin/master --pretty=oneline`;
-    $logsize = strlen($log);
-    if ($logsize > 0) {
-        $abort=true;
+    $logsize = strlen( $log );
+    if ( $logsize > 0 ) {
+        $abort = true;
         $reason = "Out of date, you need to integrate these commits from origin/master:\n";
         $reason .= $log;
         echo "\n";
@@ -89,7 +89,7 @@ if ($current_branch == 'refs/heads/master') {
         echo "ok\n";
     }
 } else {
-    $abort=true;
+    $abort = true;
     $reason = "Wrong branch: $current_branch. Please run make-wmf-branch from the latest master revision.";
 }
 
