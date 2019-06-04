@@ -21,8 +21,8 @@ const USAGE = <<<EOF
 
     Example `--continue-from` Usage:
     --------------------------------
-    Branching fails on the `AccountAudit` extension. Use `-c AccountAudit` to
-    skip branching any previously successfully branched extensions and start
+    Branching fails on the `AccountAudit` extension. Use `-c extensions/AccountAudit`
+    to skip branching any previously successfully branched extensions and start
     with branching `AccountAudit`.
 
 EOF;
