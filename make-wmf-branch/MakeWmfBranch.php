@@ -40,7 +40,7 @@ class MakeWmfBranch {
 	 * setup an alreadyBranched array that has the names of all extensions
 	 * up-to the extension from which we would like to start branching
 	 *
-	 * @param String/null $extName - name of extension from which to start branching
+	 * @param string|null $extName - name of extension from which to start branching
 	 */
 	function setStartExtension( $extName ) {
 		if ( $extName === null ) {
