@@ -1,0 +1,14 @@
+/vendor/
+/srv/
+flycheck_*
+*~
+
+default.conf
+local.conf
+local.mk
+
+composer.lock
+composer
+composer-setup.php
+expected
+installer

@@ -5,7 +5,7 @@
         "phpunit/phpunit": "~4.8"
     },
     "scripts": {
-        "lint": "parallel-lint . --exclude vendor",
+        "lint": "parallel-lint . --exclude vendor --exclude make-tarball-release",
         "phpcs": "phpcs -s -p",
         "fix": "phpcbf",
         "test": [
