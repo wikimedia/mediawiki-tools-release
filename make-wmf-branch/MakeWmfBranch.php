@@ -48,14 +48,21 @@ class MakeWmfBranch {
 		}
 
 		$foundKey = false;
+
+		// Create a copy of $this->branchedExtensions that can be mangled
 		foreach ( array( $this->branchedExtensions ) as $branchedArr ) {
+
+			// Find the index of the start extension in the branchedExtension list
 			$key = array_search( $extName, $branchedArr );
 
+			// Remove all extensions that have already been branched from $branchedArr
+			// by using the index of the --continue-from extension as an offset
 			if ( $key !== false ) {
 				array_splice( $branchedArr, $key );
 				$foundKey = true;
 			}
 
+			// $this->alreadyBranched = $branchedArr, gently
 			$this->alreadyBranched = array_merge(
 				$this->alreadyBranched,
 				$branchedArr
