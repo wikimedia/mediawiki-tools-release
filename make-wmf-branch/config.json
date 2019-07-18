@@ -130,6 +130,7 @@
 		"extensions/Score",
 		"extensions/Scribunto",
 		"extensions/SearchExtraNS",
+		"extensions/SecureLinkFixer",
 		"extensions/SecurePoll",
 		"extensions/Sentry",
 		"extensions/ShortUrl",
