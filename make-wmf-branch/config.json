@@ -90,6 +90,7 @@
 		"extensions/Listings",
 		"extensions/LocalisationUpdate",
 		"extensions/LoginNotify",
+		"extensions/MachineVision",
 		"extensions/MapSources",
 		"extensions/MassMessage",
 		"extensions/Math",
