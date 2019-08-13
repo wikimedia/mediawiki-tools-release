@@ -1,0 +1,216 @@
+{
+    "frontmatter": "===Week of <%= month %> <%= day %>===\n{{#invoke:Deployment schedule|formatTable|hidedate=false|",
+    "endmatter": "}}",
+    "@vars_doc": "Vars that won't change too frequently",
+    "vars": {},
+    "@windows_doc": "Individual windows to schedule",
+    "windows": {
+        "phab": {
+            "deployer": "{{ircnick|twentyafterfour|Mukunda}}",
+            "what": "HOLD: Window to update phabricator.wikimedia.org",
+            "window": "Phabricator update"
+        },
+        "portals": {
+            "deployer": "{{ircnick|jan_drewniak|Jan Drewniak}}",
+            "what": "Weekly window for the portals page: https://www.wikipedia.org/",
+            "window": "Wikimedia Portals Update"
+        },
+        "puppet": {
+            "deployer": "{{ircnick|godog|Filippo}}, {{ircnick|_joe_|Giuseppe}}",
+            "what": "{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
+            "window": "[[PuppetSWAT|Puppet SWAT]]<br/><small>'''(Max 6 patches)'''</small>"
+        },
+        "sanity": {
+            "deployer": "",
+            "what": "No Deploys",
+            "window": "Pre MediaWiki train sanity break"
+        },
+        "security": {
+            "deployer": "{{ircnick|Reedy|Sam}}, {{ircnick|sbassett|Scott}}",
+            "what": "Held deployment window for Security-team related deploys.",
+            "window": "Weekly Security deployment window"
+        },
+        "services": {
+            "deployer": "{{ircnick|cscott|C.Scott}}, {{ircnick|arlolra|Arlo}}, {{ircnick|subbu|Subbu}}, Aaron ({{ircnick|halfak}})), Andy ({{ircnick|accraze}})",
+            "what": "See [[mw:Extension:Graph|Graphoid]], [[mw:Parsoid/Deployments]]",
+            "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / [[mw:Parsoid/Deployments|Parsoid]] / Citoid / [[ORES]]"
+        },
+        "swat": {
+            "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
+            "what": "{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
+            "window": "[[SWAT deploys|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
+        },
+        "train": {
+            "deployer": "<%= train_deployer %>",
+            "what": "<%= roadmap %>\n<%= minical %>\n* <%= group %>\n* '''Blockers: {{phabricator|<%= train_blocker_task %>}}'''",
+            "window": "Mediawiki train - <%= version %> Version"
+        },
+        "wdqs": {
+            "deployer": "{{ircnick|gehel|Guillaume}}, {{ircnick|onimisionipe|Mathew}}",
+            "what": "...",
+            "window": "Wikidata Query Service weekly deploy"
+        }
+    },
+    "@schedule_doc": "Schedule the above windows",
+    "schedule": {
+        "mon": [
+            {
+                "name": "portals",
+                "hour": "10",
+                "minute": "30",
+                "length": "0.5"
+            },
+            {
+                "name": "wdqs",
+                "hour": "17",
+                "length": "0.5"
+            },
+            {
+                "name": "security",
+                "hour": "21",
+                "length": "2"
+            }
+        ],
+        "thu": [
+            {
+                "name": "phab",
+                "hour": "00"
+            }
+        ],
+        "mon,wed": [
+            {
+                "name": "services",
+                "hour": "20"
+            }
+        ],
+        "tue,thu": [
+            {
+                "name": "services",
+                "hour": "17"
+            },
+            {
+                "name": "puppet",
+                "hour": "16"
+            }
+        ]
+    },
+    "schedule@American": {
+        "mon,wed-thu": [
+            {
+                "name": "swat",
+                "hour": "18",
+                "vars": {
+                    "window_name": "Morning SWAT"
+                }
+            }
+        ],
+        "tue": [
+            {
+                "name": "sanity",
+                "hour": "18"
+            },
+            {
+                "name": "train",
+                "hour": "19",
+                "vars": {
+                    "group": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
+                }
+            }
+        ],
+        "wed": [
+            {
+                "name": "train",
+                "hour": "19",
+                "vars": {
+                    "group": "1"
+                }
+            }
+        ],
+        "thu": [
+            {
+                "name": "train",
+                "hour": "19",
+                "vars": {
+                    "group": "2"
+                }
+            }
+        ],
+        "mon-thu": [
+            {
+                "name": "swat",
+                "hour": "11",
+                "vars": {
+                    "window_name": "European Mid-day SWAT"
+                }
+            },
+            {
+                "name": "swat",
+                "hour": "23",
+                "vars": {
+                    "window_name": "Evening SWAT"
+                }
+            }
+        ]
+    },
+    "schedule@European": {
+        "tue": [
+            {
+                "name": "train",
+                "hour": "13",
+                "vars": {
+                    "group": "group0 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
+                }
+            }
+        ],
+        "wed": [
+            {
+                "name": "train",
+                "hour": "13",
+                "vars": {
+                    "group": "group1 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
+                }
+            }
+        ],
+        "thu": [
+            {
+                "name": "train",
+                "hour": "13",
+                "vars": {
+                    "group": "group2 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
+                }
+            }
+        ],
+        "tue-thu": [
+            {
+                "name": "sanity",
+                "hour": "12"
+            }
+        ],
+        "mon-thu": [
+            {
+                "name": "swat",
+                "hour": "11",
+                "vars": {
+                    "window_name": "European Mid-day SWAT"
+                }
+            },
+            {
+                "name": "swat",
+                "hour": "23",
+                "vars": {
+                    "window_name": "Evening SWAT"
+                }
+            },
+            {
+                "name": "swat",
+                "hour": "18",
+                "vars": {
+                    "window_name": "Morning SWAT"
+                }
+            }
+        ]
+    }
+}
