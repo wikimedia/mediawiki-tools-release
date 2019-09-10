@@ -9,14 +9,30 @@
 	<arg name="report" value="full"/>
 	<arg name="report" value="summary"/>
 
-	<rule ref="vendor/mediawiki/mediawiki-codesniffer/MediaWiki"/>
+	<rule ref="vendor/mediawiki/mediawiki-codesniffer/MediaWiki" />
+
 	<rule ref="Generic.Arrays.DisallowLongArraySyntax.Found">
 		<severity>0</severity>
 	</rule>
 	<rule ref="MediaWiki.NamingConventions.PrefixedGlobalFunctions.wfPrefix">
 		<severity>0</severity>
 	</rule>
-	<rule ref="MediaWiki.Commenting.FunctionComment">
+	<rule ref="MediaWiki.PHP70Features.ScalarTypeHintUsage.Found">
 		<exclude-pattern>make-tarball-release/</exclude-pattern>
+	</rule>
+	<rule ref="MediaWiki.PHP71Features.NullableType.NotAllowed">
+		<exclude-pattern>make-tarball-release/</exclude-pattern>
+	</rule>
+
+	<rule ref="MediaWiki.Usage.PHPUnitClassUsage.NotNamespaced">
+		<exclude-pattern>tests/</exclude-pattern>
+	</rule>
+
+	<!-- Filled as T232479 -->
+	<rule ref="MediaWiki.Usage.ForbiddenFunctions.escapeshellarg">
+		<exclude-pattern>make-deploy-notes/uploadChangelog.php</exclude-pattern>
+	</rule>
+	<rule ref="MediaWiki.Usage.ForbiddenFunctions.shell_exec">
+		<exclude-pattern>make-deploy-notes/uploadChangelog.php</exclude-pattern>
 	</rule>
 </ruleset>

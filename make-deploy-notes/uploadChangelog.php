@@ -104,7 +104,7 @@ function getPreviousMinorVersion( $major ) {
 		// or wmf/1.27.0-wmf.1) using the filter defined above
 		// the array will start counting at 0 and will has one empty "line" at
 		// the end, so count all elements and subtract 2
-		list( $major, $minor ) = getMajorMinor( strstr( $list[ count( $list ) -2 ], $filter ) );
+		list( $major, $minor ) = getMajorMinor( strstr( $list[ count( $list ) - 2 ], $filter ) );
 	}
 
 	// check, if there was a good result, otherwise assume, that there are 22

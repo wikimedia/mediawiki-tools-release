@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../MakeWmfBranch.php';
 
+/**
+ * @covers MakeWmfBranch
+ */
 class MakeWmfBranchTest extends PHPUnit_Framework_TestCase {
 
 	/**

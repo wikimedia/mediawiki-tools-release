@@ -12,7 +12,7 @@ class MakeWmfBranch {
 	 * @param string $oldVersion Version to make the new branch from. If
 	 * evaluated to false, would fallback to 'master'.
 	 */
-	function __construct( $newVersion, $oldVersion ) {
+	public function __construct( $newVersion, $oldVersion ) {
 		$this->newVersion = $newVersion;
 		$this->oldVersion = $oldVersion ?: 'master';
 		$buildDir = sys_get_temp_dir() . '/make-wmf-branch';
@@ -47,7 +47,7 @@ class MakeWmfBranch {
 	 *
 	 * @param string|null $extName - name of extension from which to start branching
 	 */
-	function setStartExtension( $extName ) {
+	public function setStartExtension( $extName ) {
 		if ( $extName === null ) {
 			return;
 		}
