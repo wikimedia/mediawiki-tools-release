@@ -33,7 +33,7 @@ $mwPass = $_SERVER['MEDIAWIKI_PSW'];
 
 $output = file_get_contents( $notesFile );
 
-require_once ( __DIR__ . '/botclasses.php' );
+require_once __DIR__ . '/botclasses.php';
 $wiki = new wikipedia( 'https://www.mediawiki.org/w/api.php' );
 $wiki->login( $mwUser, $mwPass );
 
@@ -44,7 +44,7 @@ $wiki->edit( "MediaWiki 1.{$major}/wmf.{$minor}/Changelog",
 print "Changelog updated\n";
 
 /**
- * @param $input string
+ * @param string $input A raw version string.
  * @return array|null
  */
 function getMajorMinor( $input ) {

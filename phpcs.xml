@@ -16,4 +16,7 @@
 	<rule ref="MediaWiki.NamingConventions.PrefixedGlobalFunctions.wfPrefix">
 		<severity>0</severity>
 	</rule>
+	<rule ref="MediaWiki.Commenting.FunctionComment">
+		<exclude-pattern>make-tarball-release/</exclude-pattern>
+	</rule>
 </ruleset>

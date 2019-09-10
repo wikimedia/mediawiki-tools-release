@@ -44,7 +44,7 @@ if ( stripos( $output, "array\n(" ) !== false ) {
 	return;
 }
 
-require_once ( __DIR__ . '/botclasses.php' );
+require_once __DIR__ . '/botclasses.php';
 $wiki = new wikipedia( 'https://www.mediawiki.org/w/api.php' );
 
 if ( isset( $argv[2] ) && isset( $argv[3] ) ) {
@@ -53,7 +53,7 @@ if ( isset( $argv[2] ) && isset( $argv[3] ) ) {
 	// auth.php should contain the following:
 	// <?php
 	// $wiki->login( 'username', 'password' );
-	require_once ( __DIR__.'/auth.php' );
+	require_once __DIR__.'/auth.php';
 }
 
 list( $major, $minor ) = getMajorMinor( $version );
@@ -63,7 +63,7 @@ $wiki->edit( "MediaWiki 1.{$major}/wmf.{$minor}/Changelog",
 print "Changelog updated\n";
 
 /**
- * @param $input string
+ * @param string $input A raw version string.
  * @return string|null
  */
 function getPreviousVersion( $input ) {
@@ -84,7 +84,7 @@ function getPreviousVersion( $input ) {
 /**
  * Takes a major version and finds the last minor version of the previous
  * major version.
- * @param string $major
+ * @param string $major The major version number (eg: '34' in '1.34.0').
  * @return string
  */
 function getPreviousMinorVersion( $major ) {
@@ -113,7 +113,7 @@ function getPreviousMinorVersion( $major ) {
 }
 
 /**
- * @param $input string
+ * @param string $input A raw version string to extract major/minor version from.
  * @return array|null
  */
 function getMajorMinor( $input ) {
