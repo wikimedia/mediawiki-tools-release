@@ -35,7 +35,7 @@ class MakeWmfBranch {
 		$this->branchedExtensions = $branchLists['extensions'];
 		$this->branchedSubmodules = $branchLists['submodules'];
 		$this->specialExtensions = $branchLists['special_extensions'];
-		$this->alreadyBranched = array();
+		$this->alreadyBranched = [];
 		$this->noisy = $noisy;
 		$this->repoPath = $repoPath;
 		$this->branchPrefix = $branchPrefix;
@@ -55,7 +55,7 @@ class MakeWmfBranch {
 		$foundKey = false;
 
 		// Create a copy of $this->branchedExtensions that can be mangled
-		foreach ( array( $this->branchedExtensions ) as $branchedArr ) {
+		foreach ( [ $this->branchedExtensions ] as $branchedArr ) {
 			// Find the index of the start extension in the branchedExtension list
 			$key = array_search( $extName, $branchedArr );
 
@@ -87,12 +87,12 @@ class MakeWmfBranch {
 		$this->alreadyBranched = array_flip( $this->alreadyBranched );
 	}
 
-	// @codingStandardsIgnoreStart
-	function runCmd( /*...*/ ) {
-	// @codingStadnardsIgnoreEnd
-		$args = func_get_args();
+	/**
+	 * @param string ...$args
+	 */
+	public function runCmd( ...$args ) {
 		if ( $this->noisy && in_array( "-q", $args ) ) {
-			$args = array_diff( $args, array( "-q" ) );
+			$args = array_diff( $args, [ "-q" ] );
 		}
 		$encArgs = array_map( 'escapeshellarg', $args );
 		$cmd = implode( ' ', $encArgs );
@@ -112,23 +112,23 @@ class MakeWmfBranch {
 		$this->croak( $args[0] . " exit with status $ret\n" );
 	}
 
-	// @codingStandardsIgnoreStart
-	function runWriteCmd( /*...*/ ) {
-	// @codingStadnardsIgnoreEnd
-		$args = func_get_args();
+	/**
+	 * @param string ...$args
+	 */
+	public function runWriteCmd( ...$args ) {
 		if ( $this->dryRun ) {
 			$encArgs = array_map( 'escapeshellarg', $args );
 			$cmd = implode( ' ', $encArgs );
 			echo "[dry-run] $cmd\n";
 		} else {
-			call_user_func_array( array( $this, 'runCmd' ), $args );
+			call_user_func_array( [ $this, 'runCmd' ], $args );
 		}
 	}
 
 	/**
 	 * @param string $dir Directory to change directory to.
 	 */
-	function chdir( $dir ) {
+	public function chdir( $dir ) {
 		if ( !chdir( $dir ) ) {
 			$this->croak( "Unable to change working directory\n" );
 		}
@@ -140,7 +140,7 @@ class MakeWmfBranch {
 	 *
 	 * @param string $msg Message to colorized. Written to stderr.
 	 */
-	function croak( $msg ) {
+	public function croak( $msg ) {
 		$red = `tput setaf 1`;
 		$reset = `tput sgr0`;
 
@@ -151,7 +151,7 @@ class MakeWmfBranch {
 	/**
 	 * @param string $clonePath Path in which to clone mediawiki/core.
 	 */
-	function execute( $clonePath ) {
+	public function execute( $clonePath ) {
 		$this->setupBuildDirectory();
 		foreach ( $this->branchedExtensions as $ext ) {
 			$this->branchRepo( $ext );
@@ -165,7 +165,7 @@ class MakeWmfBranch {
 	/**
 	 * Attempt to create the build directory and chdir() to it.
 	 */
-	function setupBuildDirectory() {
+	public function setupBuildDirectory() {
 		# Create a temporary build directory
 		$this->teardownBuildDirectory();
 		if ( !mkdir( $this->buildDir ) ) {
@@ -177,7 +177,7 @@ class MakeWmfBranch {
 	/**
 	 * Erase the buildDir if it exists.
 	 */
-	function teardownBuildDirectory() {
+	public function teardownBuildDirectory() {
 		if ( file_exists( $this->buildDir ) ) {
 			$this->runCmd( 'rm', '-rf', '--', $this->buildDir );
 		}
@@ -186,7 +186,7 @@ class MakeWmfBranch {
 	/**
 	 * @param string $branchName Name of branch to create and push.
 	 */
-	function createBranch( $branchName ) {
+	public function createBranch( $branchName ) {
 		$this->runCmd( 'git', 'checkout', '-q', '-b', $branchName );
 		$this->runWriteCmd( 'git', 'push', 'origin', $branchName );
 	}
@@ -195,7 +195,7 @@ class MakeWmfBranch {
 	 * @param string $path Path of the repository to branch.
 	 * @param string $branch Branch to clone Default: 'master'
 	 */
-	function branchRepo( $path , $branch = 'master' ) {
+	public function branchRepo( $path, $branch = 'master' ) {
 		// repo has already been branched, so just bail out
 		if ( isset( $this->alreadyBranched[$path] ) ) {
 			return;
@@ -236,7 +236,7 @@ class MakeWmfBranch {
 	/**
 	 * @param string $clonePath Path in which to clone mediawiki/core.
 	 */
-	function branchWmf( $clonePath ) {
+	public function branchWmf( $clonePath ) {
 		# Clone the repository
 		$oldVersion = $this->oldVersion == 'master' ? 'master' : $this->branchPrefix . $this->oldVersion;
 		$path = $clonePath ? $clonePath : "{$this->repoPath}/core";
@@ -278,7 +278,7 @@ class MakeWmfBranch {
 	/**
 	 * @param string $fileName Name of file to inline replace $wgVersion value.
 	 */
-	function fixVersion( $fileName ) {
+	public function fixVersion( $fileName ) {
 		$s = file_get_contents( $fileName );
 		$s = preg_replace( '/^( \$wgVersion \s+ = \s+ )  [^;]*  ( ; \s* ) $/xm',
 			"\\1'{$this->newVersion}'\\2", $s );

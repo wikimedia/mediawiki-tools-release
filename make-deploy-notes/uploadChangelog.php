@@ -117,13 +117,13 @@ function getPreviousMinorVersion( $major ) {
  * @return array|null
  */
 function getMajorMinor( $input ) {
-	$matches = array();
+	$matches = [];
 	// match any version like wmf/1.26wmf22 or the new semver wmf/1.27.0-wmf1
 	if ( preg_match( "/wmf\/1\.(\d{2})\.0\-wmf\.(\d{1,2})/", $input, $matches ) ) {
 		// var_dump( $matches );
 		$major = intval( $matches[1] );
 		$minor = intval( $matches[2] );
-		return array( $major, $minor );
+		return [ $major, $minor ];
 	}
 	return null;
 }

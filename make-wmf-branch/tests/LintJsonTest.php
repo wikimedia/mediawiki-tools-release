@@ -3,7 +3,7 @@
 /**
  * @covers LintJson
  */
-class LintJsonTest extends PHPUnit_Framework_TestCase {
+class LintJsonTest extends \PHPUnit\Framework\TestCase {
 	/**
 	 * Test that config.json is a valid JSON file
 	 */

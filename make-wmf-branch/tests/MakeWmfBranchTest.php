@@ -4,7 +4,7 @@ require_once __DIR__ . '/../MakeWmfBranch.php';
 /**
  * @covers MakeWmfBranch
  */
-class MakeWmfBranchTest extends PHPUnit_Framework_TestCase {
+class MakeWmfBranchTest extends \PHPUnit\Framework\TestCase {
 
 	/**
 	 * Very basic test to guard us from typos in the repository names.
