@@ -49,11 +49,11 @@ $wiki = new wikipedia( 'https://www.mediawiki.org/w/api.php' );
 
 if ( isset( $argv[2] ) && isset( $argv[3] ) ) {
 	$wiki->login( $argv[2], $argv[3] );
-} elseif ( file_exists( __DIR__.'/auth.php' ) ) {
+} elseif ( file_exists( __DIR__ . '/auth.php' ) ) {
 	// auth.php should contain the following:
 	// <?php
 	// $wiki->login( 'username', 'password' );
-	require_once __DIR__.'/auth.php';
+	require_once __DIR__ . '/auth.php';
 }
 
 list( $major, $minor ) = getMajorMinor( $version );

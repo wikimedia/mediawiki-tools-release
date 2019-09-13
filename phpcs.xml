@@ -20,10 +20,16 @@
 	<rule ref="MediaWiki.PHP70Features.ScalarTypeHintUsage.Found">
 		<exclude-pattern>make-tarball-release/</exclude-pattern>
 	</rule>
-	<rule ref="MediaWiki.PHP71Features.NullableType.NotAllowed">
+	<rule ref="MediaWiki.PHP70Features.ScalarTypeHintUsage.ReturnTypeFound">
 		<exclude-pattern>make-tarball-release/</exclude-pattern>
 	</rule>
 
+	<rule ref="MediaWiki.PHP71Features.NullableType.NotAllowed">
+		<exclude-pattern>make-tarball-release/</exclude-pattern>
+	</rule>
+	<rule ref="MediaWiki.PHP71Features.VoidReturnType.NotAllowed">
+		<exclude-pattern>make-tarball-release/</exclude-pattern>
+	</rule>
 	<rule ref="MediaWiki.Usage.PHPUnitClassUsage.NotNamespaced">
 		<exclude-pattern>tests/</exclude-pattern>
 	</rule>
