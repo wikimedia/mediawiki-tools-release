@@ -2,12 +2,12 @@
     "name": "wikimedia/mediawiki-tools-release",
     "description": "Tools for releasing MediaWiki",
     "require": {
-        "php": ">=5.6.99"
+        "php": ">=7.2.0"
     },
     "require-dev": {
         "jakub-onderka/php-parallel-lint": "1.0.0",
         "mediawiki/mediawiki-codesniffer": "26.0.0",
-        "phpunit/phpunit": "~4.8"
+        "phpunit/phpunit": "~6.5"
     },
     "scripts": {
         "lint": "parallel-lint . --exclude vendor --exclude make-tarball-release",
