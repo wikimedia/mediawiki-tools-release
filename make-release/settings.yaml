@@ -20,6 +20,7 @@ bundles:
         - extensions/Poem
         - extensions/Renameuser
         - extensions/ReplaceText
+        - extensions/Scribunto
         - extensions/SpamBlacklist
         - extensions/SyntaxHighlight_GeSHi
         - extensions/TitleBlacklist
