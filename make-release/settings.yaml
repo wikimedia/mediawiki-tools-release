@@ -15,6 +15,7 @@ bundles:
         - extensions/MultimediaViewer
         - extensions/Nuke
         - extensions/OATHAuth
+        - extensions/PageImages
         - extensions/ParserFunctions
         - extensions/PdfHandler
         - extensions/Poem
@@ -23,6 +24,7 @@ bundles:
         - extensions/Scribunto
         - extensions/SpamBlacklist
         - extensions/SyntaxHighlight_GeSHi
+        - extensions/TextExtracts
         - extensions/TitleBlacklist
         - extensions/WikiEditor
         - skins/MonoBook
