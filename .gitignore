@@ -4,3 +4,4 @@ local.conf
 composer.lock
 /vendor
 .cache
+*.gz

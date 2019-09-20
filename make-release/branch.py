@@ -120,6 +120,7 @@ WGVERSION_REGEX = re.compile(
 def do_core_work(branch, bundle, version):
     """Add submodules, bump $wgVersion, etc"""
     cwd = os.getcwd()
+
     with clone('mediawiki/core'):
         subprocess.check_call(['/usr/bin/git', 'checkout', '-b', branch])
 
@@ -141,8 +142,13 @@ def do_core_work(branch, bundle, version):
 
         subprocess.check_call(['/usr/bin/git', 'commit', '-a', '-m',
                                'Creating new %s branch' % branch])
+
+        if OPTIONS['no_review']:
+            refspec = branch
+        else:
+            refspec = 'HEAD:refs/for/%s' % branch
         subprocess.check_call(['/usr/bin/git', 'push', 'origin',
-                               'HEAD:refs/for/%s' % branch])
+                               refspec])
     os.chdir(cwd)
 
 
@@ -163,6 +169,8 @@ def parse_args():
                         help='What bundle of extensions & skins to branch')
     parser.add_argument('--core-version', dest='core_version',
                         help='Update core version number and adds submodules')
+    parser.add_argument('--no-review', dest='no_review', action='store_true',
+                        help='Skip code review and push the branch.')
 
     return parser.parse_args()
 
