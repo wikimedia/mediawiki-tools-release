@@ -50,17 +50,7 @@ def get_branchpoint(branch, repository, default):
 
 def create_branch(repository, branch, revision):
     """Create a branch for a given repo."""
-    # If we've got a sub-submodule we care about, branch it first so we can
-    # do some magic stuff
-    try:
-        subrepo = CONFIG['sub_submodules'][repository]
-        create_branch(subrepo, branch, revision)
-    except KeyError:
-        # This is the normal case, actually
-        pass
 
-    if not repository.startswith('mediawiki/'):
-        repository = 'mediawiki/{}'.format(repository)
     try:
         revision = get_branchpoint(branch, repository, revision)
 
