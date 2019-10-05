@@ -30,6 +30,7 @@ bundles:
         - "mediawiki/skins/MonoBook"
         - "mediawiki/skins/Timeless"
         - "mediawiki/skins/Vector"
+        - "mediawiki/vendor"
     wmf:
         - "mediawiki/extensions/3D"
         - "mediawiki/extensions/AbuseFilter"

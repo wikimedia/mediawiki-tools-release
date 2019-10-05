@@ -3,143 +3,10 @@
 """Stuff about making branches and so forth."""
 
 import argparse
-from contextlib import contextmanager
 import logging
-import os
-import re
-import shutil
-import subprocess
 import sys
-import tempfile
 
-from requests.auth import HTTPBasicAuth
-from requests.exceptions import HTTPError
-
-import yaml
-
-from pygerrit2.rest import GerritRestAPI
-from pygerrit2.rest.auth import HTTPBasicAuthFromNetrc
-
-# Setup config with local overrides
-with open('settings.yaml') as globalconf:
-    CONFIG = yaml.safe_load(globalconf)
-if os.path.exists('.settings.yaml'):
-    with open(".settings.yaml") as localconf:
-        LOCAL_CONFIG = yaml.safe_load(localconf)
-        if LOCAL_CONFIG:
-            CONFIG.update(LOCAL_CONFIG)
-
-
-def _get_client():
-    """Get the client for making requests."""
-    try:
-        auth = HTTPBasicAuth(CONFIG['username'], CONFIG['password'])
-    except KeyError:
-        # Username and password weren't provided, try falling back to .netrc
-        auth = HTTPBasicAuthFromNetrc(CONFIG['base_url'])
-    return GerritRestAPI(url=CONFIG['base_url'], auth=auth)
-
-
-def get_branchpoint(branch, repository, default):
-    """See if a repo has an overridden branchpoint"""
-    try:
-        return CONFIG['manual_branch_points'][branch][repository]
-    except KeyError:
-        return default
-
-
-def create_branch(repository, branch, revision):
-    """Create a branch for a given repo."""
-
-    try:
-        revision = get_branchpoint(branch, repository, revision)
-
-        print('Branching {} to {} from {}'.format(
-            repository, branch, revision))
-        _get_client().put(
-            '/projects/%s/branches/%s' % (
-                repository.replace('/', '%2F'),
-                branch.replace('/', '%2F')),
-            json={'revision': revision}
-        )
-    except HTTPError as httpe:
-        # Gerrit responds 409 for edit conflicts
-        # means we already have a branch
-        if httpe.response.status_code == 409:
-            print('Already branched!')
-        else:
-            raise
-
-
-def get_bundle(bundle, branch):
-    """Return the list of all/some extensions, skins, and vendor."""
-    if bundle == '*':
-        things_to_branch = []
-        for stuff in ['skins', 'extensions']:
-            projects = _get_client().get(
-                '/projects/?p=mediawiki/%s&b=%s' % (stuff, branch))
-            for proj in projects:
-                if projects[proj]['state'] == 'ACTIVE':
-                    things_to_branch.append(proj)
-        return things_to_branch
-    else:
-        try:
-            return CONFIG['bundles'][bundle]
-        except KeyError:
-            return []
-
-
-@contextmanager
-def clone(repository):
-    """Clone a repository. Basically clone core"""
-    url = CONFIG['base_url'] + repository
-    temp = tempfile.mkdtemp(prefix='mw-branching-')
-    subprocess.check_call(['/usr/bin/git', 'clone', url, temp])
-    cwd = os.getcwd()
-    os.chdir(temp)
-    yield temp
-    os.chdir(cwd)
-    shutil.rmtree(temp)
-
-
-WGVERSION_REGEX = re.compile(
-    r'^( \$wgVersion \s+ = \s+ )  [^;]*  ( ; \s* ) $',
-    re.MULTILINE | re.VERBOSE)
-
-
-def do_core_work(branch, bundle, version):
-    """Add submodules, bump $wgVersion, etc"""
-    cwd = os.getcwd()
-
-    with clone('mediawiki/core'):
-        subprocess.check_call(['/usr/bin/git', 'checkout', '-b', branch])
-
-        for submodule in get_bundle(bundle, branch):
-            if not submodule.startswith('mediawiki/'):
-                url = CONFIG['base_url'] + 'mediawiki/' + submodule
-            else:
-                url = CONFIG['base_url'] + submodule
-            subprocess.check_call(['/usr/bin/git', 'submodule', 'add',
-                                   '--force', '--branch', branch, url,
-                                   submodule])
-
-        with open('includes/DefaultSettings.php', 'r') as defaultsettings:
-            contents = defaultsettings.read()
-
-        with open('includes/DefaultSettings.php', 'w') as defaultsettings:
-            defaultsettings.write(WGVERSION_REGEX.sub(
-                r"\1'" + version + r"'\2", contents))
-
-        subprocess.check_call(['/usr/bin/git', 'commit', '-a', '-m',
-                               'Creating new %s branch' % branch])
-
-        if OPTIONS['no_review']:
-            refspec = branch
-        else:
-            refspec = 'HEAD:refs/for/%s' % branch
-        subprocess.check_call(['/usr/bin/git', 'push', 'origin',
-                               refspec])
-    os.chdir(cwd)
+from mwrelease.branch import branch
 
 
 def parse_args():
@@ -150,13 +17,15 @@ def parse_args():
     )
 
     # Positional arguments:
-    parser.add_argument('branch', nargs='?', help='Branch we want to make')
+    parser.add_argument('branch', help='Branch we want to make')
     parser.add_argument('--branchpoint', dest='branch_point', default='master',
                         help='Where to branch from')
+    parser.add_argument('--bundle', dest='bundle', default=None,
+                        help='Which bundle of extensions & skins to branch')
     parser.add_argument('--core', dest='core', action='store_true',
                         help='If we branch core or not')
-    parser.add_argument('--bundle', dest='bundle', default=None,
-                        help='What bundle of extensions & skins to branch')
+    parser.add_argument('--core-bundle', dest='core_bundle', default='base',
+                        help='Which bundle to use for core submodules')
     parser.add_argument('--core-version', dest='core_version',
                         help='Update core version number and adds submodules')
     parser.add_argument('--no-review', dest='no_review', action='store_true',
@@ -166,14 +35,6 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    OPTIONS = parse_args()
     logging.basicConfig(level=logging.INFO, stream=sys.stderr)
-
-    if OPTIONS.bundle:
-        for repo in get_bundle(OPTIONS.bundle, OPTIONS.branch_point):
-            create_branch(repo, OPTIONS.branch, OPTIONS.branch_point)
-
-    if OPTIONS.core:
-        create_branch('mediawiki/core', OPTIONS.branch, OPTIONS.branch_point)
-        if OPTIONS.core_version:
-            do_core_work(OPTIONS.branch, OPTIONS.bundle, OPTIONS.core_version)
+    args = vars(parse_args())
+    branch(**args)
