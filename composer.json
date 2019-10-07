@@ -1,4 +1,6 @@
 {
+    "name": "wikimedia/mediawiki-tools-release",
+    "description": "Tools for releasing MediaWiki",
     "require": {
         "php": ">=5.6.99"
     },
