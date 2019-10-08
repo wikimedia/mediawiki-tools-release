@@ -128,6 +128,12 @@ def do_core_work(branch, bundle, version, no_review=False):
             git('submodule', 'deinit', '-f', '--', submodule)
             git('rm', '-f', '--', submodule)
 
+        # Read in gitignore entries so we can remove them for any added
+        # submodules
+        ignores = []
+        with open('.gitignore', 'r') as gitignore:
+            ignores = gitignore.readlines()
+
         # Create submodules for each ext/skin/other in the bundle
         for repo in get_bundle(bundle, branch):
             url = CONFIG['base_url'] + repo
@@ -139,12 +145,21 @@ def do_core_work(branch, bundle, version, no_review=False):
 
             git('submodule', 'add', '--force', '--branch', branch, url, path)
 
+            try:
+                ignores.remove('/%s\n' % path)
+            except ValueError:
+                pass
+
+        with open('.gitignore', 'w') as gitignore:
+            for line in ignores:
+                gitignore.write(line)
+
         with open('includes/DefaultSettings.php', 'r') as defaultsettings:
             contents = defaultsettings.read()
 
         with open('includes/DefaultSettings.php', 'w') as defaultsettings:
             defaultsettings.write(WGVERSION_REGEX.sub(
-                r"\1'" + version + r"-alpha'\2", contents))
+                r"\1'" + version + r"-rc.0'\2", contents))
 
         git('commit', '-a', '-m',
             'Include %s submodules and default settings' % branch)
@@ -153,7 +168,9 @@ def do_core_work(branch, bundle, version, no_review=False):
             refspec = branch
         else:
             refspec = 'HEAD:refs/for/%s' % branch
+
         git('push', 'origin', refspec)
+
     os.chdir(cwd)
 
 
