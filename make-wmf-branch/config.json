@@ -164,6 +164,7 @@
 		"extensions/UserMerge",
 		"extensions/VipsScaler",
 		"extensions/VisualEditor",
+		"extensions/WebAuthn",
 		"extensions/Wikibase",
 		"extensions/WikibaseCirrusSearch",
 		"extensions/WikibaseLexeme",
