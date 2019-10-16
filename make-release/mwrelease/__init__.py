@@ -1,6 +1,4 @@
-"""
-Just a MwVersion object for now
-"""
+# Just a MwVersion object for now
 
 import re
 import time

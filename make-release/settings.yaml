@@ -31,7 +31,7 @@ bundles:
         - "mediawiki/skins/Timeless"
         - "mediawiki/skins/Vector"
         - "mediawiki/vendor"
-    wmf:
+    wmf_core:
         - "mediawiki/extensions/3D"
         - "mediawiki/extensions/AbuseFilter"
         - "mediawiki/extensions/ActiveAbstract"
@@ -48,6 +48,7 @@ bundles:
         - "mediawiki/extensions/Capiunto"
         - "mediawiki/extensions/CategoryTree"
         - "mediawiki/extensions/CentralAuth"
+        - "mediawiki/extensions/CentralNotice"
         - "mediawiki/extensions/CharInsert"
         - "mediawiki/extensions/CheckUser"
         - "mediawiki/extensions/CirrusSearch"
@@ -69,6 +70,7 @@ bundles:
         - "mediawiki/extensions/ContributionTracking"
         - "mediawiki/extensions/CreditsSource"
         - "mediawiki/extensions/Dashiki"
+        - "mediawiki/extensions/DiscussionTools"
         - "mediawiki/extensions/Disambiguator"
         - "mediawiki/extensions/DismissableSiteNotice"
         - "mediawiki/extensions/DonationInterface"
@@ -196,6 +198,7 @@ bundles:
         - "mediawiki/extensions/UserMerge"
         - "mediawiki/extensions/VipsScaler"
         - "mediawiki/extensions/VisualEditor"
+        - "mediawiki/extensions/WebAuthn"
         - "mediawiki/extensions/Wikibase"
         - "mediawiki/extensions/WikibaseCirrusSearch"
         - "mediawiki/extensions/WikibaseLexeme"
@@ -213,6 +216,7 @@ bundles:
         - "mediawiki/extensions/WikimediaIncubator"
         - "mediawiki/extensions/WikimediaMaintenance"
         - "mediawiki/extensions/WikimediaMessages"
+        - "mediawiki/extensions/Wikisource"
         - "mediawiki/extensions/XAnalytics"
         - "mediawiki/skins/CologneBlue"
         - "mediawiki/skins/EUCopyrightCampaignSkin"
@@ -223,7 +227,10 @@ bundles:
         - "mediawiki/skins/Timeless"
         - "mediawiki/skins/Vector"
         - "mediawiki/vendor"
+    wmf_branch:
+        - include: "wmf_core"
         - "VisualEditor/VisualEditor"
+
 manual_branch_points:
     REL1_27:
         mediawiki/core: 0cd28e19cb0f9385a2a1cc11a4d8c9c21ff0b830

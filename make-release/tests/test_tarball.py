@@ -15,7 +15,7 @@ def _mw_file(extract_dir, version, file=None):
     return path
 
 
-@pytest.mark.tarball_test
+@pytest.mark.skip
 class TestTarball(object):
     """Class for tarball tests. Class because we do incremental tests"""
 

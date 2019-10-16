@@ -14,7 +14,11 @@ from pygerrit2.rest import GerritRestAPI
 from pygerrit2.rest.auth import HTTPBasicAuthFromNetrc
 
 # Setup config with local overrides
-with open('settings.yaml') as globalconf:
+conffile = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)),
+    'settings.yaml'
+)
+with open(conffile) as globalconf:
     CONFIG = yaml.safe_load(globalconf)
 if os.path.exists('.settings.yaml'):
     with open(".settings.yaml") as localconf:
@@ -30,6 +34,7 @@ def gerrit_client():
     except KeyError:
         # Username and password weren't provided, try falling back to .netrc
         auth = HTTPBasicAuthFromNetrc(CONFIG['base_url'])
+
     return GerritRestAPI(url=CONFIG['base_url'], auth=auth)
 
 
@@ -63,28 +68,33 @@ def create_branch(repository, branch, revision):
         # Gerrit responds 409 for edit conflicts
         # means we already have a branch
         if httpe.response.status_code == 409:
-            print('Already branched!')
+            print('Warning: Branch %s already exists in repository %s' % (
+                branch, repository))
         else:
             raise
 
 
-def get_bundle(bundle, branch):
+def get_bundle(bundle, conf=None):
     """Return the list of all/some extensions, skins, and vendor."""
-    if bundle == '*':
-        things_to_branch = []
-        for stuff in ['skins', 'extensions']:
-            projects = gerrit_client().get(
-                '/projects/?p=mediawiki/%s/&b=%s' % (stuff, branch))
-            for proj in projects:
-                depth = len(proj.split('/'))
-                if projects[proj]['state'] == 'ACTIVE' and depth == 3:
-                    things_to_branch.append(proj)
-        return things_to_branch
-    else:
-        try:
-            return CONFIG['bundles'][bundle]
-        except KeyError:
-            return []
+    if conf is None:
+        conf = CONFIG
+
+    result = []
+    for item in conf['bundles'][bundle]:
+        if isinstance(item, str):
+            result.append(item)
+        elif isinstance(item, dict):
+            for directive, val in item.items():
+                if directive == 'include':
+                    include_bundle = get_bundle(val, conf)
+                    result.extend(include_bundle)
+                else:
+                    msg = "Invalid directive %s in bundle %s" % (
+                        directive,
+                        bundle)
+                    raise EnvironmentError(msg)
+
+    return result
 
 
 @contextmanager
@@ -115,8 +125,8 @@ def do_core_work(branch, bundle, version, no_review=False):
             commit_msg_hook.write(gerrit_client().get('/tools/hooks/commit-msg'))
         os.chmod('.git/hooks/commit-msg', 0o500)
 
-        # Checkout a local branch from origin's
-        git('checkout', '-b', branch, 'origin/%s' % branch)
+        # Create the new branch and check it out:
+        git('checkout', '-B', branch)
 
         # Remove all existing submodules
         output = git('submodule', 'status', stdout=subprocess.PIPE).stdout
@@ -134,8 +144,17 @@ def do_core_work(branch, bundle, version, no_review=False):
         with open('.gitignore', 'r') as gitignore:
             ignores = gitignore.readlines()
 
+        # remove "*" from extensions/.gitignore so we can add the submodules
+        with open('extensions/.gitignore', 'r+') as f:
+            eignores = f.readlines()
+            f.seek(0)
+            f.truncate(0)
+            eignores.remove('*\n')
+            for line in eignores:
+                f.write(line)
+
         # Create submodules for each ext/skin/other in the bundle
-        for repo in get_bundle(bundle, branch):
+        for repo in get_bundle(bundle):
             url = CONFIG['base_url'] + repo
 
             if repo.startswith('mediawiki/'):
@@ -154,12 +173,12 @@ def do_core_work(branch, bundle, version, no_review=False):
             for line in ignores:
                 gitignore.write(line)
 
-        with open('includes/DefaultSettings.php', 'r') as defaultsettings:
+        with open('includes/DefaultSettings.php', 'r+') as defaultsettings:
             contents = defaultsettings.read()
-
-        with open('includes/DefaultSettings.php', 'w') as defaultsettings:
+            defaultsettings.seek(0)
+            defaultsettings.truncate()
             defaultsettings.write(WGVERSION_REGEX.sub(
-                r"\1'" + version + r"-rc.0'\2", contents))
+                r"\1'" + version + r"'\2", contents))
 
         git('commit', '-a', '-m',
             'Include %s submodules and default settings' % branch)
@@ -179,10 +198,8 @@ def branch(branch, branch_point, bundle=None, core=False, core_bundle=None,
     """Performs branch creation for the given bundle and/or core."""
 
     if bundle:
-        for repo in get_bundle(bundle, branch_point):
+        for repo in get_bundle(bundle):
             create_branch(repo, branch, branch_point)
 
-    if core:
-        create_branch('mediawiki/core', branch, branch_point)
-        if core_version:
-            do_core_work(branch, core_bundle, core_version, no_review)
+    if core and core_version:
+        do_core_work(branch, core_bundle, core_version, no_review)

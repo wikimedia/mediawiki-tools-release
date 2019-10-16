@@ -5,3 +5,4 @@ composer.lock
 /vendor
 .cache
 *.gz
+/.pytest_cache
