@@ -35,8 +35,13 @@
             "what": "See [[mw:Extension:Graph|Graphoid]], [[mw:Parsoid/Deployments]]",
             "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / [[mw:Parsoid/Deployments|Parsoid]] / Citoid / [[ORES]]"
         },
-        "swat": {
+        "eu_swat": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
+            "what": "{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
+            "window": "[[SWAT deploys|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
+        },
+        "us_swat": {
+            "deployer": "{{ircnick|MaxSem|Max}}, {{ircnick|RoanKattouw|Roan}}, {{ircnick|Niharika|Niharika}}, {{ircnick|Urbanecm|Martin}}",
             "what": "{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[SWAT deploys|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
         },
@@ -97,7 +102,7 @@
     "schedule@American": {
         "mon,wed-thu": [
             {
-                "name": "swat",
+                "name": "us_swat",
                 "hour": "18",
                 "vars": {
                     "window_name": "Morning SWAT"
@@ -140,14 +145,14 @@
         ],
         "mon-thu": [
             {
-                "name": "swat",
+                "name": "eu_swat",
                 "hour": "11",
                 "vars": {
                     "window_name": "European Mid-day SWAT"
                 }
             },
             {
-                "name": "swat",
+                "name": "us_swat",
                 "hour": "23",
                 "vars": {
                     "window_name": "Evening SWAT"
@@ -194,21 +199,21 @@
         ],
         "mon-thu": [
             {
-                "name": "swat",
+                "name": "eu_swat",
                 "hour": "11",
                 "vars": {
                     "window_name": "European Mid-day SWAT"
                 }
             },
             {
-                "name": "swat",
+                "name": "us_swat",
                 "hour": "23",
                 "vars": {
                     "window_name": "Evening SWAT"
                 }
             },
             {
-                "name": "swat",
+                "name": "us_swat",
                 "hour": "18",
                 "vars": {
                     "window_name": "Morning SWAT"
