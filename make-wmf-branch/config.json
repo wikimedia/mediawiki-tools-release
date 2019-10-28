@@ -38,6 +38,7 @@
 		"extensions/CreditsSource",
 		"extensions/Dashiki",
 		"extensions/Disambiguator",
+		"extensions/DiscussionTools",
 		"extensions/DismissableSiteNotice",
 		"extensions/DonationInterface",
 		"extensions/DoubleWiki",
