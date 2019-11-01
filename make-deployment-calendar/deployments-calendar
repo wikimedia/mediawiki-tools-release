@@ -70,12 +70,14 @@ ROW_FMT="""{{{{#invoke:Deployment schedule|row
 
 
 class Schedule(object):
-    def __init__(self, config, next_monday, schedules=None, train=None):
+    def __init__(self, config, next_monday, schedules=None, train=None,
+                 messages=None):
         self.config = config
         self.monday = next_monday
         self.calendar = self.config['schedule']
         self.schedules = schedules
         self.train = train
+        self.messages = messages
         self._templates = {}
 
         # Lets us use erb-ish formatting (since jinja2 is similar to wikitext
@@ -91,15 +93,21 @@ class Schedule(object):
         self.vars = {
             'month': next_monday.strftime('%B'),
             'day': next_monday.strftime('%d'),
-            'old_train': self.train.old,
-            'new_train': self.train.new,
-            'train_blocker_task': self.train.blocker_task,
-            'train_deployer': self.train.deployer,
-            'mw_train_link': self.train.link,
-            'roadmap': self.train.roadmap,
             'schedules': ', '.join(schedules),
             'version': self.version()
         }
+
+        if self.train:
+            self.vars = {**self.vars, **{
+                'old_train': self.train.old,
+                'new_train': self.train.new,
+                'train_blocker_task': self.train.blocker_task,
+                'train_deployer': self.train.deployer,
+                'mw_train_link': self.train.link,
+                'roadmap': self.train.roadmap,
+            }}
+        if self.messages:
+            self.vars['messages'] = '\n'.join(self.messages)
         self.update_vars()
         self.update_calendar()
         self.create_schedule_rows()
@@ -375,6 +383,11 @@ def parse_args(argv=None):
         '-c', '--config-file', default=default_config,
         help='config json file'
     )
+    ap.add_argument(
+        '-m', '--message', action='append',
+        help=('Messages to print at the top of the week. '
+              'Can be passed multiple times.')
+    )
     sp = ap.add_subparsers()
     train = sp.add_parser('train')
     train.add_argument(
@@ -403,10 +416,9 @@ def parse_args(argv=None):
         help='Phab task number for train blocker (e.g., T1000)',
         required=True
     )
-    train.add_argument(
+    ap.add_argument(
         '--schedule', dest='schedules', action='append',
-        help='Active alternate schedules (e.g., American)',
-        required=True
+        help='Active alternate schedules (e.g., American)'
     )
     ap.add_argument(
         '--start-date',
@@ -432,7 +444,8 @@ def main():
         old = WMFVersions(args.get('old_train'))
         new = WMFVersions(args.get('new_train'))
         train = Train(old, new, args)
-    schedule = Schedule(config, next_monday, args['schedules'], train)
+    schedule = Schedule(config, next_monday, args['schedules'], train,
+                        args.get('message'))
     schedule.output()
 
 

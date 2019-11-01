@@ -1,5 +1,5 @@
 {
-    "frontmatter": "===Week of <%= month %> <%= day %>===\n{{#invoke:Deployment schedule|formatTable|hidedate=false|",
+    "frontmatter": "===Week of <%= month %> <%= day %>===\n<%= messages %>\n{{#invoke:Deployment schedule|formatTable|hidedate=false|",
     "endmatter": "}}",
     "@vars_doc": "Vars that won't change too frequently",
     "vars": {},
@@ -197,6 +197,31 @@
                 "hour": "12"
             }
         ],
+        "mon-thu": [
+            {
+                "name": "eu_swat",
+                "hour": "11",
+                "vars": {
+                    "window_name": "European Mid-day SWAT"
+                }
+            },
+            {
+                "name": "us_swat",
+                "hour": "23",
+                "vars": {
+                    "window_name": "Evening SWAT"
+                }
+            },
+            {
+                "name": "us_swat",
+                "hour": "18",
+                "vars": {
+                    "window_name": "Morning SWAT"
+                }
+            }
+        ]
+    },
+    "schedule@NoTrain": {
         "mon-thu": [
             {
                 "name": "eu_swat",
