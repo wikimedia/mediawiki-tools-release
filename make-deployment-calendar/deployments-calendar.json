@@ -41,7 +41,7 @@
             "window": "[[SWAT deploys|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
         },
         "us_swat": {
-            "deployer": "{{ircnick|MaxSem|Max}}, {{ircnick|RoanKattouw|Roan}}, {{ircnick|Niharika|Niharika}}, {{ircnick|Urbanecm|Martin}}",
+            "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Niharika|Niharika}}, {{ircnick|Urbanecm|Martin}}",
             "what": "{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[SWAT deploys|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
         },
