@@ -61,41 +61,41 @@
         "mon": [
             {
                 "name": "portals",
-                "hour": "10",
+                "hour": "03",
                 "minute": "30",
                 "length": "0.5"
             },
             {
                 "name": "wdqs",
-                "hour": "17",
+                "hour": "10",
                 "length": "0.5"
             },
             {
                 "name": "security",
-                "hour": "21",
+                "hour": "14",
                 "length": "2"
             }
         ],
-        "thu": [
+        "wed": [
             {
                 "name": "phab",
-                "hour": "00"
+                "hour": "17"
             }
         ],
         "mon,wed": [
             {
                 "name": "services",
-                "hour": "20"
+                "hour": "13"
             }
         ],
         "tue,thu": [
             {
                 "name": "services",
-                "hour": "17"
+                "hour": "10"
             },
             {
                 "name": "puppet",
-                "hour": "16"
+                "hour": "09"
             }
         ]
     },
@@ -103,7 +103,7 @@
         "mon,wed-thu": [
             {
                 "name": "us_swat",
-                "hour": "18",
+                "hour": "11",
                 "vars": {
                     "window_name": "Morning SWAT"
                 }
@@ -112,11 +112,11 @@
         "tue": [
             {
                 "name": "sanity",
-                "hour": "18"
+                "hour": "11"
             },
             {
                 "name": "train",
-                "hour": "19",
+                "hour": "12",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
@@ -126,7 +126,7 @@
         "wed": [
             {
                 "name": "train",
-                "hour": "19",
+                "hour": "12",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
@@ -136,7 +136,7 @@
         "thu": [
             {
                 "name": "train",
-                "hour": "19",
+                "hour": "12",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
@@ -146,14 +146,14 @@
         "mon-thu": [
             {
                 "name": "eu_swat",
-                "hour": "11",
+                "hour": "04",
                 "vars": {
                     "window_name": "European Mid-day SWAT"
                 }
             },
             {
                 "name": "us_swat",
-                "hour": "23",
+                "hour": "16",
                 "vars": {
                     "window_name": "Evening SWAT"
                 }
@@ -164,7 +164,7 @@
         "tue": [
             {
                 "name": "train",
-                "hour": "13",
+                "hour": "06",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
@@ -174,7 +174,7 @@
         "wed": [
             {
                 "name": "train",
-                "hour": "13",
+                "hour": "06",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
@@ -184,7 +184,7 @@
         "thu": [
             {
                 "name": "train",
-                "hour": "13",
+                "hour": "06",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
@@ -194,27 +194,27 @@
         "tue-thu": [
             {
                 "name": "sanity",
-                "hour": "12"
+                "hour": "05"
             }
         ],
         "mon-thu": [
             {
                 "name": "eu_swat",
-                "hour": "11",
+                "hour": "04",
                 "vars": {
                     "window_name": "European Mid-day SWAT"
                 }
             },
             {
                 "name": "us_swat",
-                "hour": "23",
+                "hour": "16",
                 "vars": {
                     "window_name": "Evening SWAT"
                 }
             },
             {
                 "name": "us_swat",
-                "hour": "18",
+                "hour": "11",
                 "vars": {
                     "window_name": "Morning SWAT"
                 }
@@ -225,21 +225,21 @@
         "mon-thu": [
             {
                 "name": "eu_swat",
-                "hour": "11",
+                "hour": "04",
                 "vars": {
                     "window_name": "European Mid-day SWAT"
                 }
             },
             {
                 "name": "us_swat",
-                "hour": "23",
+                "hour": "16",
                 "vars": {
                     "window_name": "Evening SWAT"
                 }
             },
             {
                 "name": "us_swat",
-                "hour": "18",
+                "hour": "11",
                 "vars": {
                     "window_name": "Morning SWAT"
                 }

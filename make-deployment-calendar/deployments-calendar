@@ -273,7 +273,7 @@ class ScheduleRow(object):
     def wikitext_template(self, delta):
         utc_time = self.monday + delta
         text = ROW_FMT.format(
-            time=utc_time.strftime('%Y-%m-%d %H:%M UTC'),
+            time=utc_time.strftime('%Y-%m-%d %H:%M SF'),
             length=self.length,
             name=self.name,
             who=self.deployer,
