@@ -202,4 +202,5 @@ def branch(branch, branch_point, bundle=None, core=False, core_bundle=None,
             create_branch(repo, branch, branch_point)
 
     if core and core_version:
+        create_branch('mediawiki/core', branch, branch_point)
         do_core_work(branch, core_bundle, core_version, no_review)
