@@ -50,6 +50,11 @@
             "what": "<%= roadmap %>\n<%= minical %>\n* <%= group %>\n* '''Blockers: {{phabricator|<%= train_blocker_task %>}}'''",
             "window": "Mediawiki train - <%= version %> Version"
         },
+        "train_secondary": {
+            "deployer": "<%= train_deployer %>",
+            "what": "<%= roadmap %>\n<%= minical %>\n* <%= group %>\n* '''Blockers: {{phabricator|<%= train_blocker_task %>}}'''",
+            "window": "Mediawiki train - <%= version %> Version (secondary timeslot)"
+        },
         "wdqs": {
             "deployer": "{{ircnick|gehel|Guillaume}}, {{ircnick|onimisionipe|Mathew}}",
             "what": "...",
@@ -242,6 +247,83 @@
                 "hour": "11",
                 "vars": {
                     "window_name": "Morning SWAT"
+                }
+            }
+        ]
+    },
+    "schedule@American+European": {
+        "mon,wed-thu": [
+            {
+                "name": "us_swat",
+                "hour": "11",
+                "vars": {
+                    "window_name": "Morning SWAT"
+                }
+            }
+        ],
+        "tue": [
+            {
+                "name": "sanity",
+                "hour": "11"
+            },
+            {
+                "name": "train",
+                "hour": "12",
+                "vars": {
+                    "group": "group0 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
+                }
+            }
+        ],
+        "wed": [
+            {
+                "name": "train_secondary",
+                "hour": "06",
+                "vars": {
+                    "group": "group1 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
+                }
+            },
+            {
+                "name": "train",
+                "hour": "12",
+                "vars": {
+                    "group": "group1 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
+                }
+            }
+        ],
+        "thu": [
+            {
+                "name": "train_secondary",
+                "hour": "06",
+                "vars": {
+                    "group": "group2 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
+                }
+            },
+            {
+                "name": "train",
+                "hour": "12",
+                "vars": {
+                    "group": "group2 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
+                }
+            }
+        ],
+        "mon-thu": [
+            {
+                "name": "eu_swat",
+                "hour": "04",
+                "vars": {
+                    "window_name": "European Mid-day SWAT"
+                }
+            },
+            {
+                "name": "us_swat",
+                "hour": "16",
+                "vars": {
+                    "window_name": "Evening SWAT"
                 }
             }
         ]
