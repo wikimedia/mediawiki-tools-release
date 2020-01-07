@@ -50,6 +50,7 @@
 		"extensions/EntitySchema",
 		"extensions/EventBus",
 		"extensions/EventLogging",
+		"extensions/EventStreamConfig",
 		"extensions/ExtensionDistributor",
 		"extensions/ExternalGuidance",
 		"extensions/FeaturedFeeds",
