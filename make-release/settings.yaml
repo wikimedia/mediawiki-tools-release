@@ -83,6 +83,7 @@ bundles:
         - "mediawiki/extensions/EntitySchema"
         - "mediawiki/extensions/EventBus"
         - "mediawiki/extensions/EventLogging"
+        - "mediawiki/extensions/EventStreamConfig"
         - "mediawiki/extensions/ExtensionDistributor"
         - "mediawiki/extensions/ExternalGuidance"
         - "mediawiki/extensions/FeaturedFeeds"
