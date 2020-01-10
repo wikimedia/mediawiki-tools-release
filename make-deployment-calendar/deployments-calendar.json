@@ -327,5 +327,91 @@
                 }
             }
         ]
+    },
+    "schedule@European+American": {
+        "tue": [
+            {
+                "name": "train",
+                "hour": "06",
+                "vars": {
+                    "group": "group0 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
+                }
+            },
+            {
+                "name": "train_secondary",
+                "hour": "12",
+                "vars": {
+                    "group": "group0 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
+                }
+            }
+
+        ],
+        "wed": [
+            {
+                "name": "train",
+                "hour": "06",
+                "vars": {
+                    "group": "group1 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
+                }
+            },
+            {
+                "name": "train_secondary",
+                "hour": "12",
+                "vars": {
+                    "group": "group1 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
+                }
+            }
+        ],
+        "thu": [
+            {
+                "name": "train",
+                "hour": "06",
+                "vars": {
+                    "group": "group2 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
+                }
+            },
+            {
+                "name": "train_secondary",
+                "hour": "12",
+                "vars": {
+                    "group": "group2 to <%= mw_train_link %>",
+                    "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
+                }
+            }
+        ],
+        "tue-thu": [
+            {
+                "name": "sanity",
+                "hour": "05"
+            }
+        ],
+        "mon-thu": [
+            {
+                "name": "eu_swat",
+                "hour": "04",
+                "vars": {
+                    "window_name": "European Mid-day SWAT"
+                }
+            },
+            {
+                "name": "us_swat",
+                "hour": "16",
+                "vars": {
+                    "window_name": "Evening SWAT"
+                }
+            },
+            {
+                "name": "us_swat",
+                "hour": "11",
+                "vars": {
+                    "window_name": "Morning SWAT"
+                }
+            }
+        ]
     }
 }
