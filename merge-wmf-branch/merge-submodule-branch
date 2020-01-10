@@ -1,6 +1,0 @@
-#!/bin/bash
-git checkout $1
-git pull
-git checkout $2
-git pull
-git merge -X theirs $1
