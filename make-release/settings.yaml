@@ -145,7 +145,6 @@ bundles:
         - "mediawiki/extensions/PageTriage"
         - "mediawiki/extensions/PageViewInfo"
         - "mediawiki/extensions/ParserFunctions"
-        - "mediawiki/extensions/ParsoidBatchAPI"
         - "mediawiki/extensions/PdfHandler"
         - "mediawiki/extensions/PerformanceInspector"
         - "mediawiki/extensions/Petition"
