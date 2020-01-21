@@ -161,16 +161,21 @@ def version_parser(ver):
             "Branch '%s' does not match required format" % ver)
 
 
-def gitiles_changelog_url(old_branch, new_branch, repo):
+def gitiles_changelog_url(old_branch, new_branch, repo, start=None):
     """
     Create url for valid git log
     """
-    return '{}/{}/+log/{}..{}?format=JSON&no-merges'.format(
+    url = '{}/{}/+log/{}..{}?format=JSON&no-merges'.format(
         GITILES_URL,
         repo,
         old_branch,
         new_branch
     )
+
+    if start:
+        url = '{}&s={}'.format(url, start)
+
+    return url
 
 
 def patch_url(change):
@@ -181,11 +186,11 @@ def patch_url(change):
     return '{{git|%s}}' % change[:8]
 
 
-def git_log(old, new, repo):
+def _git_log_json(old, new, repo, start=None):
     """
     Fetches and loads the json git log from gitiles
     """
-    req = requests.get(gitiles_changelog_url(old, new, repo))
+    req = requests.get(gitiles_changelog_url(old, new, repo, start))
 
     if req.status_code != 200:
         if req.status_code == 404:
@@ -195,6 +200,22 @@ def git_log(old, new, repo):
     log_json = req.text
     # remove )]}' since because gerrit.
     return json.loads(log_json[4:])
+
+
+def git_log(old, new, repo):
+    """
+    Parses gitlog json from gitiles
+    """
+    log_json = _git_log_json(old, new, repo)
+    changes = log_json['log']
+    next_start = log_json.get('next')
+    while next_start:
+        log_json = _git_log_json(old, new, repo, start=next_start)
+        changes += log_json['log']
+        next_start = log_json.get('next')
+
+    next_start = None
+    return changes
 
 
 def maybe_task(message):
@@ -230,7 +251,7 @@ def format_changes(old, new, repo):
 
     changes = git_log(old, new, repo)
 
-    for change in changes['log']:
+    for change in changes:
         if not valid_change(change['message']):
             continue
 
