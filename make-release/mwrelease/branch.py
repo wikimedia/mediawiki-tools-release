@@ -74,6 +74,32 @@ def create_branch(repository, branch, revision):
             raise
 
 
+def delete_branch(repository, branch):
+    """delete a branch for a given repo."""
+    if len(branch) < 1:
+        raise ValueError('Invalid branch name: "%s"' % (branch))
+    elif len(repository) < 1:
+        raise ValueError('Invalid repo name: "%s"' % (repository))
+    else:
+        print('/projects/%s/branches/%s' % (
+                repository.replace('/', '%2F'),
+                branch.replace('/', '%2F')),
+              )
+
+    try:
+        gerrit_client().delete(
+            '/projects/%s/branches/%s' % (
+                repository.replace('/', '%2F'),
+                branch.replace('/', '%2F')),
+        )
+    except HTTPError as httpe:
+        if httpe.response.status_code == 404:
+            print("Repo %s doesn't have a branch named %s" %
+                  (repository, branch))
+        else:
+            raise
+
+
 def get_bundle(bundle, conf=None):
     """Return the list of all/some extensions, skins, and vendor."""
     if conf is None:
@@ -193,13 +219,20 @@ def do_core_work(branch, bundle, version, no_review=False):
 
 
 def branch(branch, branch_point, bundle=None, core=False, core_bundle=None,
-           core_version=None, no_review=False):
+           core_version=None, no_review=False, noop=False, delete=False):
     """Performs branch creation for the given bundle and/or core."""
 
     if bundle:
         for repo in get_bundle(bundle):
-            create_branch(repo, branch, branch_point)
+            if noop:
+                print(repo)
+            elif delete:
+                delete_branch(repo, branch)
+            else:
+                create_branch(repo, branch, branch_point)
 
-    if core and core_version:
+    if noop or delete:
+        return
+    elif core and core_version:
         create_branch('mediawiki/core', branch, branch_point)
         do_core_work(branch, core_bundle, core_version, no_review)
