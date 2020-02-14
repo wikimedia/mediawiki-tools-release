@@ -12,6 +12,7 @@ import json
 import os
 import re
 
+from mwrelease.branch import get_bundle
 import requests
 
 TOTALS = {
@@ -322,19 +323,7 @@ def main():
     old = os.path.join('wmf', args.oldbranch)
     new = os.path.join('wmf', args.newbranch)
 
-    base_path = os.path.dirname(os.path.realpath(__file__))
-    branch_config_file = os.path.join(
-        base_path, '..', 'make-wmf-branch', 'config.json')
-
-    with open(branch_config_file) as bcf:
-        branch_config = json.load(bcf)
-
-    extensions = list(
-        map(
-            lambda x: os.path.join('mediawiki', x),
-            branch_config['extensions']
-        )
-    )
+    extensions = get_bundle('wmf_branch')
 
     print("== Core changes ==")
     print_formatted_changes(old, new, 'mediawiki/core')

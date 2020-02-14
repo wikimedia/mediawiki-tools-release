@@ -1,0 +1,20 @@
+makedeploynotes.py
+==================
+
+Fetches the changes between two wmf/ branches, formats for mediawiki.org
+changelog and prints that to stdout.
+
+Usage:
+
+    makedeploynotes.py oldversion newversion
+
+Example:
+
+    # print the changes
+    makedeploynotes.py 1.35.0-wmf.18 1.35.0-wmf.19
+
+Notes:
+    symlinks to mwrelease because python doesn't allow importing a package
+    from a parent directory.
+
+    TODO: refactor so that the filesystem hierarchy is more python-compatible
