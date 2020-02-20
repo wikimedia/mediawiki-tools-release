@@ -110,13 +110,13 @@ def clone(repository):
     shutil.rmtree(temp)
 
 
-WGVERSION_REGEX = re.compile(
-    r'^( \$wgVersion \s+ = \s+ )  [^;]*  ( ; \s* ) $',
+MWVERSION_REGEX = re.compile(
+    r'^( define\( \s+ \'MW_VERSION\', \s+  \' )  [^;\']*  ( \' \); \s* ) $',
     re.MULTILINE | re.VERBOSE)
 
 
 def do_core_work(branch, bundle, version, no_review=False):
-    """Add submodules, bump $wgVersion, etc"""
+    """Add submodules, bump MW_VERSION, etc"""
     cwd = os.getcwd()
 
     with clone('mediawiki/core'):
@@ -173,11 +173,11 @@ def do_core_work(branch, bundle, version, no_review=False):
             for line in ignores:
                 gitignore.write(line)
 
-        with open('includes/DefaultSettings.php', 'r+') as defaultsettings:
-            contents = defaultsettings.read()
-            defaultsettings.seek(0)
-            defaultsettings.truncate()
-            defaultsettings.write(WGVERSION_REGEX.sub(
+        with open('includes/Defines.php', 'r+') as defines:
+            contents = defines.read()
+            defines.seek(0)
+            defines.truncate()
+            defines.write(MWVERSION_REGEX.sub(
                 r"\1'" + version + r"'\2", contents))
 
         git('commit', '-a', '-m',

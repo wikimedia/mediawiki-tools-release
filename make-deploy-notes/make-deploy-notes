@@ -203,7 +203,7 @@ function filter_git_output( $logoutput ) {
 		'Localisation updates from',
 		'COMMITMSG', // Fix for escaping fail leaving a commit summary of $COMMITMSG
 		'Add (\.gitreview( and )?)?\.gitignore',
-		'Creating new WMF', // Branching commit; set $wgVersion, defaultbranch, add submodules
+		'Creating new WMF', // Branching commit; set version, defaultbranch, add submodules
 		'Updating development dependencies',
 		'Updated mediawiki\/core', // git submodule autobumps
 	);

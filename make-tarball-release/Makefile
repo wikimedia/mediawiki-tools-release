@@ -52,7 +52,7 @@ updateVendor: ${mwDir}/${relBranch} composer commitCheck
 
 # Checkout, tag, and build a tarball
 .PHONY: tarball
-tarball: updateVendor verifyWgVersion cleanReleaseNotes tag doTarball
+tarball: updateVendor verifyMWVersion cleanReleaseNotes tag doTarball
 
 # Re-build an already tagged release
 #
@@ -334,13 +334,13 @@ verifyRevisionExists: ${mwDir}/${relBranch}
 			${GIT} ls-tree ${revision} | wc -l								\
 	)), exit 0, exit 1)
 
-.PHONY: verifyWgVersion
-verifyWgVersion:
+.PHONY: verifyMWVersion
+verifyMWVersion:
 	${GIT} grep -q 															\
-		'$$wgVersion = '\'${releaseVer}\' -- ${defSet} || (					\
-			echo ${indent}'$$wgVersion is not set to'						\
-			"${releaseVer} in ${defSet}!";									\
-			${GIT} grep '$$wgVersion = ' -- ${defSet};						\
+		"$define( 'MW_VERSION', '${releaseVar}' );" -- ${defines} ||		\
+			echo ${indent}'$MW_VERSION is not set to'						\
+			"${releaseVer} in ${defines}!";									\
+			${GIT} grep 'define( \'MW_VERSION\'' -- ${defines};				\
 			${MAKE} bumpVersion releaseVer=${releaseVer}					\
 		)
 
@@ -357,9 +357,9 @@ git-archive-all:
 #
 .PHONY: bumpVersion
 bumpVersion:
-	sed -i 's,^\($$wgVersion = '\''\)[^'\'']*,\1${releaseVer},'				\
-			${mwDir}/${relBranch}/${defSet} &&								\
-		${GIT} add ${defSet}
+	sed -i s,\(define( 'MW_VERSION'\, '\)[^']*\(' )\), \1${releaseVer}\2	\
+			${mwDir}/${relBranch}/${defines} &&								\
+		${GIT} add ${defines}
 
 #
 .PHONY: checkOkToCommit

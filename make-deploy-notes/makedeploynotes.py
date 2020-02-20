@@ -28,7 +28,7 @@ SKIP_MESSAGES = [
     # Fix for escaping fail leaving a commit summary of $COMMITMSG
     'COMMITMSG',
     r'Add (\.gitreview( and )?)?\.gitignore',
-    # Branching commit; set $wgVersion, defaultbranch, add submodules
+    # Branching commit; set version, defaultbranch, add submodules
     'Creating new WMF',
     'Updating development dependencies',
     # git submodule autobumps

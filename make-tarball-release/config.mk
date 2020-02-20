@@ -175,7 +175,7 @@ releaseRepo=https://gerrit.wikimedia.org/r/mediawiki/tools/release
 releaseDir=${workDir}/release
 makeRelease=${releaseDir}/make-release/makerelease2.py
 
-defSet=includes/DefaultSettings.php
+defines=includes/Defines.php
 
 # The name of the Docker image
 #

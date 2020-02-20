@@ -599,8 +599,8 @@ abstract class Branch {
 	 * Take care of updating the version variagble
 	 */
 	public function handleVersionUpdate() :void {
-		# Fix $wgVersion
-		if ( $this->fixVersion( "includes/DefaultSettings.php" ) ) {
+		# Fix MW_VERSION
+		if ( $this->fixVersion( "includes/Defines.php" ) ) {
 			# Do intermediate commit
 			$ret = $this->control->runCmd(
 				'git', 'commit', '-a', '-m',
@@ -612,7 +612,7 @@ abstract class Branch {
 			}
 		} else {
 			$this->logger->notice(
-				'$wgVersion already updated, but continuing anyway'
+				'Version update already applied, but continuing anyway'
 			);
 		}
 	}
@@ -665,7 +665,7 @@ abstract class Branch {
 	}
 
 	/**
-	 * Fix the version number ($wgVersion) in the given file.
+	 * Fix the version number (MW_VERSION) in the given file.
 	 *
 	 * @param string $fileName
 	 * @return bool
@@ -678,7 +678,7 @@ abstract class Branch {
 		}
 
 		$after = preg_replace(
-			'/^( \$wgVersion \s+ = \s+ )  [^;]*  ( ; \s* ) $/xm',
+			'/^( define\( \s+ \'MW_VERSION\', \s+  \' ) [^;\']* ( \' \s+ \); \s* ) $/xm',
 			"\\1'{$this->newVersion}'\\2", $before, -1, $count
 		);
 		if ( $before !== $after ) {
@@ -687,12 +687,12 @@ abstract class Branch {
 				$this->croak( "Error writing $fileName" );
 			}
 			$this->logger->notice(
-				"Replaced $count instance of wgVersion in $fileName"
+				"Replaced $count instance of MW_VERSION in $fileName"
 			);
 		}
 
 		if ( $count === 0 ) {
-			$this->croak( "Could not find wgVersion in $fileName" );
+			$this->croak( "Could not find MW_VERSION in $fileName" );
 		}
 		return !( $ret === false );
 	}

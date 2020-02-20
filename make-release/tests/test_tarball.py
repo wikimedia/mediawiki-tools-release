@@ -39,16 +39,17 @@ class TestTarball(object):
             _mw_file(mw_extract_dir, mw_version)), 'Bad tar extraction'
 
     def test_defaultsettings(self, mw_extract_dir, mw_version):
-        """Make sure defaultsettings exists and has $wgVersion"""
-        defaultsettings = _mw_file(mw_extract_dir, mw_version,
-                                   'includes/DefaultSettings.php')
+        """Make sure Defines.php exists and has MW_VERSION"""
+        defines = _mw_file(mw_extract_dir, mw_version,
+                           'includes/Defines.php')
 
-        assert os.path.exists(defaultsettings), 'DefaultSettings missing!'
+        assert os.path.exists(defines), 'Defines missing!'
 
-        with open(defaultsettings) as contents:
+        with open(defines) as contents:
+            # TODO: We should re-cycle the regex from branch.py and not duplicate.
             assert re.search(
-                r'\$wgVersion\s+=\s+\'{}\';'.format(mw_version),
-                contents.read()) is not None, 'Bad/missing $wgVersion'
+                r'^define\(\s+\'MW_VERSION\',\s+\'{}\' \);'.format(mw_version),
+                contents.read()) is not None, 'Bad/missing MW_VERSION'
 
     def test_install(self, mw_extract_dir, mw_version):
         """Make sure we can install (LocalSettings.php generated)"""

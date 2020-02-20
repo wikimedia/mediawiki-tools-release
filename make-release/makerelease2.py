@@ -52,11 +52,11 @@ def is_git_tag(ref):
 
 
 def check_wg_version(ref):
-    with open('includes/DefaultSettings.php') as f:
+    with open('includes/Defines.php') as f:
         text = f.read()
-    expect = "$wgVersion = '%s';" % ref
+    expect = "define( 'MW_VERSION', '%s' );" % ref
     if expect not in text:
-        raise RuntimeError('$wgVersion is not set to %s' % ref)
+        raise RuntimeError('MW_VERSION is not set to %s' % ref)
 
 
 def tarball_name(output_dir, ref, prefix='mediawiki'):
@@ -74,8 +74,8 @@ def archive(repo, tag, output_dir, previous=None, sign=False, upload_tar=False):
 
     is_tag = is_git_tag(tag)
     if is_tag:
-        # If we're releasing a tag, verify that
-        # $wgVersion matches exactly to the tag.
+        # If we're releasing a tag, verify that the
+        # MediaWiki version matches exactly to the tag.
         check_wg_version(tag)
         if sign:
             try:
