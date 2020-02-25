@@ -111,7 +111,7 @@ def clone(repository):
 
 
 MWVERSION_REGEX = re.compile(
-    r'^( define\( \s+ \'MW_VERSION\', \s+  \' )  [^;\']*  ( \' \); \s* ) $',
+    r'^( define\( \s+ \'MW_VERSION\', \s+ ) \' [^;\']* \' ( \); \s* ) $',
     re.MULTILINE | re.VERBOSE)
 
 
@@ -181,7 +181,7 @@ def do_core_work(branch, bundle, version, no_review=False):
                 r"\1'" + version + r"'\2", contents))
 
         git('commit', '-a', '-m',
-            'Include %s submodules and default settings' % branch)
+            'Include %s submodules and Defines.php' % branch)
 
         if no_review:
             refspec = branch

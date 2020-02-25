@@ -353,7 +353,7 @@ git-archive-all:
 		)																	\
 	)
 
-# Bump the version in DefaultSettings.php
+# Bump the version in Defines.php
 #
 .PHONY: bumpVersion
 bumpVersion:
