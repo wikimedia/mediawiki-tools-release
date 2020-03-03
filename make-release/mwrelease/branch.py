@@ -111,7 +111,7 @@ def clone(repository):
 
 
 MWVERSION_REGEX = re.compile(
-    r'^( define\( \s+ \'MW_VERSION\', \s+ ) \' [^;\']* \' ( \); \s* ) $',
+    r'^( define\( \s+ \'MW_VERSION\', \s+ ) \' [^;\']* \' ( \s+  \); \s* ) $',
     re.MULTILINE | re.VERBOSE)
 
 
