@@ -31,9 +31,9 @@
             "window": "Weekly Security deployment window"
         },
         "services": {
-            "deployer": "{{ircnick|cscott|C.Scott}}, {{ircnick|arlolra|Arlo}}, {{ircnick|subbu|Subbu}}, Aaron ({{ircnick|halfak}})), Andy ({{ircnick|accraze}})",
-            "what": "See [[mw:Extension:Graph|Graphoid]], [[mw:Parsoid/Deployments]]",
-            "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / [[mw:Parsoid/Deployments|Parsoid]] / Citoid / [[ORES]]"
+            "deployer": "Aaron ({{ircnick|halfak}})), Andy ({{ircnick|accraze}})",
+            "what": "See [[mw:Extension:Graph|Graphoid]]",
+            "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / Citoid / [[ORES]]"
         },
         "eu_swat": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
