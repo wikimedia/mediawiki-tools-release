@@ -4,6 +4,7 @@
 
 import argparse
 import logging
+import os
 import sys
 
 from mwrelease.branch import branch
@@ -37,4 +38,15 @@ def parse_args():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, stream=sys.stderr)
     args = vars(parse_args())
+
+    if 'SSH_AUTH_SOCK' not in os.environ:
+        print("You need to run an SSH Agent before branching with branch.py,")
+        print("however, SSH_AUTH_SOCK is missing from your environment.")
+        print("")
+        print("Example commands to start ssh-agent with your ssh keys:")
+        print("")
+        print("$ eval $(ssh-agent)")
+        print("$ ssh-add")
+        sys.exit(1)
+
     branch(**args)
