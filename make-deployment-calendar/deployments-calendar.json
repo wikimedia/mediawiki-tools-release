@@ -17,7 +17,7 @@
         },
         "puppet": {
             "deployer": "{{ircnick|godog|Filippo}}, {{ircnick|_joe_|Giuseppe}}",
-            "what": "{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
+            "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to Puppet change''",
             "window": "[[PuppetSWAT|Puppet SWAT]]<br/><small>'''(Max 6 patches)'''</small>"
         },
         "sanity": {
@@ -37,12 +37,12 @@
         },
         "eu_swat": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
-            "what": "{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
+            "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[SWAT deploys|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
         },
         "us_swat": {
             "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Niharika|Niharika}}, {{ircnick|Urbanecm|Martin}}",
-            "what": "{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
+            "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[SWAT deploys|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
         },
         "train": {
