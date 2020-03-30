@@ -25,6 +25,11 @@
             "what": "No Deploys",
             "window": "Pre MediaWiki train sanity break"
         },
+        "train_log_triage": {
+            "deployer": "<%= train_deployer %> + CPT",
+            "what": "See [[Heterogeneous_deployment/Train_deploys#Breakage]]",
+            "window": "Train log triage with CPT"
+        },
         "security": {
             "deployer": "{{ircnick|Reedy|Sam}}, {{ircnick|sbassett|Scott}}",
             "what": "Held deployment window for Security-team related deploys.",
@@ -82,6 +87,10 @@
             }
         ],
         "wed": [
+            {
+                "name": "train_log_triage",
+                "hour": "11"
+            },
             {
                 "name": "phab",
                 "hour": "17"
