@@ -122,6 +122,7 @@
             {
                 "name": "train",
                 "hour": "12",
+                "length": "2",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
@@ -132,6 +133,7 @@
             {
                 "name": "train",
                 "hour": "12",
+                "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
@@ -142,6 +144,7 @@
             {
                 "name": "train",
                 "hour": "12",
+                "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
@@ -170,6 +173,7 @@
             {
                 "name": "train",
                 "hour": "06",
+                "length": "2",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
@@ -180,6 +184,7 @@
             {
                 "name": "train",
                 "hour": "06",
+                "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
@@ -190,6 +195,7 @@
             {
                 "name": "train",
                 "hour": "06",
+                "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
@@ -269,6 +275,7 @@
             {
                 "name": "train",
                 "hour": "12",
+                "length": "2",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
@@ -279,6 +286,7 @@
             {
                 "name": "train_secondary",
                 "hour": "06",
+                "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
@@ -287,6 +295,7 @@
             {
                 "name": "train",
                 "hour": "12",
+                "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
@@ -297,6 +306,7 @@
             {
                 "name": "train_secondary",
                 "hour": "06",
+                "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
@@ -305,6 +315,7 @@
             {
                 "name": "train",
                 "hour": "12",
+                "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
@@ -333,6 +344,7 @@
             {
                 "name": "train",
                 "hour": "06",
+                "length": "2",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
@@ -341,6 +353,7 @@
             {
                 "name": "train_secondary",
                 "hour": "12",
+                "length": "2",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= old_train %>-><%= new_train %>|<%= old_train %>|<%= old_train %>}}"
@@ -352,6 +365,7 @@
             {
                 "name": "train",
                 "hour": "06",
+                "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
@@ -360,6 +374,7 @@
             {
                 "name": "train_secondary",
                 "hour": "12",
+                "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= old_train %>-><%= new_train %>|<%= old_train %>}}"
@@ -370,6 +385,7 @@
             {
                 "name": "train",
                 "hour": "06",
+                "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
@@ -378,6 +394,7 @@
             {
                 "name": "train_secondary",
                 "hour": "12",
+                "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
