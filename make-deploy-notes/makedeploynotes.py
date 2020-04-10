@@ -38,6 +38,7 @@ TOTALS = {
     'unique_authors': set(),
 }
 GITILES_URL = 'https://gerrit.wikimedia.org/g'
+NO_CHANGES = set()
 
 # Messages we don't want to see in the git log
 SKIP_MESSAGES = [
@@ -293,18 +294,19 @@ def format_changes(old, new, repo):
     return '\n'.join(valid_changes)
 
 
-def print_formatted_changes(old, new, extension, display_name=None):
+def print_formatted_changes(old, new, extension, header, display_name=None):
     """
-    Print our changes if there are any, otherwise output a message
+    Print our changes if there are any, otherwise store the repository name for later use
     """
     if not display_name:
         display_name = os.path.basename(extension)
 
     changes = format_changes(old, new, extension)
     if changes:
+        print(header)
         print(changes)
     else:
-        print('No changes for {}'.format(display_name))
+        NO_CHANGES.add(display_name)
 
 
 def parse_args():
@@ -342,10 +344,8 @@ def main():
 
     extensions = get_bundle('wmf_branch')
 
-    print("== Core changes ==")
-    print_formatted_changes(old, new, 'mediawiki/core')
-    print("=== Vendor ===")
-    print_formatted_changes(old, new, 'mediawiki/vendor')
+    print_formatted_changes(old, new, 'mediawiki/core', '== Core changes ==')
+    print_formatted_changes(old, new, 'mediawiki/vendor', '=== Vendor ===')
 
     printed_skins = False
 
@@ -362,8 +362,13 @@ def main():
             printed_skins = True
             print('== Skins ==')
 
-        print('=== {} ==='.format(extension_name))
-        print_formatted_changes(old, new, extension, display_name=extension_name)
+        print_formatted_changes(old, new, extension, '=== {} ==='.format(extension_name),
+                                display_name=extension_name)
+
+    if len(NO_CHANGES) > 0:
+        print('== No Changes ==')
+        for component in NO_CHANGES:
+            print('* {}'.format(component))
 
     print("== Total Changes ==\n"
           "'''{}''' Changes "
