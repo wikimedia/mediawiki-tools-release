@@ -64,6 +64,11 @@
             "deployer": "{{ircnick|gehel|Guillaume}}, {{ircnick|onimisionipe|Mathew}}",
             "what": "...",
             "window": "Wikidata Query Service weekly deploy"
+        },
+        "no_deploy_day": {
+            "deployer": "",
+            "what": "No Deploys",
+            "window": "No deploys all day! See [[Deployments/Emergencies]] if things are broken."
         }
     },
     "@schedule_doc": "Schedule the above windows",
@@ -110,6 +115,27 @@
             {
                 "name": "puppet",
                 "hour": "09"
+            }
+        ],
+        "fri": [
+            {
+                "name": "no_deploy_day",
+                "hour": "0",
+                "length": "24"
+            }
+        ],
+        "sat": [
+            {
+                "name": "no_deploy_day",
+                "hour": "0",
+                "length": "24"
+            }
+        ],
+        "sun": [
+            {
+                "name": "no_deploy_day",
+                "hour": "0",
+                "length": "24"
             }
         ]
     },
