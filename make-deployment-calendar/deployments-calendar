@@ -54,8 +54,8 @@ from dateutil import parser
 import jinja2
 
 BASE_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
-DAYS_OF_THE_WEEK = range(1, 7)
-HOURS_OF_THE_DAY = range(1, 24)
+DAYS_OF_THE_WEEK = range(0, 7)
+HOURS_OF_THE_DAY = range(0, 24)
 MINUTES_OF_THE_HOUR = range(0, 60)
 CRON_FMT = '{minute} {hour} * * {day}'
 ROWS = []
