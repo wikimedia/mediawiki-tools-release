@@ -180,8 +180,7 @@ def do_core_work(branch, bundle, version, no_review=False):
             defines.write(MWVERSION_REGEX.sub(
                 r"\1'" + version + r"'\2", contents))
 
-        git('commit', '-a', '-m',
-            'Include %s submodules and Defines.php' % branch)
+        git('commit', '-a', '-m', 'Branch commit for %s' % branch)
 
         if no_review:
             refspec = branch
