@@ -167,7 +167,6 @@ bundles:
         - "mediawiki/extensions/SearchExtraNS"
         - "mediawiki/extensions/SecureLinkFixer"
         - "mediawiki/extensions/SecurePoll"
-        - "mediawiki/extensions/Sentry"
         - "mediawiki/extensions/ShortUrl"
         - "mediawiki/extensions/SiteMatrix"
         - "mediawiki/extensions/SpamBlacklist"
