@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright © 2016 Mukunda Modell, Tyler Cipriani
+# Copyright © 2016 Mukunda Modell, Tyler Cipriani, Lars Wirzenius
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,16 +28,18 @@
 # The above command promotes all group0 wikis (testwiki and mediawiki.org)
 # to version 1.26wmf10.
 
-REPO=$(cd "$(dirname $(dirname "$0"))"; pwd -P)
+set -eu
+
+REPO=$(cd "$(dirname "$(dirname "$0")")"; pwd -P)
 
 notify() {
-    printf "[INFO] %s\n" "$@"
+    printf '[INFO] %s\n' "$@"
 }
 
 die() {
     local exit_code="$1"
     shift
-    printf "[EXITING] %s\n" "$@"
+    printf '[EXITING] %s\n' "$@"
     exit "$exit_code"
 }
 
@@ -61,7 +63,7 @@ ask() {
         fi
 
         # Ask the question - use /dev/tty in case stdin is redirected from somewhere else
-        read -p "$1 [$prompt] " REPLY </dev/tty
+        read -rp "$1 [$prompt] " REPLY </dev/tty
 
         # Default?
         if [ -z "$REPLY" ]; then
@@ -79,11 +81,11 @@ ask() {
 
 print_results() {
     local res="$1"
-    printf "==================================================\n"
-    printf "Checking version on %s\n" "$URLTOCHECK"
-    printf "Expect: %s\n" "$VERSION"
-    printf "Result: %s\n" "$res"
-    printf "==================================================\n"
+    printf '==================================================\n'
+    printf 'Checking version on %s\n' "$URLTOCHECK"
+    printf 'Expect: %s\n' "$VERSION"
+    printf 'Result: %s\n' "$res"
+    printf '==================================================\n'
 }
 
 check_versions() {
@@ -136,7 +138,7 @@ update_versions() {
     git commit -m "$MSG"
     git push origin "HEAD:refs/for/master/${VERSION}%l=Code-Review+2"
     git reset --hard HEAD^
-    read -p "Now wait for jenkins to merge the patch, then press enter to continue with git pull && scap sync-wikiversions"
+    read -rp "Now wait for jenkins to merge the patch, then press enter to continue with git pull && scap sync-wikiversions"
 
     notify "Running git pull"
 
@@ -168,8 +170,8 @@ update_versions() {
 }
 
 main() {
-    OLDVERSION=$(/usr/bin/scap wikiversions-inuse | tr " " "\n" | sort --version-sort | head -1)
-    NEWVERSION=$(/usr/bin/scap wikiversions-inuse | tr " " "\n" | sort --version-sort | head -2 | tail -1)
+    OLDVERSION=$(/usr/bin/scap wikiversions-inuse | tr ' ' '\n' | sort --version-sort | head -1)
+    NEWVERSION=$(/usr/bin/scap wikiversions-inuse | tr ' ' '\n' | sort --version-sort | head -2 | tail -1)
     GRP="${1:-group1}"
     VERSION="${2:-$NEWVERSION}"
 
@@ -179,6 +181,8 @@ main() {
 
     assert_repository_is_clean
 
+    PHABTASK=
+    PROMOTE_MSG=
     if [[ -n "$PHABTASK" ]]; then
         PROMOTE_MSG=" refs ${PHABTASK}"
     fi
