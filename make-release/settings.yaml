@@ -128,6 +128,7 @@ bundles:
         - "mediawiki/extensions/MapSources"
         - "mediawiki/extensions/MassMessage"
         - "mediawiki/extensions/Math"
+        - "mediawiki/extensions/MediaModeration"
         - "mediawiki/extensions/MobileApp"
         - "mediawiki/extensions/MobileFrontend"
         - "mediawiki/extensions/MultimediaViewer"
