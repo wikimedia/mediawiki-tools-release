@@ -18,7 +18,7 @@
         "puppet": {
             "deployer": "{{ircnick|godog|Filippo}}, {{ircnick|_joe_|Giuseppe}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to Puppet change''",
-            "window": "[[PuppetSWAT|Puppet SWAT]]<br/><small>'''(Max 6 patches)'''</small>"
+            "window": "[[Puppet request window]]<br/><small>'''(Max 6 patches)'''</small>"
         },
         "sanity": {
             "deployer": "",
@@ -40,15 +40,15 @@
             "what": "See [[mw:Extension:Graph|Graphoid]]",
             "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / Citoid / [[ORES]]"
         },
-        "eu_swat": {
+        "eu_backport": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
-            "window": "[[SWAT deploys|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
+            "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
         },
-        "us_swat": {
+        "us_backport": {
             "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Niharika|Niharika}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
-            "window": "[[SWAT deploys|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
+            "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
         },
         "train": {
             "deployer": "<%= train_deployer %>",
@@ -142,10 +142,10 @@
     "schedule@American": {
         "mon,wed-thu": [
             {
-                "name": "us_swat",
+                "name": "us_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning SWAT"
+                    "window_name": "Morning backport window"
                 }
             }
         ],
@@ -188,17 +188,17 @@
         ],
         "mon-thu": [
             {
-                "name": "eu_swat",
+                "name": "eu_backport",
                 "hour": "04",
                 "vars": {
-                    "window_name": "European Mid-day SWAT"
+                    "window_name": "European mid-day backport window"
                 }
             },
             {
-                "name": "us_swat",
+                "name": "us_backport",
                 "hour": "16",
                 "vars": {
-                    "window_name": "Evening SWAT"
+                    "window_name": "Evening backport window"
                 }
             }
         ]
@@ -245,24 +245,24 @@
         ],
         "mon-thu": [
             {
-                "name": "eu_swat",
+                "name": "eu_backport",
                 "hour": "04",
                 "vars": {
-                    "window_name": "European Mid-day SWAT"
+                    "window_name": "European mid-day backport window"
                 }
             },
             {
-                "name": "us_swat",
+                "name": "us_backport",
                 "hour": "16",
                 "vars": {
-                    "window_name": "Evening SWAT"
+                    "window_name": "Evening backport window"
                 }
             },
             {
-                "name": "us_swat",
+                "name": "us_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning SWAT"
+                    "window_name": "Morning backport window"
                 }
             }
         ]
@@ -270,24 +270,24 @@
     "schedule@NoTrain": {
         "mon-thu": [
             {
-                "name": "eu_swat",
+                "name": "eu_backport",
                 "hour": "04",
                 "vars": {
-                    "window_name": "European Mid-day SWAT"
+                    "window_name": "European mid-day backport window"
                 }
             },
             {
-                "name": "us_swat",
+                "name": "us_backport",
                 "hour": "16",
                 "vars": {
-                    "window_name": "Evening SWAT"
+                    "window_name": "Evening backport window"
                 }
             },
             {
-                "name": "us_swat",
+                "name": "us_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning SWAT"
+                    "window_name": "Morning backport window"
                 }
             }
         ]
@@ -295,10 +295,10 @@
     "schedule@American+European": {
         "mon,wed-thu": [
             {
-                "name": "us_swat",
+                "name": "us_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning SWAT"
+                    "window_name": "Morning backport window"
                 }
             }
         ],
@@ -359,17 +359,17 @@
         ],
         "mon-thu": [
             {
-                "name": "eu_swat",
+                "name": "eu_backport",
                 "hour": "04",
                 "vars": {
-                    "window_name": "European Mid-day SWAT"
+                    "window_name": "European mid-day backport window"
                 }
             },
             {
-                "name": "us_swat",
+                "name": "us_backport",
                 "hour": "16",
                 "vars": {
-                    "window_name": "Evening SWAT"
+                    "window_name": "Evening backport window"
                 }
             }
         ]
@@ -444,24 +444,24 @@
         ],
         "mon-thu": [
             {
-                "name": "eu_swat",
+                "name": "eu_backport",
                 "hour": "04",
                 "vars": {
-                    "window_name": "European Mid-day SWAT"
+                    "window_name": "European mid-day backport window"
                 }
             },
             {
-                "name": "us_swat",
+                "name": "us_backport",
                 "hour": "16",
                 "vars": {
-                    "window_name": "Evening SWAT"
+                    "window_name": "Evening backport window"
                 }
             },
             {
-                "name": "us_swat",
+                "name": "us_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning SWAT"
+                    "window_name": "Morning backport window"
                 }
             }
         ]
