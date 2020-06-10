@@ -60,7 +60,6 @@ bundles:
         - "mediawiki/extensions/CodeMirror"
         - "mediawiki/extensions/CodeReview"
         - "mediawiki/extensions/Cognate"
-        - "mediawiki/extensions/CollaborationKit"
         - "mediawiki/extensions/Collection"
         - "mediawiki/extensions/CommonsMetadata"
         - "mediawiki/extensions/ConfirmEdit"
