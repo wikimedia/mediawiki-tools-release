@@ -66,7 +66,6 @@ bundles:
         - "mediawiki/extensions/CongressLookup"
         - "mediawiki/extensions/ContactPage"
         - "mediawiki/extensions/ContentTranslation"
-        - "mediawiki/extensions/ContributionTracking"
         - "mediawiki/extensions/CreditsSource"
         - "mediawiki/extensions/Dashiki"
         - "mediawiki/extensions/Disambiguator"
