@@ -35,6 +35,9 @@ def parse_args():
                         help='Just dump the list of submodules to stdout')
     parser.add_argument('--delete', dest='delete', action='store_true',
                         help='Delete the branch instead of creating one')
+    parser.add_argument('--task', dest='task', default=None,
+                        help='Phabricator task for this branch.')
+
     return parser.parse_args()
 
 

@@ -141,7 +141,7 @@ MWVERSION_REGEX = re.compile(
     re.MULTILINE | re.VERBOSE)
 
 
-def do_core_work(branch, bundle, version, no_review=False):
+def do_core_work(branch, bundle, version, no_review=False, task=None):
     """Add submodules, bump MW_VERSION, etc"""
     cwd = os.getcwd()
 
@@ -206,7 +206,11 @@ def do_core_work(branch, bundle, version, no_review=False):
             defines.write(MWVERSION_REGEX.sub(
                 r"\1'" + version + r"'\2", contents))
 
-        git('commit', '-a', '-m', 'Branch commit for %s' % branch)
+        message = 'Branch commit for %s' % branch
+        if task:
+            message = "%s\n\nBug: %s\n" % (message, task)
+
+        git('commit', '-a', '-m', message)
 
         if no_review:
             refspec = branch
@@ -219,7 +223,7 @@ def do_core_work(branch, bundle, version, no_review=False):
 
 
 def branch(branch, branch_point, bundle=None, core=False, core_bundle=None,
-           core_version=None, no_review=False, noop=False, delete=False):
+           core_version=None, no_review=False, noop=False, delete=False, task=None):
     """Performs branch creation for the given bundle and/or core."""
 
     if bundle:
@@ -235,4 +239,4 @@ def branch(branch, branch_point, bundle=None, core=False, core_bundle=None,
         return
     elif core and core_version:
         create_branch('mediawiki/core', branch, branch_point)
-        do_core_work(branch, core_bundle, core_version, no_review)
+        do_core_work(branch, core_bundle, core_version, no_review, task)
