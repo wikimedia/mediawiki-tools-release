@@ -205,6 +205,7 @@ bundles:
         - "mediawiki/extensions/WikiEditor"
         - "mediawiki/extensions/wikihiero"
         - "mediawiki/extensions/WikiLove"
+        - "mediawiki/extensions/WikimediaApiPortalOAuth"
         - "mediawiki/extensions/WikimediaBadges"
         - "mediawiki/extensions/WikimediaEditorTasks"
         - "mediawiki/extensions/WikimediaEvents"
@@ -220,6 +221,7 @@ bundles:
         - "mediawiki/skins/Nostalgia"
         - "mediawiki/skins/Timeless"
         - "mediawiki/skins/Vector"
+        - "mediawiki/skins/WikimediaApiPortal"
         - "mediawiki/vendor"
     wmf_branch:
         - include: "wmf_core"
