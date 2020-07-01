@@ -136,7 +136,7 @@ update_versions() {
         MSG="${MSG} ${PROMOTE_MSG}"
     fi
     git commit -m "$MSG"
-    git push origin "HEAD:refs/for/master%topic=${VERSION}%l=Code-Review+2"
+    git push origin "HEAD:refs/for/master%topic=${VERSION},l=Code-Review+2"
     git reset --hard HEAD^
     read -rp "Now wait for jenkins to merge the patch, then press enter to continue with git pull && scap sync-wikiversions"
 
