@@ -330,6 +330,7 @@ main() {
     assert_repository_is_clean
     assert_repository_is_updated
 
+    PHABTASK=$(curl --proxy http://webproxy:8080 -s https://train-blockers.toolforge.org/api.php | jq '.current.task_id|match("^T[0-9]+").string' -r)
     PROMOTE_MSG=
     if [[ -n "${PHABTASK:-}" ]]; then
         PROMOTE_MSG=" refs ${PHABTASK}"
