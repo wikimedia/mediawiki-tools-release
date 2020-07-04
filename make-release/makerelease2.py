@@ -87,7 +87,7 @@ def archive(repo, tag, output_dir, previous=None, sign=False, upload_tar=False):
     # First, we create the mediawiki-core tarball
     # Explicitly ignore all extensions & skins via .gitattributes,
     # but keep the READMEs
-    with open('.gitattributes', 'w') as f:
+    with open('.gitattributes', 'a') as f:
         f.write('extensions/* export-ignore\n')
         f.write('extensions/README -export-ignore\n')
         f.write('skins/* export-ignore\n')
