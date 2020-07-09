@@ -5,6 +5,11 @@
     "vars": {},
     "@windows_doc": "Individual windows to schedule",
     "windows": {
+        "citoid": {
+            "deployer": "Marielle ({{ircnick|mvolz}})",
+            "what": "See [[mw:Citoid|Citoid]]",
+            "window": "[[mw:Services|Services]] – [[mw:Citoid|Citoid]] /  Zotero "
+        },
         "phab": {
             "deployer": "{{ircnick|twentyafterfour|Mukunda}}",
             "what": "HOLD: Window to update phabricator.wikimedia.org",
@@ -38,7 +43,7 @@
         "services": {
             "deployer": "Aaron ({{ircnick|halfak}}), Andy ({{ircnick|accraze}})",
             "what": "See [[mw:Extension:Graph|Graphoid]]",
-            "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / Citoid / [[ORES]]"
+            "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / [[ORES]]"
         },
         "eu_backport": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
@@ -115,6 +120,12 @@
             {
                 "name": "puppet",
                 "hour": "09"
+            }
+        ],
+        "thu": [
+            {
+                "name": "citoid",
+                "hour": "3"
             }
         ],
         "fri": [
