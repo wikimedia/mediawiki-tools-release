@@ -22,6 +22,7 @@ bundles:
         - "mediawiki/extensions/Renameuser"
         - "mediawiki/extensions/ReplaceText"
         - "mediawiki/extensions/Scribunto"
+        - "mediawiki/extensions/SecureLinkFixer"
         - "mediawiki/extensions/SpamBlacklist"
         - "mediawiki/extensions/SyntaxHighlight_GeSHi"
         - "mediawiki/extensions/TextExtracts"
