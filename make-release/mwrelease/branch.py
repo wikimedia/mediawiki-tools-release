@@ -109,7 +109,7 @@ def get_bundle(bundle, conf=None):
         things_to_branch = []
         for stuff in ['skins', 'extensions']:
             projects = gerrit_client().get(
-                '/projects/?p=mediawiki/%s/&b=%s' % (stuff, branch))
+                '/projects/?p=mediawiki/%s/&b=master' % stuff)
             for proj in projects:
                 depth = len(proj.split('/'))
                 if projects[proj]['state'] == 'ACTIVE' and depth == 3:
