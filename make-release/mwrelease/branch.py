@@ -105,6 +105,17 @@ def get_bundle(bundle, conf=None):
     if conf is None:
         conf = CONFIG
 
+    if bundle == '*':
+        things_to_branch = []
+        for stuff in ['skins', 'extensions']:
+            projects = gerrit_client().get(
+                '/projects/?p=mediawiki/%s/&b=%s' % (stuff, branch))
+            for proj in projects:
+                depth = len(proj.split('/'))
+                if projects[proj]['state'] == 'ACTIVE' and depth == 3:
+                    things_to_branch.append(proj)
+        return things_to_branch
+
     result = []
     for item in conf['bundles'][bundle]:
         if isinstance(item, str):
