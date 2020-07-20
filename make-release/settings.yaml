@@ -139,6 +139,7 @@ bundles:
         - "mediawiki/extensions/Nuke"
         - "mediawiki/extensions/OATHAuth"
         - "mediawiki/extensions/OAuth"
+        - "mediawiki/extensions/OAuthRateLimiter"
         - "mediawiki/extensions/OpenStackManager"
         - "mediawiki/extensions/ORES"
         - "mediawiki/extensions/PageAssessments"
