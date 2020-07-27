@@ -139,6 +139,35 @@ assert_repository_is_clean() {
     fi
 }
 
+remote_sha1() {
+    git -C "$REPO" \
+        ls-remote --quiet \
+        https://gerrit.wikimedia.org/r/mediawiki/tools/release \
+        refs/heads/master \ |
+        awk '{print $1}'
+}
+
+local_sha1() {
+    git -C "$REPO" rev-parse --verify HEAD
+}
+
+assert_repository_is_updated() {
+    local remote_head local_head
+
+    remote_head="$(remote_sha1)"
+    local_head="$(local_sha1)"
+
+    if [ "$remote_head" != "$local_head" ]; then
+        printf 'The "mediawiki/tools/release" repo is not up-to-date with upstream!\n'
+        printf '(remote: "%s" != local: "%s")\n' "$remote_head" "$local_head"
+        if ask "Continue anyway?" N; then
+            printf 'continuing...\n'
+        else
+            abort
+        fi
+    fi
+}
+
 update_versions() {
     set -e
 
@@ -202,6 +231,7 @@ main() {
     fi
 
     assert_repository_is_clean
+    assert_repository_is_updated
 
     PHABTASK=
     PROMOTE_MSG=
