@@ -32,6 +32,22 @@ set -eu
 
 REPO=$(cd "$(dirname "$(dirname "$0")")"; pwd -P)
 
+usage() {
+    cat <<HELP
+usage: $0 [-h] dblist version
+
+positional arguments:
+    dblist      existing dblist/group to which you'd like to deploy a
+                new version (group0, group1, or all). Defaults to "group1".
+    version     version to deploy (ex: 1.36.0-wmf.2). Defaults to the
+                latest version found in "/srv/mediawiki-staging/wikiversions.json"
+
+optional arguments:
+    -h, --help  show this help message and exit
+
+HELP
+}
+
 notify() {
     printf '[INFO] %s\n' "$@"
 }
@@ -170,13 +186,19 @@ update_versions() {
 }
 
 main() {
+    if [[ "$1" == '-h' || "$1" == '--help' ]]; then
+        usage
+        exit 0
+    fi
+
     OLDVERSION=$(/usr/bin/scap wikiversions-inuse | tr ' ' '\n' | sort --version-sort | head -1)
     NEWVERSION=$(/usr/bin/scap wikiversions-inuse | tr ' ' '\n' | sort --version-sort | head -2 | tail -1)
     GRP="${1:-group1}"
     VERSION="${2:-$NEWVERSION}"
 
     if [ ! -f "/srv/mediawiki-staging/dblists/$GRP.dblist" ]; then
-        die 1 "$GRP does not exist"
+        usage
+        die 1 "'/srv/mediawiki-staging/dblists/$GRP.dblist' does not exist"
     fi
 
     assert_repository_is_clean
