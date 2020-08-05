@@ -34,7 +34,8 @@ REPO=$(cd "$(dirname "$(dirname "$0")")"; pwd -P)
 
 usage() {
     cat <<HELP
-usage: $0 [-h] dblist version
+usage: $0 [ dblist [ version ] ]
+       $0 -h
 
 positional arguments:
     dblist      existing dblist/group to which you'd like to deploy a
@@ -215,7 +216,7 @@ update_versions() {
 }
 
 main() {
-    if [[ "$1" == '-h' || "$1" == '--help' ]]; then
+    if [[ "${1:-}" == '-h' || "${1:-}" == '--help' ]]; then
         usage
         exit 0
     fi
