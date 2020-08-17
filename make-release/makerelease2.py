@@ -33,6 +33,9 @@ import sys
 import tarfile
 import tempfile
 
+# Force tarballs to be in GNU format to avoid Windows/7zip bugs (T257102)
+tarfile.DEFAULT_FORMAT = tarfile.GNU_FORMAT
+
 
 def call_git(args, quiet=False):
     cmd = ['git'] + args
