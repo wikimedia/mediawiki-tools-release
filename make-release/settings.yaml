@@ -102,6 +102,7 @@ bundles:
         - "mediawiki/extensions/GlobalPreferences"
         - "mediawiki/extensions/GlobalUsage"
         - "mediawiki/extensions/GlobalUserPage"
+        - "mediawiki/extensions/GlobalWatchlist"
         - "mediawiki/extensions/GoogleNewsSitemap"
         - "mediawiki/extensions/Graph"
         - "mediawiki/extensions/GrowthExperiments"
