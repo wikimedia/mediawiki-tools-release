@@ -1,6 +1,6 @@
 {
-    "frontmatter": "===Week of <%= month %> <%= day %>===\n<%= messages %>\n{{#invoke:Deployment schedule|formatTable|hidedate=false|",
-    "endmatter": "}}",
+    "frontmatter": "==Week of <%= month %> <%= day %>==\n<%= messages %>\n",
+    "endmatter": "",
     "@vars_doc": "Vars that won't change too frequently",
     "vars": {},
     "@windows_doc": "Individual windows to schedule",

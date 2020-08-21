@@ -48,6 +48,7 @@ import json
 import os
 import re
 import sys
+from textwrap import dedent
 
 from croniter import croniter
 from dateutil import parser
@@ -60,20 +61,45 @@ MINUTES_OF_THE_HOUR = range(0, 60)
 CRON_FMT = '{minute} {hour} * * {day}'
 ROWS = []
 
-ROW_FMT="""{{{{#invoke:Deployment schedule|row
-    |when={time}
-    |length={length}
-    |window={name}
-    |who={who}
-    |what={what}
-}}}}"""
+WIKITEXT_TEMPLATES = {
+    've': {
+        'frontmatter': '',
+        'daysep': '\n==={{{{Deployment_day|date={date}}}}}===',
+        'row': dedent('''
+                    {{{{Deployment calendar event card
+                        |when={time}
+                        |length={length}
+                        |window={name}
+                        |who={who}
+                        |what={what}
+                    }}}}
+                '''),
+        'sep': '',
+        'endmatter': '',
+    },
+    'old': {
+        'frontmatter': '{{#invoke:Deployment schedule|formatTable|hidedate=false|',
+        'row': dedent('''
+                    {{{{#invoke:Deployment schedule|row
+                        |when={time}
+                        |length={length}
+                        |window={name}
+                        |who={who}
+                        |what={what}
+                    }}}}
+                '''),
+        'sep': '|',
+        'endmatter': '}}'
+    }
+}
 
 
 class Schedule(object):
-    def __init__(self, config, next_monday, schedules=None, train=None,
+    def __init__(self, config, next_monday, fmt, schedules=None, train=None,
                  messages=None):
         self.config = config
         self.monday = next_monday
+        self.fmt = fmt
         self.calendar = self.config['schedule']
         self.schedules = schedules
         self.train = train
@@ -117,19 +143,17 @@ class Schedule(object):
             return 'No Train'
         return self.schedules[0].title()
 
-
     @property
     def windows(self):
         return self.config['windows']
 
-
     @property
     def frontmatter(self):
-        return self.config['frontmatter']
+        return self.config['frontmatter'] + self.fmt['frontmatter']
 
     @property
     def endmatter(self):
-        return self.config['endmatter']
+        return self.fmt['endmatter'] + self.config['endmatter']
 
     def format(self, name, template, extra_vars=None):
         """
@@ -156,7 +180,13 @@ class Schedule(object):
         """
         print(self.format('frontmatter', self.frontmatter))
         rows = []
+        day_sep = self.fmt.get('daysep')
         for day_of_the_week in DAYS_OF_THE_WEEK:
+            if day_sep:
+                day = self.monday + timedelta(days=day_of_the_week - 1)
+                rows.append(day_sep.format(
+                    date=day.strftime('%Y-%m-%d')
+                ))
             for hour_of_the_day in HOURS_OF_THE_DAY:
                 for minute_of_the_hour in MINUTES_OF_THE_HOUR:
                     for item in self.calendar:
@@ -181,7 +211,7 @@ class Schedule(object):
                                 item.extra_vars
                             )
                         )
-        print('|\n'.join(rows))
+        print(self.fmt['sep'].join(rows))
         print(self.format('endmatter', self.endmatter))
 
     def update_vars(self):
@@ -230,6 +260,7 @@ class Schedule(object):
                     deployer=self.format(window_name + '_deployer', window['deployer'], scheduled_item.get('vars')),
                     what=self.format(window_name + '_what', window['what'], scheduled_item.get('vars')),
                     cron=canonical_cron,
+                    fmt=self.fmt,
                     length=scheduled_item.get('length', '1'),
                     monday=self.monday,
                     extra_vars=scheduled_item.get('vars')
@@ -248,6 +279,7 @@ class ScheduleRow(object):
                  what,
                  cron,
                  monday,
+                 fmt,
                  length=1,
                  extra_vars=None):
         self.name = name
@@ -257,6 +289,7 @@ class ScheduleRow(object):
         self.minutes = cron[0]
         self.days = cron[-1]
         self.monday = monday
+        self.fmt = fmt
         self.length = length
         self.extra_vars = {}
         if extra_vars:
@@ -272,7 +305,7 @@ class ScheduleRow(object):
 
     def wikitext_template(self, delta):
         utc_time = self.monday + delta
-        text = ROW_FMT.format(
+        text = self.fmt['row'].format(
             time=utc_time.strftime('%Y-%m-%d %H:%M SF'),
             length=self.length,
             name=self.name,
@@ -298,7 +331,7 @@ class WMFVersions(object):
         """
         Major and minor train versions
         """
-        match = re.match('1\.(\d\d)\.(\d)+-wmf\.(\d+)', self.version)
+        match = re.match(r'1\.(\d\d)\.(\d)+-wmf\.(\d+)', self.version)
         try:
             self.minor = match.group(1)
             self.patch = match.group(2)
@@ -329,13 +362,11 @@ class Train(object):
             version=self.new.version
         )
 
-
     @property
     def roadmap(self):
         return ('[[mw:MediaWiki {major}.{minor}/'
                'Roadmap#Schedule for the deployments|{major}.{minor} '
                'schedule]]').format(major=self.new.major, minor=self.new.minor)
-
 
 
 def parse_config(config_file):
@@ -425,6 +456,12 @@ def parse_args(argv=None):
         default=datetime.utcnow(),
         help='Alternative start date for calendar, defaults to next Monday'
     )
+    ap.add_argument(
+        '--wikitext-format',
+        choices=['old', 've'],
+        default='old',
+        help='Wikitext format (old or ve)'
+    )
     parsed = vars(ap.parse_args(argv))
     if not parsed.get('schedules'):
         parsed['schedules'] = []
@@ -437,6 +474,8 @@ def main():
     Run program.
     """
     args = parse_args()
+    fmt = WIKITEXT_TEMPLATES[args['wikitext_format']]
+
     config = parse_config(args['config_file'])
     next_monday = get_next_monday(args['start_date'])
     train = None
@@ -444,7 +483,7 @@ def main():
         old = WMFVersions(args.get('old_train'))
         new = WMFVersions(args.get('new_train'))
         train = Train(old, new, args)
-    schedule = Schedule(config, next_monday, args['schedules'], train,
+    schedule = Schedule(config, next_monday, fmt, args['schedules'], train,
                         args.get('message'))
     schedule.output()
 
