@@ -21,7 +21,7 @@
             "window": "Wikimedia Portals Update"
         },
         "puppet": {
-            "deployer": "{{ircnick|godog|Filippo}}, {{ircnick|_joe_|Giuseppe}}",
+            "deployer": "{{ircnick|jbond42|JBond}}, {{ircnick|cdanis|Chris}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to Puppet change''",
             "window": "[[Puppet request window]]<br/><small>'''(Max 6 patches)'''</small>"
         },
