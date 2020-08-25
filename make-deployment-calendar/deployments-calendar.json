@@ -66,7 +66,7 @@
             "window": "Mediawiki train - <%= version %> Version (secondary timeslot)"
         },
         "wdqs": {
-            "deployer": "{{ircnick|gehel|Guillaume}}, {{ircnick|onimisionipe|Mathew}}",
+            "deployer": "{{ircnick|ryankemper|Ryan}}",
             "what": "...",
             "window": "Wikidata Query Service weekly deploy"
         },
