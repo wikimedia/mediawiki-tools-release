@@ -41,7 +41,7 @@
             "window": "Weekly Security deployment window"
         },
         "services": {
-            "deployer": "Aaron ({{ircnick|halfak}}), Andy ({{ircnick|accraze}})",
+            "deployer": "Chris ({{ircnick|chrisalbon}}), Andy ({{ircnick|accraze}})",
             "what": "See [[mw:Extension:Graph|Graphoid]]",
             "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / [[ORES]]"
         },
