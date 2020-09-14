@@ -128,9 +128,9 @@ check_versions() {
 
 assert_repository_is_clean() {
     if [ "$(git -C "$REPO" status --porcelain)" != "" ]; then
-        echo 'Git repo is not clean!'
+        echo "Git repo $REPO is not clean!"
         echo
-        git status
+        git -C "$REPO" status
         echo
         if ask "Continue anyway?" N; then
             echo 'continuing...'
