@@ -169,6 +169,16 @@ assert_repository_is_updated() {
     fi
 }
 
+select_git_push_dest() {
+    if [ "$(cat /etc/wikimedia-cluster)" = "dev" ]; then
+        # Plain git is used in the train dev environment
+        echo master
+    else
+        # Gerrit is used in production
+        echo "refs/for/master%topic=${VERSION},l=Code-Review+2"
+    fi
+}
+
 update_versions() {
     set -e
 
@@ -182,7 +192,7 @@ update_versions() {
         MSG="${MSG} ${PROMOTE_MSG}"
     fi
     git commit -m "$MSG"
-    git push origin "HEAD:refs/for/master%topic=${VERSION},l=Code-Review+2"
+    git push origin "HEAD:$(select_git_push_dest)"
     git reset --hard HEAD^
     read -rp "Now wait for jenkins to merge the patch, then press enter to continue with git pull && scap sync-wikiversions"
 
