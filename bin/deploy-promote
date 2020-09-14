@@ -209,7 +209,7 @@ update_versions() {
 
     if [[ "$GRP" == "testwikis" ]]; then
         notify "Running scap sync"
-        scap sync "$MSG"
+        scap sync-world "$MSG"
     else
        notify "Running scap sync-wikiversions"
        scap sync-wikiversions "$MSG"
