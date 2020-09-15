@@ -244,9 +244,8 @@ main() {
     assert_repository_is_clean
     assert_repository_is_updated
 
-    PHABTASK=
     PROMOTE_MSG=
-    if [[ -n "$PHABTASK" ]]; then
+    if [[ -n "${PHABTASK:-}" ]]; then
         PROMOTE_MSG=" refs ${PHABTASK}"
     fi
 
