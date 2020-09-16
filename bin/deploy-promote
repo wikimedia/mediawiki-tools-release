@@ -41,12 +41,38 @@ positional arguments:
     dblist      existing dblist/group to which you'd like to deploy a
                 new version (group0, group1, or all). Defaults to "group1".
     version     version to deploy (ex: 1.36.0-wmf.2). Defaults to the
-                latest version found in "/srv/mediawiki-staging/wikiversions.json"
+                latest version found in "/srv/mediawiki-staging/$(wikiversions_filename)"
 
 optional arguments:
     -h, --help  show this help message and exit
 
 HELP
+}
+
+# Sets DC and REALM globals
+set_realm() {
+    DC="$(cat /etc/wikimedia-cluster)"
+
+    case "$DC" in
+        dev|labs)
+            REALM="$DC"
+            ;;
+        *)
+            REALM=production
+            ;;
+    esac
+}
+
+# Assumes that set_realm has been called first.
+wikiversions_filename() {
+    case "$REALM" in
+        production)
+            echo "wikiversions.json"
+            ;;
+        *)
+            echo "wikiversions-$REALM.json"
+            ;;
+    esac
 }
 
 notify() {
@@ -185,7 +211,7 @@ update_versions() {
     cd /srv/mediawiki-staging/
 
     scap update-wikiversions "$GRP" "${VERSION}"
-    git add wikiversions.json
+    git add "$(wikiversions_filename)"
     git add php
     MSG="${GRP} wikis to ${VERSION}"
     if [[ "$PROMOTE_MSG" != "" ]]; then
@@ -226,6 +252,8 @@ update_versions() {
 }
 
 main() {
+    set_realm
+
     if [[ "${1:-}" == '-h' || "${1:-}" == '--help' ]]; then
         usage
         exit 0
