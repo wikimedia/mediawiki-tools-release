@@ -1,0 +1,42 @@
+<?xml version = "1.0"?>
+<ruleset>
+	<file>.</file>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>make-deploy-notes/botclasses.php</exclude-pattern>
+
+	<arg name="encoding" value="utf-8"/>
+	<arg name="extensions" value="php"/>
+	<arg name="report" value="full"/>
+	<arg name="report" value="summary"/>
+
+	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
+		<exclude name="Generic.PHP.BacktickOperator.Found"/>
+		<exclude name="MediaWiki.Usage.ForbiddenFunctions.passthru"/>
+	</rule>
+
+	<rule ref="MediaWiki.NamingConventions.PrefixedGlobalFunctions.wfPrefix">
+		<severity>0</severity>
+	</rule>
+
+	<rule ref="MediaWiki.PHP70Features.ScalarTypeHintUsage.Found">
+		<exclude-pattern>make-tarball-release/</exclude-pattern>
+	</rule>
+	<rule ref="MediaWiki.PHP70Features.ScalarTypeHintUsage.ReturnTypeFound">
+		<exclude-pattern>make-tarball-release/</exclude-pattern>
+	</rule>
+
+	<rule ref="MediaWiki.PHP71Features.NullableType.NotAllowed">
+		<exclude-pattern>make-tarball-release/</exclude-pattern>
+	</rule>
+	<rule ref="MediaWiki.PHP71Features.VoidReturnType.NotAllowed">
+		<exclude-pattern>make-tarball-release/</exclude-pattern>
+	</rule>
+
+	<!-- Filled as T232479 -->
+	<rule ref="MediaWiki.Usage.ForbiddenFunctions.escapeshellarg">
+		<exclude-pattern>make-deploy-notes/uploadChangelog.php</exclude-pattern>
+	</rule>
+	<rule ref="MediaWiki.Usage.ForbiddenFunctions.shell_exec">
+		<exclude-pattern>make-deploy-notes/uploadChangelog.php</exclude-pattern>
+	</rule>
+</ruleset>

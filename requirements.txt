@@ -1,1 +1,4 @@
 PyYAML
+git_archive_all
+pygerrit2
+requests

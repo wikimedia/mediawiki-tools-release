@@ -1,9 +1,0 @@
-Handy-dandy tool to pull a tagged release out of SVN and generate:
-* a tarball
-* a patch to previous revision (if >= x.x.1)
-* GPG signatures for the above
-* a template release announcement
-
-Usage:
-  ./make-release.sh 1.12.1
-

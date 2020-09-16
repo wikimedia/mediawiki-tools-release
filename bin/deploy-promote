@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright © 2015 Mukunda Modell
+# Copyright © 2016 Mukunda Modell, Tyler Cipriani, Lars Wirzenius
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,67 +28,232 @@
 # The above command promotes all group0 wikis (testwiki and mediawiki.org)
 # to version 1.26wmf10.
 
-set -e
+set -eu
 
-cd /srv/mediawiki-staging/
-export OLDVERSION=`/srv/mediawiki-staging/multiversion/activeMWVersions|cut -d " " -f1`
-NEWVERSION=`/srv/mediawiki-staging/multiversion/activeMWVersions|cut -d " " -f2`
-GRP=${1:-group1}
-export VERSION=${2:-$NEWVERSION}
-DBLIST="/srv/mediawiki-staging/$GRP.dblist"
-if [ ! -f "$DBLIST" ]; then
-    echo "$DBLIST does not exist"
-    exit 1
-fi
-read -p "Promote $GRP from ${OLDVERSION} to ${VERSION}? Enter to continue, ctl-c cancel: "
-/srv/mediawiki-staging/multiversion/updateWikiversions $GRP php-${VERSION}
+REPO=$(cd "$(dirname "$(dirname "$0")")"; pwd -P)
 
-git add wikiversions.json
-git add docroot/bits/static-current/
-git add w/static/current
-git add php
+usage() {
+    cat <<HELP
+usage: $0 [ dblist [ version ] ]
+       $0 -h
 
-MSG="$GRP wikis to ${VERSION}"
-git commit -m "$MSG"
+positional arguments:
+    dblist      existing dblist/group to which you'd like to deploy a
+                new version (group0, group1, or all). Defaults to "group1".
+    version     version to deploy (ex: 1.36.0-wmf.2). Defaults to the
+                latest version found in "/srv/mediawiki-staging/wikiversions.json"
 
-git push gerrit HEAD:refs/for/master/${VERSION}
+optional arguments:
+    -h, --help  show this help message and exit
 
-git reset --hard HEAD^
+HELP
+}
 
-read -p "Now merge the patch and press enter to continue with git pull && sync-wikiversions"
+notify() {
+    printf '[INFO] %s\n' "$@"
+}
 
-echo "Running git pull"
+die() {
+    local exit_code="$1"
+    shift
+    printf '[EXITING] %s\n' "$@"
+    exit "$exit_code"
+}
 
-git pull
+abort() {
+    die 2 "Aborted by user"
+}
 
-HEADMSG=`git log --pretty=oneline -1 | cut -f 2- -d " "`
+ask() {
+    # http://djm.me/ask
+    while true; do
 
-if [ "$HEADMSG" != "$MSG" ]; then
-    echo "ERR: Pulled revision didn't match."
-    echo "Expected: $MSG"
-    echo "Actual: $HEADMSG"
-    exit 1
-fi
+        if [ "${2:-}" = "Y" ]; then
+            prompt="Y/n"
+            default=Y
+        elif [ "${2:-}" = "N" ]; then
+            prompt="y/N"
+            default=N
+        else
+            prompt="y/n"
+            default=
+        fi
 
-echo "Running sync-wikiversions"
+        # Ask the question - use /dev/tty in case stdin is redirected from somewhere else
+        read -rp "$1 [$prompt] " REPLY </dev/tty
 
-sync-wikiversions "$MSG"
+        # Default?
+        if [ -z "$REPLY" ]; then
+            REPLY=$default
+        fi
 
-set +e
-[[ "$GRP" == "all" ]] && CHECK="wikipedia" || CHECK="wikinews"
-URLTOCHECK="https://en.$CHECK.org/wiki/Special:Version"
-echo "-----------------------------------------"
-echo "Checking version on $URLTOCHECK"
-echo "Expect: $VERSION"
-echo -n "Response: "
-curl --silent --show-error $URLTOCHECK | grep --only-matching "$VERSION"
-echo
-echo "-----------------------------------------"
+        # Check if the reply is valid
+        case "$REPLY" in
+            Y*|y*) return 0 ;;
+            N*|n*) return 1 ;;
+        esac
 
-if [ $? -eq 0 ]; then
-    echo "SUCCESS: version matched ${VERSION}"
-else
-    echo "ERROR: did not match ${VERSION}"
-    exit 1
-fi
+    done
+}
 
+print_results() {
+    local res="$1"
+    printf '==================================================\n'
+    printf 'Checking version on %s\n' "$URLTOCHECK"
+    printf 'Expect: %s\n' "$VERSION"
+    printf 'Result: %s\n' "$res"
+    printf '==================================================\n'
+}
+
+check_versions() {
+    CHECKDOMAIN="en.wikipedia.org"
+
+    if [[ "$GRP" == "group1" ]]; then
+        CHECKDOMAIN="en.wikinews.org"
+    elif [[ "$GRP" == "group0" ]]; then
+        CHECKDOMAIN="www.mediawiki.org"
+    elif [[ "$GRP" == "testwikis" ]]; then
+        CHECKDOMAIN="test.wikipedia.org"
+    fi
+
+    URLTOCHECK="https://$CHECKDOMAIN/wiki/Special:Version"
+
+    if curl -sS $URLTOCHECK | grep -o "$VERSION" &> /dev/null; then
+        print_results "SUCCESS"
+    else
+        print_results "FAIL"
+        exit 3
+    fi
+}
+
+assert_repository_is_clean() {
+    if [ "$(git -C "$REPO" status --porcelain)" != "" ]; then
+        echo "Git repo $REPO is not clean!"
+        echo
+        git -C "$REPO" status
+        echo
+        if ask "Continue anyway?" N; then
+            echo 'continuing...'
+        else
+            abort
+        fi
+    fi
+}
+
+remote_sha1() {
+    git -C "$REPO" \
+        ls-remote --quiet \
+        https://gerrit.wikimedia.org/r/mediawiki/tools/release \
+        refs/heads/master \ |
+        awk '{print $1}'
+}
+
+local_sha1() {
+    git -C "$REPO" rev-parse --verify HEAD
+}
+
+assert_repository_is_updated() {
+    local remote_head local_head
+
+    remote_head="$(remote_sha1)"
+    local_head="$(local_sha1)"
+
+    if [ "$remote_head" != "$local_head" ]; then
+        printf 'The "mediawiki/tools/release" repo is not up-to-date with upstream!\n'
+        printf '(remote: "%s" != local: "%s")\n' "$remote_head" "$local_head"
+        if ask "Continue anyway?" N; then
+            printf 'continuing...\n'
+        else
+            abort
+        fi
+    fi
+}
+
+select_git_push_dest() {
+    if [ "$(cat /etc/wikimedia-cluster)" = "dev" ]; then
+        # Plain git is used in the train dev environment
+        echo master
+    else
+        # Gerrit is used in production
+        echo "refs/for/master%topic=${VERSION},l=Code-Review+2"
+    fi
+}
+
+update_versions() {
+    set -e
+
+    cd /srv/mediawiki-staging/
+
+    scap update-wikiversions "$GRP" "${VERSION}"
+    git add wikiversions.json
+    git add php
+    MSG="${GRP} wikis to ${VERSION}"
+    if [[ "$PROMOTE_MSG" != "" ]]; then
+        MSG="${MSG} ${PROMOTE_MSG}"
+    fi
+    git commit -m "$MSG"
+    git push origin "HEAD:$(select_git_push_dest)"
+    git reset --hard HEAD^
+    read -rp "Now wait for jenkins to merge the patch, then press enter to continue with git pull && scap sync-wikiversions"
+
+    notify "Running git pull"
+
+    git pull
+
+    HEADMSG=$(git log --pretty=oneline -1 | cut -f 2- -d " ")
+
+    if [[ "$HEADMSG" != "$MSG" ]]; then
+        die 1 "Pulled Revision ${MSG} did not match ${HEADMSG}"
+    fi
+
+
+    if [[ "$GRP" == "testwikis" ]]; then
+        notify "Running scap sync"
+        scap sync-world "$MSG"
+    else
+       notify "Running scap sync-wikiversions"
+       scap sync-wikiversions "$MSG"
+    fi
+
+    # Group1 day is also the day we sync the php symlink
+    if [[ "$GRP" == "group1" ]]; then
+        notify "Running scap sync-file php"
+        scap sync-file php "$MSG"
+    fi
+
+    set +e
+    check_versions
+}
+
+main() {
+    if [[ "${1:-}" == '-h' || "${1:-}" == '--help' ]]; then
+        usage
+        exit 0
+    fi
+
+    OLDVERSION=$(/usr/bin/scap wikiversions-inuse | tr ' ' '\n' | sort --version-sort | head -1)
+    NEWVERSION=$(/usr/bin/scap wikiversions-inuse | tr ' ' '\n' | sort --version-sort | head -2 | tail -1)
+    GRP="${1:-group1}"
+    VERSION="${2:-$NEWVERSION}"
+
+    if [ ! -f "/srv/mediawiki-staging/dblists/$GRP.dblist" ]; then
+        usage
+        die 1 "'/srv/mediawiki-staging/dblists/$GRP.dblist' does not exist"
+    fi
+
+    assert_repository_is_clean
+    assert_repository_is_updated
+
+    PROMOTE_MSG=
+    if [[ -n "${PHABTASK:-}" ]]; then
+        PROMOTE_MSG=" refs ${PHABTASK}"
+    fi
+
+    if ask "Promote $GRP from ${OLDVERSION} to ${VERSION}${PROMOTE_MSG}" N; then
+        update_versions
+    else
+        abort
+    fi
+}
+
+main "$@"

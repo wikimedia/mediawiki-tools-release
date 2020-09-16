@@ -1,3 +1,4 @@
 *.gz
-/uploads/
 /build/
+.settings.yaml
+.pytest_cache

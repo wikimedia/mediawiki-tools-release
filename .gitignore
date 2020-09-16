@@ -1,8 +1,8 @@
 *.pyc
 /.tox
-/make-deploy-notes/auth.php
-/make-wmf-branch/local.json
-/make-wmf-branch/local.conf
 local.conf
 composer.lock
 /vendor
+.cache
+*.gz
+/.pytest_cache
