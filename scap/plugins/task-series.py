@@ -32,7 +32,9 @@ def action_arg(*args, **kwargs):
 def totimestamp(dt, epoch=datetime.datetime(1970, 1, 1)):
     td = dt - epoch
     # return td.total_seconds()
-    return (td.microseconds + (td.seconds + td.days * 86400) * 10**6) / 10**6
+    return int(
+        (td.microseconds + (td.seconds + td.days * 86400) * 10**6) / 10**6
+    )
 
 
 def find_mondays(year, month):
@@ -153,14 +155,14 @@ class ReleaseBlockers(cli.Application):
             v[-1] = 'wmf.%d' % n
             vs = "-".join(v)
 
-            ts = int(totimestamp(week))
+            ts = totimestamp(week)
             trns = map_transactions({
                 'title': "%s deployment blockers" % vs,
                 'subtype': 'release',
                 'projects.add': ["PHID-PROJ-fmcvjrkfvvzz3gxavs3a",
                                  "PHID-PROJ-pf35un2jsnsiriivnmeo"],
                 'custom.release.version': str(vs),
-                'custom.release.date': str(ts),
+                'custom.release.date': ts,
             })
             print("%s : %s, %s" % (vs, week, ts))
             var_dump(phab.maniphest.edit(transactions=trns))
