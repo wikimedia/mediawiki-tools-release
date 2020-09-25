@@ -203,7 +203,7 @@ def patch(first, second):
     def fname(x):
         return os.path.basename(x).replace('.tar.gz', '')
     try:
-        output = subprocess.check_output(['diff', '-Nruw', fname(first), fname(second)])
+        output = subprocess.check_output(['diff', '-Nru', fname(first), fname(second)])
         # TODO: if exception wasn't thrown, that means there was no diff. That should be
         # impossible.
     except subprocess.CalledProcessError as e:
