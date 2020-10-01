@@ -32,9 +32,11 @@ set -eu
 
 REPO=$(cd "$(dirname "$(dirname "$0")")"; pwd -P)
 
+ALWAYS_YES=
+
 usage() {
     cat <<HELP
-usage: $0 [ dblist [ version ] ]
+usage: $0 [ -y|--yes ] [ dblist [ version ] ]
        $0 -h
 
 positional arguments:
@@ -45,6 +47,7 @@ positional arguments:
 
 optional arguments:
     -h, --help  show this help message and exit
+    -y, --yes   Answer yes to all prompts
 
 HELP
 }
@@ -91,6 +94,10 @@ abort() {
 }
 
 ask() {
+    if [ "$ALWAYS_YES" ]; then
+	return 0
+    fi
+
     # http://djm.me/ask
     while true; do
 
@@ -254,10 +261,33 @@ update_versions() {
 main() {
     set_realm
 
-    if [[ "${1:-}" == '-h' || "${1:-}" == '--help' ]]; then
-        usage
-        exit 0
+    if ! TEMP=$(getopt -n "$0" -o 'hy' --long 'help,yes' -- "$@"); then
+	usage
+	exit 1
     fi
+
+    eval set -- "$TEMP"
+    unset TEMP
+
+    while true; do
+	case "$1" in
+	    -h|--help)
+		usage
+		exit 0
+		;;
+	    -y|--yes)
+		ALWAYS_YES=y
+		shift
+		;;
+	    --)
+		shift
+		break
+		;;
+	    *)
+		die 2 "This should never happen!"
+		;;
+	esac
+    done
 
     OLDVERSION=$(scap wikiversions-inuse | tr ' ' '\n' | sort --version-sort | head -1)
     NEWVERSION=$(scap wikiversions-inuse | tr ' ' '\n' | sort --version-sort | head -2 | tail -1)
