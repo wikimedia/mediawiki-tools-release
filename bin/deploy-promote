@@ -227,7 +227,13 @@ update_versions() {
     git commit -m "$MSG"
     git push origin "HEAD:$(select_git_push_dest)"
     git reset --hard HEAD^
-    read -rp "Now wait for jenkins to merge the patch, then press enter to continue with git pull && scap sync-wikiversions"
+
+    # In train-dev environment the merge always takes place immediately so there's no need to wait.
+    # In the future this wait should be changed to a polling fetch that would work equally well for
+    # train-dev or production.
+    if [ "$REALM" != "dev" ]; then
+        read -rp "Now wait for jenkins to merge the patch, then press enter to continue with git pull && scap sync-wikiversions"
+    fi
 
     notify "Running git pull"
 
