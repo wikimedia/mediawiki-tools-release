@@ -218,6 +218,7 @@ bundles:
         - "mediawiki/extensions/WikimediaMaintenance"
         - "mediawiki/extensions/WikimediaMessages"
         - "mediawiki/extensions/Wikisource"
+        - "mediawiki/extensions/Wikispeech"
         - "mediawiki/extensions/XAnalytics"
         - "mediawiki/skins/CologneBlue"
         - "mediawiki/skins/MinervaNeue"
