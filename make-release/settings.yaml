@@ -150,7 +150,6 @@ bundles:
         - "mediawiki/extensions/PageViewInfo"
         - "mediawiki/extensions/ParserFunctions"
         - "mediawiki/extensions/PdfHandler"
-        - "mediawiki/extensions/Petition"
         - "mediawiki/extensions/Poem"
         - "mediawiki/extensions/PoolCounter"
         - "mediawiki/extensions/Popups"
