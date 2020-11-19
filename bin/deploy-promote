@@ -212,6 +212,13 @@ select_git_push_dest() {
     fi
 }
 
+commit_has_arrived() {
+    local changeid="$1"
+
+    git fetch # FIXME: silence
+    git log HEAD..FETCH_HEAD | grep -q "$changeid"
+}
+
 update_versions() {
     set -e
 
@@ -225,26 +232,21 @@ update_versions() {
         MSG="${MSG} ${PROMOTE_MSG}"
     fi
     git commit -m "$MSG"
+    local changeid=$(git log -1 | grep Change-Id:)
     git push origin "HEAD:$(select_git_push_dest)"
     git reset --hard HEAD^
 
-    # In train-dev environment the merge always takes place immediately so there's no need to wait.
-    # In the future this wait should be changed to a polling fetch that would work equally well for
-    # train-dev or production.
-    if [ "$REALM" != "dev" ]; then
-        read -rp "Now wait for jenkins to merge the patch, then press enter to continue with git pull && scap sync-wikiversions"
-    fi
+    echo -n "Waiting for jenkins to merge the patch"
+
+    while ! commit_has_arrived "$changeid"; do
+        echo -n "."
+        sleep 5
+    done
+    echo
 
     notify "Running git pull"
 
     git pull
-
-    HEADMSG=$(git log --pretty=oneline -1 | cut -f 2- -d " ")
-
-    if [[ "$HEADMSG" != "$MSG" ]]; then
-        die 1 "Pulled Revision ${MSG} did not match ${HEADMSG}"
-    fi
-
 
     if [[ "$GRP" == "testwikis" ]]; then
         notify "Running scap sync-world"
