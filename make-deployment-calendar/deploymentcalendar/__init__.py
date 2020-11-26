@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright © 2019 Tyler Cipriani
+# Copyright © 2021 Tyler Cipriani
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,34 +16,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 # http://www.gnu.org/copyleft/gpl.html
 #
-DESC = """
-deployments-calendar
-====================
-
-Render the Deployments calendar for Wikitech
-
-Example usage for weeks where there is a train:
-
-    ./deployments-calendar \\
-        train \\
-          --old 1.34.0-wmf.18 \\
-          --new 1.34.0-wmf.19 \\
-          --deployer '{{ircnick|thcipriani}}' \\
-          --blocker-task T220744 \\
-          --schedule American
-
-Example usage for weeks where there *is not* a train:
-
-    ./deployments-calendar
-
-Always generates the schedule starting *next monday* -- you can pass a
-more explicit start date the schedule will pickup the next monday:
-
-    ./deployments-calendar --start-date 2019-05-01
-"""
-
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import os
 import re
@@ -51,15 +25,24 @@ import sys
 from textwrap import dedent
 
 from croniter import croniter
-from dateutil import parser
 import jinja2
 
+import deploymentcalendar.findtrain
+
 BASE_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
+DEFAULT_CONFIG = os.path.join(BASE_PATH, '..', 'deployments-calendar.json')
 DAYS_OF_THE_WEEK = range(0, 7)
 HOURS_OF_THE_DAY = range(0, 24)
 MINUTES_OF_THE_HOUR = range(0, 60)
 CRON_FMT = '{minute} {hour} * * {day}'
 ROWS = []
+DESC = """
+deployments-calendar
+====================
+
+Module that renders the Wikitech Deployments calendar based on json input.
+"""
+
 
 WIKITEXT_TEMPLATES = {
     've': {
@@ -178,7 +161,7 @@ class Schedule(object):
 
         Loops through every minute of every hour of every day, weeee!
         """
-        print(self.format('frontmatter', self.frontmatter))
+        lede = self.format('frontmatter', self.frontmatter)
         rows = []
         day_sep = self.fmt.get('daysep')
         for day_of_the_week in DAYS_OF_THE_WEEK:
@@ -211,8 +194,11 @@ class Schedule(object):
                                 item.extra_vars
                             )
                         )
-        print(self.fmt['sep'].join(rows))
-        print(self.format('endmatter', self.endmatter))
+        return '{}\n{}\n{}'.format(
+            lede,
+            self.fmt['sep'].join(rows),
+            self.format('endmatter', self.endmatter)
+        )
 
     def update_vars(self):
         """
@@ -255,10 +241,25 @@ class Schedule(object):
                 )[0]
                 window_name = scheduled_item['name']
                 window = self.windows[window_name]
+                row_name = self.format(
+                    window_name + '_window',
+                    window['window'],
+                    scheduled_item.get('vars')
+                )
+                row_deployer = self.format(
+                    window_name + '_deployer',
+                    window['deployer'],
+                    scheduled_item.get('vars')
+                )
+                row_what = self.format(
+                    window_name + '_what',
+                    window['what'],
+                    scheduled_item.get('vars')
+                )
                 rows.append(ScheduleRow(
-                    name=self.format(window_name + '_window', window['window'], scheduled_item.get('vars')),
-                    deployer=self.format(window_name + '_deployer', window['deployer'], scheduled_item.get('vars')),
-                    what=self.format(window_name + '_what', window['what'], scheduled_item.get('vars')),
+                    name=row_name,
+                    deployer=row_deployer,
+                    what=row_what,
                     cron=canonical_cron,
                     fmt=self.fmt,
                     length=scheduled_item.get('length', '1'),
@@ -347,11 +348,11 @@ class Train(object):
     """
     Class for train information
     """
-    def __init__(self, old, new, args):
+    def __init__(self, old, new, blocker_task, deployer):
         self.old = old
         self.new = new
-        self.blocker_task = args.get('train_blocker_task')
-        self.deployer = args.get('train_deployer')
+        self.blocker_task = blocker_task
+        self.deployer = deployer
 
     @property
     def link(self):
@@ -364,9 +365,12 @@ class Train(object):
 
     @property
     def roadmap(self):
-        return ('[[mw:MediaWiki {major}.{minor}/'
-               'Roadmap#Schedule for the deployments|{major}.{minor} '
-               'schedule]]').format(major=self.new.major, minor=self.new.minor)
+        return (
+            '[[mw:MediaWiki {major}.{minor}/'
+            'Roadmap#Schedule for the deployments|{major}.{minor} '
+            'schedule]]').format(
+                major=self.new.major, minor=self.new.minor
+            )
 
 
 def parse_config(config_file):
@@ -374,44 +378,65 @@ def parse_config(config_file):
         return json.load(f)
 
 
-def get_next_monday(start_date):
+def make_deployers(train):
+    primary = train.primary
+    secondary = train.secondary
+
+    primary = '{{ircnick|%s|%s}}' % (primary.ircnick, primary.fullname)
+    secondary = '{{ircnick|%s|%s}}' % (secondary.ircnick, secondary.fullname)
+
+    return ', '.join([primary, secondary])
+
+
+def get_schedule(trainfinder, config):
+    if trainfinder.is_declined:
+        return run(
+            trainfinder.date,
+            config,
+            schedules=['NoTrain'],
+            train=None
+        )
+    else:
+        deployers = make_deployers(trainfinder.next)
+        old = WMFVersions(trainfinder.last.version)
+        new = WMFVersions(trainfinder.next.version)
+
+        train = Train(
+            old,
+            new,
+            blocker_task=trainfinder.next.task_id,
+            deployer=deployers
+        )
+
+        return run(
+            trainfinder.date,
+            config,
+            schedules=[trainfinder.next.schedule],
+            train=train
+        )
+
+
+def run(monday, config_file, schedules, train=None, wiki_fmt='old', msg=''):
     """
-    Gets the following monday after start_date
-
-    :params start_date: either a string or a datetime
-    :return: datetime
+    Build the calendar
     """
-    base = start_date
+    fmt = WIKITEXT_TEMPLATES[wiki_fmt]
 
-    if not isinstance(start_date, datetime):
-        base = parser.parse(start_date)
-
-    weekday = base.weekday()
-
-    if weekday == 0:
-        return base
-
-    return base + timedelta(
-        days=-weekday,
-        hours=-base.hour,
-        minutes=-base.minute,
-        seconds=-base.second,
-        microseconds=-base.microsecond,
-        weeks=1
-    )
+    config = parse_config(config_file)
+    schedule = Schedule(config, monday, fmt, schedules, train, msg)
+    return schedule.output()
 
 
 def parse_args(argv=None):
     """
     Parse arguments
     """
-    default_config = os.path.join(BASE_PATH, 'deployments-calendar.json')
     ap = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=DESC
     )
     ap.add_argument(
-        '-c', '--config-file', default=default_config,
+        '-c', '--config-file', default=DEFAULT_CONFIG,
         help='config json file'
     )
     ap.add_argument(
@@ -453,7 +478,8 @@ def parse_args(argv=None):
     )
     ap.add_argument(
         '--start-date',
-        default=datetime.utcnow(),
+        default=datetime.now(tz=timezone.utc),
+        type=deploymentcalendar.findtrain.parse_date,
         help='Alternative start date for calendar, defaults to next Monday'
     )
     ap.add_argument(
@@ -474,18 +500,27 @@ def main():
     Run program.
     """
     args = parse_args()
-    fmt = WIKITEXT_TEMPLATES[args['wikitext_format']]
 
-    config = parse_config(args['config_file'])
-    next_monday = get_next_monday(args['start_date'])
     train = None
     if args.get('old_train'):
         old = WMFVersions(args.get('old_train'))
         new = WMFVersions(args.get('new_train'))
-        train = Train(old, new, args)
-    schedule = Schedule(config, next_monday, fmt, args['schedules'], train,
-                        args.get('message'))
-    schedule.output()
+        blocker_task = args.get('train_blocker_task')
+        deployer = args.get('train_deployer')
+        train = Train(old, new, blocker_task, deployer)
+
+    next_monday = deploymentcalendar.findtrain.get_next_monday(
+        args['start_date']
+    )
+
+    run(
+        next_monday,
+        args['config_file'],
+        args['schedules'],
+        train=train,
+        wiki_fmt=args['wikitext_format'],
+        msg=args.get('message')
+    )
 
 
 if __name__ == '__main__':

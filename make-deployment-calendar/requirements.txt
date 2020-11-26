@@ -1,0 +1,7 @@
+croniter
+Jinja2
+mwparserfromhell
+python-dateutil
+pywikibot
+requests
+requests-oauth
