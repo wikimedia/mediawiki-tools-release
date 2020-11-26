@@ -43,7 +43,7 @@ more explicit start date the schedule will pickup the next monday:
 """
 
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import os
 import re
@@ -54,7 +54,10 @@ from croniter import croniter
 from dateutil import parser
 import jinja2
 
+import findtrain
+
 BASE_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
+DEFAULT_CONFIG = os.path.join(BASE_PATH, 'deployments-calendar.json')
 DAYS_OF_THE_WEEK = range(0, 7)
 HOURS_OF_THE_DAY = range(0, 24)
 MINUTES_OF_THE_HOUR = range(0, 60)
@@ -347,11 +350,11 @@ class Train(object):
     """
     Class for train information
     """
-    def __init__(self, old, new, args):
+    def __init__(self, old, new, blocker_task, deployer):
         self.old = old
         self.new = new
-        self.blocker_task = args.get('train_blocker_task')
-        self.deployer = args.get('train_deployer')
+        self.blocker_task = blocker_task
+        self.deployer = deployer
 
     @property
     def link(self):
@@ -374,44 +377,27 @@ def parse_config(config_file):
         return json.load(f)
 
 
-def get_next_monday(start_date):
+def run(monday, config_file, schedules, train=None, wiki_fmt='old', msg=''):
     """
-    Gets the following monday after start_date
-
-    :params start_date: either a string or a datetime
-    :return: datetime
+    Build the calendar
     """
-    base = start_date
+    fmt = WIKITEXT_TEMPLATES[wiki_fmt]
 
-    if not isinstance(start_date, datetime):
-        base = parser.parse(start_date)
-
-    weekday = base.weekday()
-
-    if weekday == 0:
-        return base
-
-    return base + timedelta(
-        days=-weekday,
-        hours=-base.hour,
-        minutes=-base.minute,
-        seconds=-base.second,
-        microseconds=-base.microsecond,
-        weeks=1
-    )
+    config = parse_config(config_file)
+    schedule = Schedule(config, monday, fmt, schedules, train, msg)
+    schedule.output()
 
 
 def parse_args(argv=None):
     """
     Parse arguments
     """
-    default_config = os.path.join(BASE_PATH, 'deployments-calendar.json')
     ap = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=DESC
     )
     ap.add_argument(
-        '-c', '--config-file', default=default_config,
+        '-c', '--config-file', default=DEFAULT_CONFIG,
         help='config json file'
     )
     ap.add_argument(
@@ -453,7 +439,8 @@ def parse_args(argv=None):
     )
     ap.add_argument(
         '--start-date',
-        default=datetime.utcnow(),
+        default=datetime.now(tz=timezone.utc),
+        type=findtrain.parse_date,
         help='Alternative start date for calendar, defaults to next Monday'
     )
     ap.add_argument(
@@ -469,23 +456,31 @@ def parse_args(argv=None):
     return parsed
 
 
+
 def main():
     """
     Run program.
     """
     args = parse_args()
-    fmt = WIKITEXT_TEMPLATES[args['wikitext_format']]
 
-    config = parse_config(args['config_file'])
-    next_monday = get_next_monday(args['start_date'])
     train = None
     if args.get('old_train'):
         old = WMFVersions(args.get('old_train'))
         new = WMFVersions(args.get('new_train'))
-        train = Train(old, new, args)
-    schedule = Schedule(config, next_monday, fmt, args['schedules'], train,
-                        args.get('message'))
-    schedule.output()
+        blocker_task = args.get('train_blocker_task')
+        deployer = args.get('train_deployer')
+        train = Train(old, new, blocker_task, deployer)
+
+    next_monday = findtrain.get_next_monday(args['start_date'])
+
+    run(
+        next_monday,
+        args['config_file'],
+        args['schedules'],
+        train=train,
+        wiki_fmt=args['wikitext_format'],
+        msg=args.get('message')
+    )
 
 
 if __name__ == '__main__':

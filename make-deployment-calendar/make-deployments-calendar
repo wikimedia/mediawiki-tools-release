@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+"""
+Make the deployment calendar based on start date
+"""
+import findtrain
+import deploymentscalendar
+
+if __name__ == '__main__':
+    args = findtrain.parse_args()
+    monday = findtrain.get_next_monday(start_date=args.start_date)
+    tf = findtrain.find_train_finder(monday)
+
+    if tf.is_declined:
+        deploymentscalendar.run(
+            monday,
+            deploymentscalendar.DEFAULT_CONFIG,
+            schedules=['NoTrain'],
+            train=None
+        )
+    else:
+        primary = tf.next.primary
+        secondary = tf.next.secondary
+
+        primary = '{{ircnick|%s|%s}}' % (primary.ircnick, primary.fullname)
+        secondary  = '{{ircnick|%s|%s}}' % (secondary.ircnick, secondary.fullname)
+
+        deployers = ', '.join([primary, secondary])
+
+        old = deploymentscalendar.WMFVersions(tf.last.version)
+        new = deploymentscalendar.WMFVersions(tf.next.version)
+        train = deploymentscalendar.Train(
+            old, new, blocker_task=tf.next.task_id, deployer=deployers)
+
+        deploymentscalendar.run(
+            monday,
+            deploymentscalendar.DEFAULT_CONFIG,
+            schedules=[tf.next.schedule],
+            train=train
+        )
