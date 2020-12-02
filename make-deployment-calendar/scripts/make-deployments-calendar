@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+"""
+Make the deployment calendar based on start date
+"""
+from context import deploymentcalendar
+
+if __name__ == '__main__':
+    args = deploymentcalendar.findtrain.parse_args()
+    monday = deploymentcalendar.findtrain.get_next_monday(start_date=args.start_date)
+
+    tf = deploymentcalendar.findtrain.find_train_finder(monday)
+    print(deploymentcalendar.get_schedule(tf, deploymentcalendar.DEFAULT_CONFIG))

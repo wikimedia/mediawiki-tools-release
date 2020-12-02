@@ -1,26 +1,16 @@
 #!/usr/bin/env python3
 import argparse
+from datetime import datetime, timedelta, timezone
 import json
 import os
 
 import requests
 
-from datetime import datetime, timedelta, timezone
 from dateutil import parser
 from dateutil.utils import within_delta
-from collections import namedtuple
 
-Relenger = namedtuple('Relenger', ['fullname', 'ircnick', 'schedule'])
+import deploymentcalendar.relengers
 
-RELENGERS = {
-    'dancy': Relenger('Ahmon', 'dancy', 'American'),
-    'hashar': Relenger('Antoine', 'hashar', 'European'),
-    'brennen': Relenger('Brennen', 'brennen', 'American'),
-    'dduvall': Relenger('Dan', 'marxarelli', 'American'),
-    'jeena': Relenger('Jeena', 'longma', 'American'),
-    'LarsWirzenius': Relenger('Lars', 'liw', 'European'),
-    'mmodell': Relenger('Mukunda', 'twentyafterfour', 'American'),
-}
 
 def get_next_monday(start_date):
     """
@@ -91,11 +81,15 @@ class Train(object):
 
     @property
     def primary(self):
-        return RELENGERS.get(self.users[self.primary_phid])
+        return deploymentcalendar.relengers.get(
+            self.users[self.primary_phid]
+        )
 
     @property
     def secondary(self):
-        return RELENGERS.get(self.users[self.secondary_phid])
+        return deploymentcalendar.relengers.get(
+            self.users[self.secondary_phid]
+        )
 
     @property
     def schedule(self):
@@ -171,7 +165,7 @@ class TrainFinder(object):
             'phids': [task.primary_phid, task.secondary_phid]
         })
 
-        for user in [x for x in  users['result'].keys()]:
+        for user in [x for x in users['result'].keys()]:
             username = users['result'][user]['name']
             phid = users['result'][user]['phid']
             task.users[phid] = username
@@ -251,7 +245,7 @@ if __name__ == '__main__':
         secondary = tf.next.secondary
 
         primary = '{{ircnick|%s|%s}}' % (primary.ircnick, primary.fullname)
-        secondary  = '{{ircnick|%s|%s}}' % (secondary.ircnick, secondary.fullname)
+        secondary = '{{ircnick|%s|%s}}' % (secondary.ircnick, secondary.fullname)
 
         deployers = ', '.join([primary, secondary])
 

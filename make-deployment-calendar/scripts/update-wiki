@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+"""
+Update Wikitech wiki with new deployment calendar, archive old week.
+"""
+
+import os
+import subprocess
+
+import mwparserfromhell
+import pywikibot
+
+from context import deploymentcalendar
+
+
+SITE = pywikibot.Site('en', 'wikitech')
+BASE_PAGE = 'User:DeploymentCalendarTool/Deployments'
+
+class DeploymentPage(object):
+    """
+    Abstraction for calendar wikipages
+    """
+    def __init__(self, site, page, text):
+        self.site = site
+        self.page = page
+        self.text = text
+        self.wikicode = mwparserfromhell.parse(self.text)
+
+    def _newest_week_index(self):
+        in_weeks = False
+        for section in self.wikicode.get_sections():
+            headings = section.filter_headings()
+            if 'week of' in '\n'.join([str(x).lower() for x in headings]):
+                in_weeks = True
+            else:
+                if in_weeks:
+                    return self.wikicode.index(headings[0], recursive=True)
+
+        raise RuntimeError('The phrase "Week of" was not found')
+
+    def _oldest_week_index(self):
+        for section in self.wikicode.get_sections():
+            headings = section.filter_headings()
+            if 'week of' in '\n'.join([str(x).lower() for x in headings]):
+                return self.wikicode.index(headings[0], recursive=True)
+
+        raise RuntimeError('The phrase "Week of" was not found')
+
+    def add_week(self, week):
+        self.wikicode.insert(self._newest_week_index(), week)
+
+    def append_text(self, text):
+        self.wikicode.append(text)
+
+    def pop_week(self, section_headline):
+        for section in self.wikicode.get_sections():
+            headings = section.filter_headings()
+            if section_headline in '\n'.join([str(x) for x in headings]):
+                week = str(section)
+                self.wikicode.remove(section)
+                return week
+
+    def write(self, message=''):
+        self.page.text = str(self.wikicode)
+        self.page.save(message)
+
+
+if __name__ == '__main__':
+    # The python date modules including dateutils kind of suck.
+    # Here I'm shelling out to "date" which seems to make me happier.
+    monday = deploymentcalendar.findtrain.get_next_monday(
+        deploymentcalendar.findtrain.parse_date(
+            subprocess.getoutput('date -I --date=Monday+7days')
+        )
+    )
+    tf = deploymentcalendar.findtrain.find_train_finder(monday)
+
+    new_week = '\n\n{}\n\n'.format(
+        deploymentcalendar.get_schedule(
+            tf, deploymentcalendar.DEFAULT_CONFIG
+        )
+    )
+
+    old_week = 'Week of {}'.format(
+        subprocess.getoutput('date --date=Monday-7days +"%B %d"')
+    )
+    old_week_archive = subprocess.getoutput('date --date=Monday-7days +"%Y/%m"')
+
+    page = pywikibot.Page(SITE, BASE_PAGE)
+    archive_page = pywikibot.Page(
+        SITE,
+        os.path.join(
+            BASE_PAGE,
+            'Archive',
+            old_week_archive
+        )
+    )
+    text = page.text
+    archive_text = archive_page.text
+
+    dp = DeploymentPage(SITE, page, text)
+    dap = DeploymentPage(SITE, archive_page, archive_text)
+
+    pop_week = dp.pop_week(old_week)
+    dp.add_week(new_week)
+    dp.write('Remove {}'.format(old_week))
+
+    dap.append_text(pop_week)
+    dap.write('Add last week')
