@@ -2,7 +2,8 @@
 <ruleset>
 	<file>.</file>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
-	<exclude-pattern>make-deploy-notes/botclasses.php</exclude-pattern>
+	<exclude-pattern>make-deploy-notes/botclasses\.php</exclude-pattern>
+	<exclude-pattern>make-release/mediawiki\-*</exclude-pattern>
 
 	<arg name="encoding" value="utf-8"/>
 	<arg name="extensions" value="php"/>
@@ -20,10 +21,9 @@
 
 	<!-- Filed as T232479 -->
 	<rule ref="MediaWiki.Usage.ForbiddenFunctions.escapeshellarg">
-		<exclude-pattern>make-deploy-notes/uploadChangelog.php</exclude-pattern>
+		<exclude-pattern>make-deploy-notes/uploadChangelog\.php</exclude-pattern>
 	</rule>
 	<rule ref="MediaWiki.Usage.ForbiddenFunctions.shell_exec">
-		<exclude-pattern>make-deploy-notes/uploadChangelog.php</exclude-pattern>
+		<exclude-pattern>make-deploy-notes/uploadChangelog\.php</exclude-pattern>
 	</rule>
-	<exclude-pattern>vendor</exclude-pattern>
 </ruleset>
