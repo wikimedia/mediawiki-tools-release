@@ -6,8 +6,7 @@
     },
     "require-dev": {
         "php-parallel-lint/php-parallel-lint": "1.2.0",
-        "mediawiki/mediawiki-codesniffer": "34.0.0",
-        "phpunit/phpunit": "~6.5 | ~9.5"
+        "mediawiki/mediawiki-codesniffer": "34.0.0"
     },
     "scripts": {
         "lint": "parallel-lint . --exclude vendor",
@@ -15,7 +14,6 @@
         "fix": "phpcbf",
         "test": [
             "composer lint",
-            "phpunit $PHPUNIT_ARGS",
             "composer phpcs"
         ]
     }
