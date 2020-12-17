@@ -172,6 +172,7 @@ bundles:
         - "mediawiki/extensions/ShortUrl"
         - "mediawiki/extensions/SiteMatrix"
         - "mediawiki/extensions/SpamBlacklist"
+        - "mediawiki/extensions/StopForumSpam"
         - "mediawiki/extensions/SubPageList3"
         - "mediawiki/extensions/SubpageSortkey"
         - "mediawiki/extensions/SyntaxHighlight_GeSHi"
