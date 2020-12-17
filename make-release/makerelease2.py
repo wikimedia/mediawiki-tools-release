@@ -71,7 +71,7 @@ def archive(repo, tag, output_dir, previous=None, sign=False, upload_tar=False):
     call_git(['checkout', tag])
     # Use -ff to remove deleted submodules
     call_git(['clean', '-ffdx'])
-    call_git(['submodule', 'update', '--init'])
+    call_git(['submodule', 'update', '--init', '--recursive'])
     call_git(['submodule', 'foreach', 'git clean -ffdx'])
     call_git(['submodule', 'foreach', 'git reset --hard'])
 
