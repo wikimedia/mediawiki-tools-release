@@ -18,25 +18,12 @@
 		<severity>0</severity>
 	</rule>
 
-	<rule ref="MediaWiki.PHP70Features.ScalarTypeHintUsage.Found">
-		<exclude-pattern>make-tarball-release/</exclude-pattern>
-	</rule>
-	<rule ref="MediaWiki.PHP70Features.ScalarTypeHintUsage.ReturnTypeFound">
-		<exclude-pattern>make-tarball-release/</exclude-pattern>
-	</rule>
-
-	<rule ref="MediaWiki.PHP71Features.NullableType.NotAllowed">
-		<exclude-pattern>make-tarball-release/</exclude-pattern>
-	</rule>
-	<rule ref="MediaWiki.PHP71Features.VoidReturnType.NotAllowed">
-		<exclude-pattern>make-tarball-release/</exclude-pattern>
-	</rule>
-
-	<!-- Filled as T232479 -->
+	<!-- Filed as T232479 -->
 	<rule ref="MediaWiki.Usage.ForbiddenFunctions.escapeshellarg">
 		<exclude-pattern>make-deploy-notes/uploadChangelog.php</exclude-pattern>
 	</rule>
 	<rule ref="MediaWiki.Usage.ForbiddenFunctions.shell_exec">
 		<exclude-pattern>make-deploy-notes/uploadChangelog.php</exclude-pattern>
 	</rule>
+	<exclude-pattern>vendor</exclude-pattern>
 </ruleset>

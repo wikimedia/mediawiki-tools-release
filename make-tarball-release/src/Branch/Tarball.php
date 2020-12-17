@@ -21,8 +21,8 @@
 
 namespace Wikimedia\Release\Branch;
 
-use Wikimedia\Release\Branch;
 use Wikimedia\AtEase\AtEase;
+use Wikimedia\Release\Branch;
 
 class Tarball extends Branch {
 

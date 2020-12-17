@@ -28,7 +28,7 @@ use splitbrain\phpcli\UsageException as Usage;
 use Symfony\Component\Finder\Finder;
 
 abstract class Branch {
-	const MWREPO = "mediawiki/core";
+	private const MWREPO = "mediawiki/core";
 
 	/** @var string */
 	protected $newVersion;
@@ -529,11 +529,11 @@ abstract class Branch {
 				$this->branchRepo( $repo );
 			}
 			if ( !$this->control->hasSubmodule(
-					 self::mwRepo, $repo, $dir
+					 self::MWREPO, $repo, $dir
 			) ) {
-				$this->control->addSubmodule( self::mwRepo, $repo, $dir );
+				$this->control->addSubmodule( self::MWREPO, $repo, $dir );
 			} else {
-				$this->control->checkoutSubmodule( self::mwRepo, $repo, $dir );
+				$this->control->checkoutSubmodule( self::MWREPO, $repo, $dir );
 			}
 		}
 	}
@@ -544,13 +544,13 @@ abstract class Branch {
 	public function execute() :void {
 		$branchPoints = [];
 
-		if ( !$this->control->hasBranch( self::mwRepo, $this->newVersion ) ) {
-			$this->branchRepo( self::mwRepo );
+		if ( !$this->control->hasBranch( self::MWREPO, $this->newVersion ) ) {
+			$this->branchRepo( self::MWREPO );
 		}
 
 		$this->control->ensureEmptyDir( $this->getWorkDir() );
 		$this->control->clone(
-			self::mwRepo, $this->newVersion, $this->getWorkDir()
+			self::MWREPO, $this->newVersion, $this->getWorkDir()
 		);
 		$this->branchAndAddGroup( $this->branchedExtensions );
 		$this->branchAndAddGroup( $this->specialExtensions );
@@ -651,7 +651,7 @@ abstract class Branch {
 					? $branchName
 					: $this->branchPrefix . $this->oldVersion;
 
-		$this->create( self::mwRepo );
+		$this->create( self::MWREPO );
 		$this->handleSubmodules();
 		$this->handleVersionUpdate();
 		$this->publish();
@@ -661,7 +661,7 @@ abstract class Branch {
 	 * Push the branch to gerrit.
 	 */
 	public function publish() :void {
-		$this->control->push( self::mwRepo );
+		$this->control->push( self::MWREPO );
 	}
 
 	/**

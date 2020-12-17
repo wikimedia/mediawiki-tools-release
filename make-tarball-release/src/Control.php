@@ -25,11 +25,11 @@ namespace Wikimedia\Release;
 
 use Christiaan\StreamProcess\StreamProcess;
 use Exception;
+use Hexmode\PhpGerrit\Entity\BranchInfo;
+use Hexmode\PhpGerrit\Entity\BranchInput;
+use Hexmode\PhpGerrit\GerritRestAPI;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\Factory as LoopFactory;
-use Hexmode\PhpGerrit\GerritRestAPI;
-use Hexmode\PhpGerrit\Entity\BranchInput;
-use Hexmode\PhpGerrit\Entity\BranchInfo;
 
 class Control {
 	/** @var LoggerInterface */
