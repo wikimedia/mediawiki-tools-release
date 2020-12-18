@@ -26,6 +26,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import git_archive_all
 import gzip
+import multiprocessing
 import os
 import requests
 import subprocess
@@ -33,6 +34,8 @@ import sys
 import tarfile
 import tempfile
 import zipfile
+
+import scap_lint
 
 # Force tarballs to be in GNU format to avoid Windows/7zip bugs (T257102)
 tarfile.DEFAULT_FORMAT = tarfile.GNU_FORMAT
@@ -87,6 +90,9 @@ def archive(repo, tag, output_dir, previous=None, sign=False, upload_tar=False):
             except subprocess.CalledProcessError:
                 print('Error: git tag %s is not GPG signed' % tag)
                 sys.exit(1)
+
+    print('Linting PHP and JSON files for sanity...')
+    scap_lint.check_valid_syntax('.', procs=multiprocessing.cpu_count())
 
     # First, we create the mediawiki-core tarball
     # Explicitly ignore all extensions & skins via .gitattributes,
