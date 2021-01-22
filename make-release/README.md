@@ -4,7 +4,9 @@ Releasing
 makerelease2.py: A Handy-dandy tool to pull a tagged release out of Git and
 generate:
 
-* a tarball
+* tarballs and zip files of:
+** just MediaWiki core
+** MediaWiki core and bundled skins and extensions
 * a patch to previous revision
 * GPG signatures for the above
 
