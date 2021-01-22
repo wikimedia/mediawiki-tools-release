@@ -6,7 +6,7 @@ This script is "stupid" and just archives what is in Git.
 
 Written in memory of Chad (😂).
 
-Copyright (C) 2018 Kunal Mehta <legoktm@member.fsf.org>
+Copyright (C) 2018-2021 Kunal Mehta <legoktm@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import zipfile
 
 # Force tarballs to be in GNU format to avoid Windows/7zip bugs (T257102)
 tarfile.DEFAULT_FORMAT = tarfile.GNU_FORMAT
@@ -62,8 +63,8 @@ def check_wg_version(ref):
         raise RuntimeError('MW_VERSION is not set to %s' % ref)
 
 
-def tarball_name(output_dir, ref, prefix='mediawiki'):
-    return os.path.abspath(os.path.join(output_dir, '%s-%s.tar.gz' % (prefix, ref)))
+def tarball_name(output_dir, ref, prefix='mediawiki', ext='tar.gz'):
+    return os.path.abspath(os.path.join(output_dir, '%s-%s.%s' % (prefix, ref, ext)))
 
 
 def archive(repo, tag, output_dir, previous=None, sign=False, upload_tar=False):
@@ -98,28 +99,42 @@ def archive(repo, tag, output_dir, previous=None, sign=False, upload_tar=False):
     # Note that we use a prefix of mediawiki-$tag in the tarball, but the filename
     # is mediawiki-core-$tag
     core_archiver = git_archive_all.GitArchiver(prefix='mediawiki-' + tag)
-    core_path = tarball_name(output_dir, tag, prefix='mediawiki-core')
+
+    core_only_tar = tarball_name(output_dir, tag, prefix='mediawiki-core', ext='tar.gz')
     print('Creating core tarball...')
-    core_archiver.create(output_path=core_path)
-    print('Finished creating %s' % core_path)
+    core_archiver.create(output_path=core_only_tar)
+    print('Finished creating %s' % core_only_tar)
+
+    core_only_zip = tarball_name(output_dir, tag, prefix='mediawiki-core', ext='zip')
+    print('Creating core zip...')
+    core_archiver.create(output_path=core_only_zip)
+    print('Finished creating %s' % core_only_zip)
 
     # Reset our modifications, since we want extensions & skins in this one.
     call_git(['checkout', '.gitattributes'])
 
     # Now grab the rest of the extensions/skins for the full tarball
     archiver = git_archive_all.GitArchiver(prefix='mediawiki-' + tag)
-    path = tarball_name(output_dir, tag)
-    print('Creating tarball...')
-    archiver.create(output_path=path)
-    print('Finished creating %s' % path)
-    to_sign = [core_path, path]
+
+    full_tar = tarball_name(output_dir, tag, ext='tar.gz')
+    print('Creating core + extensions + skins tarball...')
+    archiver.create(output_path=full_tar)
+    print('Finished creating %s' % full_tar)
+
+    full_zip = tarball_name(output_dir, tag, ext='zip')
+    print('Creating core + extensions + skins zip...')
+    archiver.create(output_path=full_zip)
+    print('Finished creating %s' % full_zip)
+
+    to_sign = [core_only_tar, core_only_zip, full_tar, full_zip]
+
     # TODO: Do some sanity check based on previous regressions over the tarball
     if previous:
-        prev_tarball = tarball_name(output_dir, previous)
+        prev_tarball = tarball_name(output_dir, previous, ext='tar.gz')
         if not os.path.exists(prev_tarball):
             fetch_tarball(prev_tarball, previous)
-        patch_path = patch(prev_tarball, path)
-        to_sign.append(patch_path)
+        patch_paths = patch(prev_tarball, full_tar)
+        to_sign.extend(patch_paths)
 
     if sign:
         for fname in to_sign:
@@ -141,25 +156,31 @@ def archive(repo, tag, output_dir, previous=None, sign=False, upload_tar=False):
     if is_tag:
         text = """Download:
 https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.tar.gz
+https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.zip
 
 Download without bundled extensions:
-https://releases.wikimedia.org/mediawiki/{short}/mediawiki-core-{tag}.tar.gz"""
+https://releases.wikimedia.org/mediawiki/{short}/mediawiki-core-{tag}.tar.gz
+https://releases.wikimedia.org/mediawiki/{short}/mediawiki-core-{tag}.zip"""
 
         if previous:
             text += """
 
 Patch to previous version ({previous}):
-https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.patch.gz"""
+https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.patch.gz
+https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.patch.zip"""
 
         text += """
 
 GPG signatures:
 https://releases.wikimedia.org/mediawiki/{short}/mediawiki-core-{tag}.tar.gz.sig
-https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.tar.gz.sig"""
+https://releases.wikimedia.org/mediawiki/{short}/mediawiki-core-{tag}.zip.sig
+https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.tar.gz.sig
+https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.zip.sig"""
 
         if previous:
             text += """
-https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.patch.gz.sig"""
+https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.patch.gz.sig
+https://releases.wikimedia.org/mediawiki/{short}/mediawiki-{tag}.patch.zip.sig"""
         text += """
 
 Public keys:
@@ -208,11 +229,18 @@ def patch(first, second):
         # impossible.
     except subprocess.CalledProcessError as e:
         output = e.stdout
-    patch_path = second.replace('.tar.gz', '.patch.gz')
-    with gzip.open(patch_path, 'wb') as f:
+
+    gz_patch_path = second.replace('.tar.gz', '.patch.gz')
+    with gzip.open(gz_patch_path, 'wb') as f:
         f.write(output)
-    print('Wrote patch to %s' % patch_path)
-    return patch_path
+    print('Wrote gz patch to %s' % gz_patch_path)
+
+    zip_patch_path = second.replace('.tar.gz', '.patch.zip')
+    with zipfile.ZipFile(zip_patch_path, mode='w') as f:
+        f.writestr(os.path.basename(second.replace('.tar.gz', '.patch')), output)
+    print('Wrote zip patch to %s' % zip_patch_path)
+
+    return [gz_patch_path, zip_patch_path]
 
 
 def main():
