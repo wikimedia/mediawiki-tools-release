@@ -91,8 +91,22 @@ def archive(repo, tag, output_dir, previous=None, sign=False, upload_tar=False):
                 print('Error: git tag %s is not GPG signed' % tag)
                 sys.exit(1)
 
-    print('Linting PHP and JSON files for sanity...')
-    scap_lint.check_valid_syntax('.', procs=multiprocessing.cpu_count())
+    try:
+        print('Linting PHP and JSON files for sanity...')
+        scap_lint.check_valid_syntax('.', procs=multiprocessing.cpu_count())
+        print('Finished linting PHP and JSON files')
+    except subprocess.CalledProcessError as err:
+        print('Failed')
+
+        # Output whatever was output to stderr, unless it's xargs complaining
+        for line in err.stderr.decode('UTF-8').splitlines():
+            if "xargs" not in line:
+                print(line)
+        return
+    except ValueError as err:
+        print('Failed')
+        print(err)
+        return
 
     # First, we create the mediawiki-core tarball
     # Explicitly ignore all extensions & skins via .gitattributes,

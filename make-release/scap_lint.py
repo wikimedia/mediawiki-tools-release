@@ -44,10 +44,12 @@ def check_valid_syntax(paths, procs=1):
         "%s "
         "-not -type d "  # makes no sense to lint a dir named 'less.php'
         "-name '*.php' -not -name 'autoload_static.php' "
-        " -or -name '*.inc' | xargs -n1 -P%d -exec php -l >/dev/null 2>&1"
+        " -or -name '*.inc' | xargs -n1 -P%d -exec php -l"
     ) % (" ".join(quoted_paths), procs)
+
     logger.debug("Running command: `%s`", cmd)
-    subprocess.check_call(cmd, shell=True)
+    subprocess.run(cmd, shell=True, check=True, capture_output=True)
+
     # Check validity of PHP and JSON files being synced
     for path in paths:
         if os.path.isfile(path):
