@@ -10,10 +10,7 @@
 	<arg name="report" value="full"/>
 	<arg name="report" value="summary"/>
 
-	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
-		<exclude name="Generic.PHP.BacktickOperator.Found"/>
-		<exclude name="MediaWiki.Usage.ForbiddenFunctions.passthru"/>
-	</rule>
+	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki" />
 
 	<rule ref="MediaWiki.NamingConventions.PrefixedGlobalFunctions.wfPrefix">
 		<severity>0</severity>
