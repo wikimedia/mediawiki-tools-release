@@ -147,6 +147,7 @@ bundles:
         - "mediawiki/extensions/PageAssessments"
         - "mediawiki/extensions/PagedTiffHandler"
         - "mediawiki/extensions/PageImages"
+        - "mediawiki/extensions/PageNotice"
         - "mediawiki/extensions/PageTriage"
         - "mediawiki/extensions/PageViewInfo"
         - "mediawiki/extensions/ParserFunctions"
