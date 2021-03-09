@@ -204,8 +204,10 @@ assert_repository_is_updated() {
 
 select_git_push_dest() {
     if [ "$(cat /etc/wikimedia-cluster)" = "dev" ]; then
-        # Plain git is used in the train dev environment
-        echo master
+        # In train-dev environment:
+        # * Use plain git
+        # * Use the current branch name
+        git symbolic-ref --short HEAD
     else
         # Gerrit is used in production
         echo "refs/for/master%topic=${VERSION},l=Code-Review+2"
