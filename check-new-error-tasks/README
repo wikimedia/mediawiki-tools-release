@@ -1,0 +1,20 @@
+A script for checking Phabricator tasks mentioned on the mediawiki-new-errors
+dashboard in logstash.
+
+Prerequisites:
+
+  jq       - sudo apt install jq
+  arcanist - https://wikitech.wikimedia.org/wiki/Help:Arcanist
+
+Once you have arcanist installed, you'll need to get a token with:
+
+  $ arc set-config default https://phabricator.wikimedia.org/
+  $ arc install-certificate
+
+For usage info:
+
+  ./check.sh --help
+
+To run:
+
+  ./check.sh
