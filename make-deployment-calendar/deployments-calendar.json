@@ -25,10 +25,10 @@
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to Puppet change''",
             "window": "[[Puppet request window]]<br/><small>'''(Max 6 patches)'''</small>"
         },
-        "sanity": {
+        "break": {
             "deployer": "",
             "what": "No Deploys",
-            "window": "Pre MediaWiki train sanity break"
+            "window": "Pre MediaWiki train break"
         },
         "train_log_triage": {
             "deployer": "<%= train_deployer %> + CPT",
@@ -162,7 +162,7 @@
         ],
         "tue": [
             {
-                "name": "sanity",
+                "name": "break",
                 "hour": "11"
             },
             {
@@ -250,7 +250,7 @@
         ],
         "tue-thu": [
             {
-                "name": "sanity",
+                "name": "break",
                 "hour": "05"
             }
         ],
@@ -315,7 +315,7 @@
         ],
         "tue": [
             {
-                "name": "sanity",
+                "name": "break",
                 "hour": "11"
             },
             {
@@ -449,7 +449,7 @@
         ],
         "tue-thu": [
             {
-                "name": "sanity",
+                "name": "break",
                 "hour": "05"
             }
         ],
