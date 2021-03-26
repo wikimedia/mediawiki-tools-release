@@ -9,4 +9,4 @@ if __name__ == '__main__':
     monday = deploymentcalendar.findtrain.get_next_monday(start_date=args.start_date)
 
     tf = deploymentcalendar.findtrain.find_train_finder(monday)
-    print(deploymentcalendar.get_schedule(tf, deploymentcalendar.DEFAULT_CONFIG))
+    print(deploymentcalendar.get_schedule(tf, deploymentcalendar.DEFAULT_CONFIG, wiki_fmt='ve'))

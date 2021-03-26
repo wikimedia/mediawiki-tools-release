@@ -388,13 +388,14 @@ def make_deployers(train):
     return ', '.join([primary, secondary])
 
 
-def get_schedule(trainfinder, config):
+def get_schedule(trainfinder, config, wiki_fmt='old'):
     if trainfinder.is_declined:
         return run(
             trainfinder.date,
             config,
             schedules=['NoTrain'],
-            train=None
+            train=None,
+            wiki_fmt=wiki_fmt
         )
     else:
         deployers = make_deployers(trainfinder.next)
@@ -412,7 +413,8 @@ def get_schedule(trainfinder, config):
             trainfinder.date,
             config,
             schedules=[trainfinder.next.schedule],
-            train=train
+            train=train,
+            wiki_fmt=wiki_fmt
         )
 
 
@@ -485,7 +487,7 @@ def parse_args(argv=None):
     ap.add_argument(
         '--wikitext-format',
         choices=['old', 've'],
-        default='old',
+        default='ve',
         help='Wikitext format (old or ve)'
     )
     parsed = vars(ap.parse_args(argv))

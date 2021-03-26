@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     new_week = '\n\n{}\n\n'.format(
         deploymentcalendar.get_schedule(
-            tf, deploymentcalendar.DEFAULT_CONFIG
+            tf, deploymentcalendar.DEFAULT_CONFIG, wiki_fmt='ve'
         )
     )
 
