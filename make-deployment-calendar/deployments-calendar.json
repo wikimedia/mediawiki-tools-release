@@ -50,10 +50,20 @@
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
         },
+        "eu_training": {
+            "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|apergos|Ariel}}, {{ircnick|duesen|Daniel}}",
+            "what": "Training to do backport and config deployment. To sign up for deployment training use the [https://phabricator.wikimedia.org/project/profile/5265/ Deployment Training Request phabricator milestone]\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
+            "window": "[[Backport windows|EU Backport and Config training]]<br/><small>'''(Max 6 patches)'''</small>"
+        },
         "us_backport": {
             "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Niharika|Niharika}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''(Max 6 patches)'''</small>"
+        },
+        "us_training": {
+            "deployer": "{{ircnick|brennen|Brennen}}",
+            "what": "Training to do backport and config deployment. To sign up for deployment training use the [https://phabricator.wikimedia.org/project/profile/5265/ Deployment Training Request phabricator milestone]\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
+            "window": "[[Backport windows|US Backport and Config training]]<br/><small>'''(Max 6 patches)'''</small>"
         },
         "train": {
             "deployer": "<%= train_deployer %>",
@@ -195,9 +205,17 @@
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
                 }
-            }
+            },
+			{
+				"name": "eu_training",
+				"hour": "04"
+			},
+			{
+				"name": "us_training",
+				"hour": "16"
+			}
         ],
-        "mon-thu": [
+        "mon-wed": [
             {
                 "name": "eu_backport",
                 "hour": "04",
@@ -246,6 +264,21 @@
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
                 }
+            },
+            {
+                "name": "eu_training",
+                "hour": "04"
+            },
+            {
+                "name": "us_training",
+                "hour": "16"
+            },
+            {
+                "name": "us_backport",
+                "hour": "11",
+                "vars": {
+                    "window_name": "Morning backport window"
+                }
             }
         ],
         "tue-thu": [
@@ -254,7 +287,7 @@
                 "hour": "05"
             }
         ],
-        "mon-thu": [
+        "mon-wed": [
             {
                 "name": "eu_backport",
                 "hour": "04",
@@ -279,7 +312,7 @@
         ]
     },
     "schedule@NoTrain": {
-        "mon-thu": [
+        "mon-wed": [
             {
                 "name": "eu_backport",
                 "hour": "04",
@@ -300,6 +333,16 @@
                 "vars": {
                     "window_name": "Morning backport window"
                 }
+            }
+        ],
+        "thu": [
+            {
+                "name": "eu_training",
+                "hour": "04"
+            },
+            {
+                "name": "us_training",
+                "hour": "16"
             }
         ]
     },
@@ -366,9 +409,17 @@
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
                 }
+            },
+            {
+                "name": "eu_training",
+                "hour": "04"
+            },
+            {
+                "name": "us_training",
+                "hour": "16"
             }
         ],
-        "mon-thu": [
+        "mon-wed": [
             {
                 "name": "eu_backport",
                 "hour": "04",
@@ -445,6 +496,21 @@
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
                 }
+            },
+            {
+                "name": "us_backport",
+                "hour": "11",
+                "vars": {
+                    "window_name": "Morning backport window"
+                }
+            },
+            {
+                "name": "eu_training",
+                "hour": "04"
+            },
+            {
+                "name": "us_training",
+                "hour": "16"
             }
         ],
         "tue-thu": [
@@ -453,7 +519,7 @@
                 "hour": "05"
             }
         ],
-        "mon-thu": [
+        "mon-wed": [
             {
                 "name": "eu_backport",
                 "hour": "04",
