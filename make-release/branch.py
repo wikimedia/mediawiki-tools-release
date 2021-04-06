@@ -33,6 +33,8 @@ def parse_args():
                         help='Skip code review and push the branch.')
     parser.add_argument('--noop', dest='noop', action='store_true',
                         help='Just dump the list of submodules to stdout')
+    parser.add_argument('--push-option', dest='push_options', action='append',
+                        help='Push options (e.g. "l=Code-Review+2").')
     parser.add_argument('--delete', dest='delete', action='store_true',
                         help='Delete the branch instead of creating one')
     parser.add_argument('--task', dest='task', default=None,

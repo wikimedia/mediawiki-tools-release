@@ -152,9 +152,13 @@ MWVERSION_REGEX = re.compile(
     re.MULTILINE | re.VERBOSE)
 
 
-def do_core_work(branch, bundle, version, no_review=False, task=None):
+def do_core_work(branch, bundle, version, no_review=False, task=None,
+                 push_options=None):
     """Add submodules, bump MW_VERSION, etc"""
     cwd = os.getcwd()
+
+    if push_options is None:
+        push_options = []
 
     with clone('mediawiki/core'):
         # Install Gerrit's commit-msg hook for Change-Id generation
@@ -228,13 +232,15 @@ def do_core_work(branch, bundle, version, no_review=False, task=None):
         else:
             refspec = 'HEAD:refs/for/%s' % branch
 
-        git('push', 'origin', refspec)
+        git('push', 'origin', refspec,
+            *['--push-option=%s' % opt for opt in push_options])
 
     os.chdir(cwd)
 
 
 def branch(branch, branch_point, bundle=None, core=False, core_bundle=None,
-           core_version=None, no_review=False, noop=False, delete=False, task=None):
+           core_version=None, no_review=False, noop=False, push_options=None,
+           delete=False, task=None):
     """Performs branch creation for the given bundle and/or core."""
 
     if bundle:
@@ -250,4 +256,5 @@ def branch(branch, branch_point, bundle=None, core=False, core_bundle=None,
         return
     elif core and core_version:
         create_branch('mediawiki/core', branch, branch_point)
-        do_core_work(branch, core_bundle, core_version, no_review, task)
+        do_core_work(branch, core_bundle, core_version, no_review, task,
+                     push_options)
