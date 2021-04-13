@@ -68,12 +68,12 @@
         "train": {
             "deployer": "<%= train_deployer %>",
             "what": "<%= roadmap %>\n<%= minical %>\n* <%= group %>\n* '''Blockers: {{phabricator|<%= train_blocker_task %>}}'''",
-            "window": "Mediawiki train - <%= version %> Version"
+            "window": "MediaWiki train - <%= version %> Version"
         },
         "train_secondary": {
             "deployer": "<%= train_deployer %>",
             "what": "<%= roadmap %>\n<%= minical %>\n* <%= group %>\n* '''Blockers: {{phabricator|<%= train_blocker_task %>}}'''",
-            "window": "Mediawiki train - <%= version %> Version (secondary timeslot)"
+            "window": "MediaWiki train - <%= version %> Version (secondary timeslot)"
         },
         "wdqs": {
             "deployer": "{{ircnick|ryankemper|Ryan}}",
