@@ -38,7 +38,8 @@ class DeploymentPage(object):
         in_weeks = False
         for section in self.wikicode.get_sections():
             headings = section.filter_headings()
-            if 'week of' in '\n'.join([str(x).lower() for x in headings]):
+            heading_text = '\n'.join([str(x).lower() for x in headings])
+            if 'week of' in heading_text or 'deployment_day' in heading_text:
                 in_weeks = True
             else:
                 if in_weeks:
