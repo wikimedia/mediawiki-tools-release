@@ -54,6 +54,7 @@ bundles:
         - "mediawiki/extensions/CentralNotice"
         - "mediawiki/extensions/CharInsert"
         - "mediawiki/extensions/CheckUser"
+        - "mediawiki/extensions/ChessBrowser"
         - "mediawiki/extensions/CirrusSearch"
         - "mediawiki/extensions/Cite"
         - "mediawiki/extensions/CiteThisPage"
