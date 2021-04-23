@@ -132,6 +132,7 @@ bundles:
         - "mediawiki/extensions/MassMessage"
         - "mediawiki/extensions/Math"
         - "mediawiki/extensions/MediaModeration"
+        - "mediawiki/extensions/MediaSearch"
         - "mediawiki/extensions/MobileApp"
         - "mediawiki/extensions/MobileFrontend"
         - "mediawiki/extensions/MultimediaViewer"
