@@ -92,7 +92,7 @@ def archive(repo, tag, output_dir, previous=None, sign=False, upload_tar=False):
                 sys.exit(1)
 
     try:
-        print('Linting PHP and JSON files for sanity...')
+        print('Linting PHP and JSON files for validity...')
         scap_lint.check_valid_syntax('.', procs=multiprocessing.cpu_count())
         print('Finished linting PHP and JSON files')
     except subprocess.CalledProcessError as err:
