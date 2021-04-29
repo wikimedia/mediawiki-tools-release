@@ -116,7 +116,6 @@ bundles:
         - "mediawiki/extensions/Interwiki"
         - "mediawiki/extensions/InterwikiSorting"
         - "mediawiki/extensions/IPInfo"
-        - "mediawiki/extensions/Jade"
         - "mediawiki/extensions/Josa"
         - "mediawiki/extensions/JsonConfig"
         - "mediawiki/extensions/Kartographer"
