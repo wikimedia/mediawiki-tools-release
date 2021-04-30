@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from contextlib import contextmanager
 import os
 import re
@@ -50,14 +52,21 @@ def git(*args, **kwargs):
     return subprocess.run(('/usr/bin/git',) + args, check=True, **kwargs)
 
 
-def create_branch(repository, branch, revision):
+def create_branch(repository, branch, revision, noop=False):
     """Create a branch for a given repo."""
 
     try:
         revision = get_branchpoint(branch, repository, revision)
 
+        if noop:
+            print("Would do: ", end='')
+
         print('Branching {} to {} from {}'.format(
             repository, branch, revision))
+
+        if noop:
+            return
+
         gerrit_client().put(
             '/projects/%s/branches/%s' % (
                 repository.replace('/', '%2F'),
@@ -74,30 +83,52 @@ def create_branch(repository, branch, revision):
             raise
 
 
-def delete_branch(repository, branch):
+def delete_branch(repository, branch, convert_to_tag=True, noop=False):
     """delete a branch for a given repo."""
     if len(branch) < 1:
         raise ValueError('Invalid branch name: "%s"' % (branch))
     elif len(repository) < 1:
         raise ValueError('Invalid repo name: "%s"' % (repository))
-    else:
-        print('/projects/%s/branches/%s' % (
-                repository.replace('/', '%2F'),
-                branch.replace('/', '%2F')),
-              )
 
-    try:
-        gerrit_client().delete(
-            '/projects/%s/branches/%s' % (
-                repository.replace('/', '%2F'),
-                branch.replace('/', '%2F')),
-        )
-    except HTTPError as httpe:
-        if httpe.response.status_code == 404:
-            print("Repo %s doesn't have a branch named %s" %
-                  (repository, branch))
+    branch_url = '/projects/%s/branches/%s' % (
+        repository.replace('/', '%2F'),
+        branch.replace('/', '%2F'))
+
+    if convert_to_tag:
+        # Collect the commit id that the branch currently points to.
+        branch_info = gerrit_client().get(branch_url)
+        rev = branch_info['revision']
+
+        tag_url = '/projects/%s/tags/%s' % (
+            repository.replace('/', '%2F'),
+            branch.replace('/', '%2F'))
+
+        # Create a tag that points to that commit
+        message = 'archive of branch %s' % (branch)
+        tag = {'message': message,
+               'revision': rev}
+
+        if noop:
+            print("Would create tag %s pointing to %s" % (branch, rev))
         else:
-            raise
+            try:
+                tag_resp = gerrit_client().put(tag_url, tag)
+                print("Created %s" % tag_resp[0]['web_links'][0]['url'])
+            except Exception as e:
+                print("Failed to create tag %s: %s\nMoving on." % (branch, e))
+
+    # Delete the branch.
+    if noop:
+        print("Would delete branch %s" % (branch))
+    else:
+        try:
+            gerrit_client().delete(branch_url)
+        except HTTPError as httpe:
+            if httpe.response.status_code == 404:
+                print("Repo %s doesn't have a branch named %s" %
+                      (repository, branch))
+            else:
+                raise
 
 
 def get_bundle(bundle, conf=None):
@@ -153,8 +184,13 @@ MWVERSION_REGEX = re.compile(
 
 
 def do_core_work(branch, bundle, version, no_review=False, task=None,
-                 push_options=None):
+                 push_options=None, noop=False):
     """Add submodules, bump MW_VERSION, etc"""
+
+    if noop:
+        print("Not doing core work")
+        return
+
     cwd = os.getcwd()
 
     if push_options is None:
@@ -240,21 +276,21 @@ def do_core_work(branch, bundle, version, no_review=False, task=None,
 
 def branch(branch, branch_point, bundle=None, core=False, core_bundle=None,
            core_version=None, no_review=False, noop=False, push_options=None,
-           delete=False, task=None):
+           delete=False, task=None, skip_tag=False):
     """Performs branch creation for the given bundle and/or core."""
 
     if bundle:
         for repo in get_bundle(bundle):
-            if noop:
-                print(repo)
-            elif delete:
-                delete_branch(repo, branch)
+            if delete:
+                delete_branch(repo, branch, noop=noop, convert_to_tag=not skip_tag)
             else:
-                create_branch(repo, branch, branch_point)
+                create_branch(repo, branch, branch_point, noop=noop)
 
-    if noop or delete:
-        return
-    elif core and core_version:
-        create_branch('mediawiki/core', branch, branch_point)
-        do_core_work(branch, core_bundle, core_version, no_review, task,
-                     push_options)
+    if core:
+        if delete:
+            delete_branch('mediawiki/core', branch, noop=noop, convert_to_tag=not skip_tag)
+        else:
+            create_branch('mediawiki/core', branch, branch_point, noop=noop)
+            if core_version:
+                do_core_work(branch, core_bundle, core_version, no_review, task,
+                             push_options, noop=noop)

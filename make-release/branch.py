@@ -37,6 +37,8 @@ def parse_args():
                         help='Push options (e.g. "l=Code-Review+2").')
     parser.add_argument('--delete', dest='delete', action='store_true',
                         help='Delete the branch instead of creating one')
+    parser.add_argument('--skip-tag', dest='skip_tag', action='store_true',
+                        help="Don't convert a branch to a tag when deleting")
     parser.add_argument('--task', dest='task', default=None,
                         help='Phabricator task for this branch.')
 

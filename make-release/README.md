@@ -55,9 +55,17 @@ Branching
 Using branch.py to create a new wmf production branch for the MediaWiki train:
 
 ```
+# Create a branch
 ./branch.py --core \
             --core-bundle wmf_core \
             --bundle wmf_branch \
             --branchpoint origin/HEAD \
             --core-version <VERSION>
+
+# Convert a branch to a tag and delete the branch
+./branch.py --core \
+            --core-bundle wmf_core \
+            --bundle wmf_branch \
+            --delete \
+            <VERSION>
 ```
