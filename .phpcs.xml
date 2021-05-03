@@ -5,7 +5,7 @@
 	<exclude-pattern>make-deploy-notes/botclasses\.php</exclude-pattern>
 	<exclude-pattern>make-release/mediawiki\-*</exclude-pattern>
 
-	<arg name="encoding" value="utf-8"/>
+	<arg name="encoding" value="UTF-8"/>
 	<arg name="extensions" value="php"/>
 	<arg name="report" value="full"/>
 	<arg name="report" value="summary"/>
