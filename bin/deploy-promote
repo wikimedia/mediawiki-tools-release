@@ -221,34 +221,52 @@ commit_has_arrived() {
     git log HEAD..FETCH_HEAD | grep -q "$changeid"
 }
 
+file_updated() {
+    local file="$1"
+
+    git status --porcelain "$file" | grep -q '^ M'
+}
+
 update_versions() {
     set -e
 
     cd /srv/mediawiki-staging/
 
     scap update-wikiversions "$GRP" "${VERSION}"
-    git add "$(wikiversions_filename)"
-    git add php
+
     MSG="${GRP} wikis to ${VERSION}"
     if [[ "$PROMOTE_MSG" != "" ]]; then
         MSG="${MSG} ${PROMOTE_MSG}"
     fi
-    git commit -m "$MSG"
-    local changeid=$(git log -1 | grep Change-Id:)
-    git push origin "HEAD:$(select_git_push_dest)"
-    git reset --hard HEAD^
 
-    echo -n "Waiting for jenkins to merge the patch"
+    local files_to_commit="$(wikiversions_filename) php"
+    local changed=
 
-    while ! commit_has_arrived "$changeid"; do
-        echo -n "."
-        sleep 5
+    for file in $files_to_commit; do
+       if file_updated "$file"; then
+           git add "$file"
+           changed=1
+       fi
     done
-    echo
 
-    notify "Running git pull"
+    if [ "$changed" ]; then
+       git commit -m "$MSG"
+       local changeid=$(git log -1 | grep Change-Id:)
+       git push origin "HEAD:$(select_git_push_dest)"
+       git reset --hard HEAD^
 
-    git pull
+       echo -n "Waiting for jenkins to merge the patch"
+
+       while ! commit_has_arrived "$changeid"; do
+            echo -n "."
+            sleep 5
+       done
+       echo
+
+       notify "Running git pull"
+
+       git pull
+    fi
 
     if [[ "$GRP" == "testwikis" ]]; then
         notify "Running scap sync-world"
