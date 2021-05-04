@@ -320,8 +320,8 @@ main() {
 	esac
     done
 
-    OLDVERSION=$(scap wikiversions-inuse | tr ' ' '\n' | sort --version-sort | head -1)
-    NEWVERSION=$(scap wikiversions-inuse | tr ' ' '\n' | sort --version-sort | head -2 | tail -1)
+    OLDVERSION=$(scap wikiversions-inuse --staging | tr ' ' '\n' | sort --version-sort | head -1)
+    NEWVERSION=$(scap wikiversions-inuse --staging | tr ' ' '\n' | sort --version-sort | head -2 | tail -1)
     GRP="${1:-group1}"
     VERSION="${2:-$NEWVERSION}"
 
