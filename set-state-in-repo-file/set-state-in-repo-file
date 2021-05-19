@@ -1,0 +1,183 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+scriptdir=$(dirname "$(readlink -f "$0")")
+
+auto_approve=y
+max_retries=3
+
+function usage {
+    cat <<EOF
+Usage: $0 repo-url repo-branch repo-dir target-filename update-program ...args...
+
+* Clones REPO-URL to REPO-DIR, on REPO-BRANCH.
+  If REPO-DIR already exists, it will be reset and updated.
+
+* The working directory is changed to REPO-DIR.
+
+* Runs UPDATE-PROGRAM with the specified arguments.
+
+* UPDATE-PROGRAM is expected to modify TARGET-FILENAME (which must be
+  a file inside REPO-DIR).  If TARGET-FILENAME is unmodified, the
+  program exits.  If TARGET-FILENAME is modified, the change will be
+  committed and pushed to Gerrit and code-review +2'd.  Then wait up
+  to 5 minutes for the change to be merged.  Rebases will happen
+  automatically if needed.
+
+* REPO-DIR remains in place on termination, for later reuse.
+
+EOF
+    git_env_vars_text
+    exit 1
+}
+
+function git_env_vars_text {
+    cat <<EOF
+The following environment variables must be set before this script can run.
+
+GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL, GIT_COMMITTER_NAME, GIT_COMMITTER_EMAIL
+EOF
+}
+
+function check_prereqs {
+    if [ "${GIT_AUTHOR_NAME:-}" ] && [ "${GIT_AUTHOR_EMAIL:-}" ] && [ "${GIT_COMMITTER_NAME:-}" ] && [ "${GIT_COMMITTER_EMAIL:-}" ]; then
+        return 0
+    else
+        git_env_vars_text
+        exit 1
+    fi
+}
+
+function echo2 {
+    echo "$@" 1>&2
+}
+
+function refresh_repo {
+    local repo_url="$1"
+    local repo_branch="$2"
+    local repo_dir="$3"
+    
+    if [ -d "$repo_dir" ]; then
+        git -C "$repo_dir" fetch origin "$repo_branch"
+        git -C "$repo_dir" reset --hard FETCH_HEAD
+    else
+        git clone --depth=1 -b "$repo_branch" "$repo_url" "$repo_dir"
+        # Install the commit-msg hook which adds Change-Id to commit messages.
+        curl -sSf -o "$repo_dir/.git/hooks/commit-msg" https://gerrit.wikimedia.org/r/tools/hooks/commit-msg
+        chmod +x "$repo_dir/.git/hooks/commit-msg"
+    fi
+}
+
+# Updates global variable 'changeid'
+function get_change_id {
+    changeid=$(git log -1 | grep -F 'Change-Id: ' | awk '{print $2}')
+
+    if [ -z "$changeid" ]; then
+        echo "Expected commit to have a Change-Id in the commit message but it didn't."
+        exit 1
+    fi
+}
+
+function make_commit {
+    local commitmsgfile
+    commitmsgfile=$(mktemp)
+    
+    git add "$target_filename"
+
+    cat <<EOF > "$commitmsgfile"
+Update $target_filename
+
+Ran: $@
+EOF
+
+    if [ "$changeid" ]; then
+        echo "Making a commit reusing $changeid"
+        cat <<EOF >> "$commitmsgfile"
+
+Change-Id: $changeid
+EOF
+    fi
+
+    git commit -F "$commitmsgfile" "$target_filename"
+    rm "$commitmsgfile"
+    get_change_id
+    echo "changeid is ${changeid}"
+}
+
+function change_id_to_num {
+    local change_id="$1"
+    
+    curl -fsS "https://gerrit.wikimedia.org/r/changes/$change_id" | tail +2 | jq ._number
+}
+
+function cleanup_and_exit {
+    local exit_code="$1"
+
+    if [ "$exit_code" -ne 0 ]; then
+        echo "FIXME: Should abandon change ${change_num} but not done yet"
+    fi
+
+    exit "$exit_code"
+}
+
+function get_push_target {
+    local res="refs/for/${repo_branch}"
+
+    if [ "$auto_approve" ]; then
+        res="${res}%l=Code-Review+2"
+    fi
+
+    echo "$res"
+}
+
+if [ $# -lt 5 ]; then
+    usage
+fi
+
+check_prereqs
+
+repo_url="$1"
+repo_branch="$2"
+repo_dir=$(readlink -f "$3") # Convert to an absolute path
+target_filename="$4"
+shift 4
+
+changeid=
+
+tries=1
+while [ "$tries" -le "$max_retries" ]; do
+    refresh_repo "$repo_url" "$repo_branch" "$repo_dir"
+
+    cd "$repo_dir"
+
+    hash_before=$(md5sum "$target_filename")
+    
+    # Run the update program
+    echo Running "$@"
+    "$@"
+
+    hash_after=$(md5sum "$target_filename")
+
+    if [ "$hash_before" = "$hash_after" ]; then
+        echo "$target_filename was not changed by $*.  Exiting"
+        cleanup_and_exit 0
+    fi
+
+    make_commit "$@"
+    git push origin "HEAD:$(get_push_target)"
+    change_num=$(change_id_to_num "$changeid")
+    if "$scriptdir/poll-change" "$change_num"; then
+        cleanup_and_exit 0
+    elif [ "$?" -eq 10 ]; then
+        echo Commit needs to be rebased. Retrying operation
+    else
+        # Something else (timeout, change abandoned, or something unexpected)
+        cleanup_and_exit 1
+    fi
+
+    ((tries++))
+done
+# Reach here is retry count exceeded
+echo "Tried to merge $tries time without success.  Aborting"
+cleanup_and_exit 1

@@ -1,0 +1,141 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+# Give up waiting for the status to change after this number of seconds.
+timeout=300
+
+# poll interval
+interval=5
+
+# say what is happening.   Set to blank to disable.
+verbose=1
+
+
+EXIT_MERGED=0
+EXIT_NEEDS_REBASE=10
+EXIT_TIMEOUT=20
+EXIT_ABANDONED=30
+
+function usage {
+    cat <<EOF
+Usage: $0 changenum
+
+Waits for the specified Gerrit change to be merged.
+
+Exit status:
+
+$EXIT_MERGED: Change was merged
+$EXIT_NEEDS_REBASE: Change needs to be rebased
+$EXIT_TIMEOUT: Timeout
+$EXIT_ABANDONED: Change has been abandoned
+anything else: Something unexpected happened
+EOF
+
+    exit 1
+}
+
+if [ "$#" -ne 1 ]; then
+    usage
+fi
+
+changenum="$1"
+
+start=$(date +%s)
+
+function timed_out {
+    local now=
+    local elapsed
+
+    now=$(date +%s)
+    elapsed=$((now - start))
+    
+    [ "$elapsed" -ge "$timeout" ]
+}
+
+function say {
+    if [ "$verbose" ]; then
+        echo "$@"
+    fi
+}
+
+tmpfile=
+function curl_change {
+    local changenum="$1"
+
+    if [ -z "$tmpfile" ]; then
+        tmpfile=$(mktemp)
+        trap 'rm -f $tmpfile' EXIT
+    fi
+    
+    # https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-change-detail
+    curl -fsS "https://gerrit.wikimedia.org/r/changes/$changenum/detail" | tail +2 > "$tmpfile"
+}
+
+function change_status {
+    local changenum="$1"
+
+    jq -r .status < "$tmpfile"
+}
+
+function change_is_mergeable {
+    local changenum="$1"
+
+    [ "$(jq -r .mergeable < "$tmpfile")" == "true" ]
+}
+
+function get_change_state {
+    local changenum="$1"
+
+    curl_change "$changenum"
+
+    status=$(change_status "$changenum")
+
+    case "$status" in
+        MERGED)
+            echo "merged"
+            return
+            ;;
+        ABANDONED)
+            echo "abandoned"
+            return
+            ;;
+    esac
+
+    if ! change_is_mergeable "$changenum"; then
+        echo "needs_rebase"
+        return
+    else
+        echo "open"
+        return
+    fi
+}
+
+while ! timed_out; do
+    state=$(get_change_state "$changenum")
+
+    case "$state" in
+        open)
+            say "Change $changenum is not merged yet. Sleeping for $interval seconds"
+            sleep $interval
+            ;;
+        merged)
+            say "Change $changenum has been merged"
+            exit $EXIT_MERGED
+            ;;
+        needs_rebase)
+            say "Change $changenum needs to be rebased"
+            exit $EXIT_NEEDS_REBASE
+            ;;
+        abandoned)
+            say "Change $changenum was abandoned"
+            exit $EXIT_ABANDONED
+            ;;
+        *)
+            say "Unexpected state returned from get_change_state: $state"
+            exit 1
+            ;;
+    esac
+done
+say "Timeout: Change $changenum was not merged within $timeout seconds"
+exit $EXIT_TIMEOUT
