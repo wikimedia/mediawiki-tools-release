@@ -43,14 +43,14 @@ changenum="$1"
 
 start=$(date +%s)
 
-function timed_out {
-    local now=
-    local elapsed
-
-    now=$(date +%s)
-    elapsed=$((now - start))
+# Writes to stdout the number of seconds that have elapsed since the
+# start of this script.
+function seconds_elapsed {
+    echo $(($(date +%s) - start))
+}
     
-    [ "$elapsed" -ge "$timeout" ]
+function timed_out {
+    [ "$(seconds_elapsed)" -ge "$timeout" ]
 }
 
 function say {
@@ -120,7 +120,7 @@ while ! timed_out; do
             sleep $interval
             ;;
         merged)
-            say "Change $changenum has been merged"
+            say "Change $changenum has been merged after $(seconds_elapsed) seconds"
             exit $EXIT_MERGED
             ;;
         needs_rebase)

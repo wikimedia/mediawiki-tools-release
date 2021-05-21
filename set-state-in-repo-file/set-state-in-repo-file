@@ -49,6 +49,10 @@ function check_prereqs {
     fi
 }
 
+function announce {
+    echo "*** $@ ***"
+}
+
 function echo2 {
     echo "$@" 1>&2
 }
@@ -59,9 +63,11 @@ function refresh_repo {
     local repo_dir="$3"
     
     if [ -d "$repo_dir" ]; then
+        announce "Refreshing $repo_dir"
         git -C "$repo_dir" fetch origin "$repo_branch"
         git -C "$repo_dir" reset --hard FETCH_HEAD
     else
+        announce "Cloning $repo_url (branch: $repo_branch)"
         git clone --depth=1 -b "$repo_branch" "$repo_url" "$repo_dir"
         # Install the commit-msg hook which adds Change-Id to commit messages.
         curl -sSf -o "$repo_dir/.git/hooks/commit-msg" https://gerrit.wikimedia.org/r/tools/hooks/commit-msg
@@ -88,7 +94,8 @@ function make_commit {
     cat <<EOF > "$commitmsgfile"
 Update $target_filename
 
-Ran: $@
+Ran $@
+
 EOF
 
     if [ "$changeid" ]; then
@@ -154,23 +161,26 @@ while [ "$tries" -le "$max_retries" ]; do
     hash_before=$(md5sum "$target_filename")
     
     # Run the update program
-    echo Running "$@"
+    announce "Running $@"
     "$@"
 
     hash_after=$(md5sum "$target_filename")
 
     if [ "$hash_before" = "$hash_after" ]; then
-        echo "$target_filename was not changed by $*.  Exiting"
+        announce "$target_filename was not changed by $*.  Exiting"
         cleanup_and_exit 0
     fi
 
+    announce "Creating a commit"
     make_commit "$@"
+    announce "Pushing to Gerrit"
     git push origin "HEAD:$(get_push_target)"
     change_num=$(change_id_to_num "$changeid")
+    announce "Waiting for commit to be merged"
     if "$scriptdir/poll-change" "$change_num"; then
         cleanup_and_exit 0
     elif [ "$?" -eq 10 ]; then
-        echo Commit needs to be rebased. Retrying operation
+        announce Commit needs to be rebased. Retrying operation
     else
         # Something else (timeout, change abandoned, or something unexpected)
         cleanup_and_exit 1
@@ -179,5 +189,5 @@ while [ "$tries" -le "$max_retries" ]; do
     ((tries++))
 done
 # Reach here is retry count exceeded
-echo "Tried to merge $tries time without success.  Aborting"
+announce "Tried to merge $tries time without success.  Aborting"
 cleanup_and_exit 1
