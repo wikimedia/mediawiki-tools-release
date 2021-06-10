@@ -9,8 +9,9 @@ Usage: $0 TRAIN-VERSION IMAGE-TAG
 Updates the train-versions.json file in the current directory,
 creating it if it doesn't exist.
 
-TRAIN-VERSION must be something like "1.37.0-wmf.5".
-IMAGE-TAG is the tag created by the pipeline.              
+TRAIN-VERSION must be something like "1.37.0-wmf.5" or "wmf/1.37.0-wmf.5".
+
+IMAGE-TAG is the tag created by the pipeline.
 
 EOF
     exit 1
@@ -27,6 +28,10 @@ image_tag="$2"
 if [ ! -f train-versions.json ]; then
     echo '{}' > train-versions.json
 fi
+
+# Strip any leading wmf/ from the version.
+train_version=${train_version##wmf/}
+
 cat train-versions.json | jq ".\"${train_version}\"=\"${image_tag}\"" > train-versions.json.tmp
 mv train-versions.json.tmp train-versions.json
 
