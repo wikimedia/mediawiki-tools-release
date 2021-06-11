@@ -70,6 +70,11 @@
             "what": "<%= roadmap %>\n<%= minical %>\n* <%= group %>\n* '''Blockers: {{phabricator|<%= train_blocker_task %>}}'''",
             "window": "MediaWiki train - <%= version %> Version"
         },
+        "train_branch": {
+            "deployer": "",
+            "what": "Branch <code>wmf/<%= new_train %></code>",
+            "window": "Branching MediaWiki, extensions, skins, and vendor – See [[Heterogeneous_deployment/Train_deploys]]"
+        },
         "train_secondary": {
             "deployer": "<%= train_deployer %>",
             "what": "<%= roadmap %>\n<%= minical %>\n* <%= group %>\n* '''Blockers: {{phabricator|<%= train_blocker_task %>}}'''",
@@ -161,6 +166,12 @@
         ]
     },
     "schedule@American": {
+        "mon": [
+            {
+                "name": "train_branch",
+                "hour": "19"
+            }
+        ],
         "mon,wed-thu": [
             {
                 "name": "us_backport",
@@ -233,6 +244,12 @@
         ]
     },
     "schedule@European": {
+        "mon": [
+            {
+                "name": "train_branch",
+                "hour": "19"
+            }
+        ],
         "tue": [
             {
                 "name": "train",
@@ -347,6 +364,12 @@
         ]
     },
     "schedule@American+European": {
+        "mon": [
+            {
+                "name": "train_branch",
+                "hour": "19"
+            }
+        ],
         "mon,wed-thu": [
             {
                 "name": "us_backport",
@@ -437,6 +460,12 @@
         ]
     },
     "schedule@European+American": {
+        "mon": [
+            {
+                "name": "train_branch",
+                "hour": "19"
+            }
+        ],
         "tue": [
             {
                 "name": "train",
