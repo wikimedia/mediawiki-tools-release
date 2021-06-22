@@ -8,7 +8,7 @@ RELENGERS = {
     'dancy': Relenger('Ahmon', 'dancy', 'American'),
     'hashar': Relenger('Antoine', 'hashar', 'European'),
     'brennen': Relenger('Brennen', 'brennen', 'American'),
-    'dduvall': Relenger('Dan', 'marxarelli', 'American'),
+    'dduvall': Relenger('Dan', 'dduvall', 'American'),
     'jeena': Relenger('Jeena', 'jeena', 'American'),
     'LarsWirzenius': Relenger('Lars', 'liw', 'European'),
     'mmodell': Relenger('Mukunda', 'twentyafterfour', 'American'),
