@@ -15,7 +15,7 @@ projMWReleasing = 'PHID-PROJ-5p3mxnq5ejf4xs7cphgl'
 taskProjects = [projSec, projMWReleasing]
 
 # TODO: Take param from script argument
-version = '1.31.9/1.34.3'
+version = '1.31.16/1.35.4/1.36.2'
 
 res = phab.maniphest.createtask(
     title='Release MediaWiki {0}'.format(version),
@@ -38,6 +38,10 @@ subTasks = [
 Tracking bug for next security release, {0}""".format(version),
     },
     {
+        "title": "Obtain CVEs for {0} security releases".format(version),
+        "description": "",
+    },
+    {
         "title": "Write and send pre-release announcements for MediaWiki {0}".format(version),
         "description": "Previous work: ",
     },
@@ -46,23 +50,28 @@ Tracking bug for next security release, {0}""".format(version),
         "description": "Previous work: ",
     },
     {
+        "title": "Tag {0}".format(version),
+        "description": "Create and push git tags for {0}".format(version),
+    },
+    {
+        "title": "Update onwiki news and Module:Version",
+        "description": "Update https://www.mediawiki.org/wiki/Template:MediaWiki_News"
+                       " and https://www.mediawiki.org/wiki/Module:Version"
+    },
+    {
         "title": "Update onwiki release notes for {0}".format(version),
         "description":
             "The following mediawiki.org pages need updating from the RELEASE-NOTES files:",
         # TODO: URLS!
     },
     {
+        "title": "Update Wikidata Q83",
+        "description": "Add new releases to https://www.wikidata.org/wiki/Q83"
+    },
+    {
         "title": "Update HISTORY in master after {0}".format(version),
         "description": ("Point release RELEASE-NOTES from {0} need copying to HISTORY "
                         "in the relevant places in master".format(version)),
-    },
-    {
-        "title": "Tag {0}".format(version),
-        "description": "Create and push git tags for {0}".format(version),
-    },
-    {
-        "title": "Obtain CVEs for {0} security releases".format(version),
-        "description": "",
     },
     {
         "title": ("Write and send supplementary release announcement for "
