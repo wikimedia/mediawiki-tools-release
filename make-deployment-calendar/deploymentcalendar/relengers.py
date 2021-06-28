@@ -10,7 +10,6 @@ RELENGERS = {
     'brennen': Relenger('Brennen', 'brennen', 'American'),
     'dduvall': Relenger('Dan', 'dduvall', 'American'),
     'jeena': Relenger('Jeena', 'jeena', 'American'),
-    'LarsWirzenius': Relenger('Lars', 'liw', 'European'),
     'mmodell': Relenger('Mukunda', 'twentyafterfour', 'American'),
 }
 
