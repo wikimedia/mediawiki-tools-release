@@ -1,0 +1,57 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+function usage {
+    cat <<EOF
+Usage: $0 WORKDIR TARGET_IMAGE
+
+Exits 0 if at least one train version exits in WORKDIR exists which
+does not exist within TARGET_IMAGE.  Exits 1 otherwise.
+
+EOF
+    exit 1
+}
+
+function get_wikiversions_json {
+    local type=$1
+
+    case "$type" in
+        incoming)
+            cat "$workdir/wikiversions.json"
+            ;;
+        target)
+            docker run --rm --entrypoint /bin/bash "$target_image" -c 'cat /srv/mediawiki/wikiversions.json'
+            ;;
+    esac
+}
+
+function unique_wikiversions {
+    local type=$1
+
+    get_wikiversions_json "$type" | jq -r 'values[]' | sort -u | sed -e 's/^php-//'
+}
+
+if [ $# -ne 2 ]; then
+    usage
+fi
+
+workdir="$1"
+target_image="$2"
+
+diffs=$(mktemp)
+trap 'rm $diffs' EXIT
+
+if diff <(unique_wikiversions target) <(unique_wikiversions incoming) >"$diffs"; then
+    echo wikiversions.json unchanged
+    exit 1
+else
+    #cat $diffs
+    if grep -q '^>' "$diffs"; then
+        echo at least one new wiki version is incoming
+        exit 0
+    else
+        echo wikiversions.json changed but no new wikiversions incoming
+        exit 1
+    fi
+fi

@@ -1,0 +1,33 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+my $nfiles;
+my $totalsize;
+my $transfersize;
+
+while (<STDIN>) {
+    if (/^Number of regular files transferred: ([\d,]+)/) {
+        $nfiles = $1;
+        $nfiles =~ s/,//g;
+        print "rsync_nfiles=$nfiles\n";
+    } elsif (/^Total file size: ([\d,]+)/) {
+        $totalsize = $1;
+        $totalsize =~ s/,//g;
+        print "rsync_totalsize=$totalsize\n";
+    } elsif (/^Total transferred file size: ([\d,]+)/) {
+        $transfersize = $1;
+        $transfersize =~ s/,//g;
+        print "rsync_transfersize=$transfersize\n";
+    }
+}
+
+if (defined($totalsize) && defined($transfersize)) {
+    # Transferpct will be an integer (for easy interaction with a
+    # shell script) between 0 and 100.  It represents the percentage
+    # of the source file data that would have to be updated in the
+    # target image.  0 is good, 100 means everything changed.
+    my $transferpct = int ( ($transfersize / $totalsize) * 100 );
+
+    print "rsync_transferpct=$transferpct\n";
+}

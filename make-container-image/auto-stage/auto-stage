@@ -1,0 +1,385 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+# Leave this set to 'yes' normally.  If you're doing development on
+# this script you can set this to 'no' to reduce test cycle time.
+perform_updates=yes
+
+function active_versions {
+    jq -r 'values[]' < wikiversions.json | sort -u | sed -e 's/^php-//'
+}
+
+# Security note: Patches are never committed by apply_patch.  Applied
+# patches are left as uncommitted changes in the checkout.  The
+# generate_gitinfo code relies on this fact to avoid revealing the
+# existing of security patches.  Don't add code to make it commit!
+function apply_patch {
+    local version="$1"
+    # patchfile is expected to look like one of:
+    # - ./core/01-TXXXXXX.patch
+    # - ./extensions/SomeExtension/01-TXXXXXX.patch
+    # - ./skins/SomeSkin/01-TXXXXXX.patch
+    # - ./vendor/01-TXXXXXX.patch
+    local patchfile="$2"
+
+    local type
+    type="$(echo "$patchfile" | cut -d/ -f2)"
+
+    local targetdir
+
+    case "$type" in
+        core)
+            targetdir=php-$version
+            ;;
+        vendor)
+            targetdir=php-$version/vendor
+            ;;
+        extensions|skins)
+            local module
+            module="$(echo "$patchfile" | cut -d/ -f3)"
+            targetdir=php-$version/$type/$module
+            ;;
+        *)
+            echo "Unexpected patch type: $type"
+            exit 1
+            ;;
+    esac
+
+    patchfile=$patches_dir/$version/$patchfile
+    echo "Applying $patchfile in $targetdir"
+
+    if ! patch --forward -d "$targetdir" -p1 < "$patchfile"; then
+        echo "Failed to apply $patchfile in $targetdir"
+        exit 1
+    fi
+}
+
+function run_quietly_if_ok {
+    local output
+    output=$(mktemp /tmp/quiet.XXXXXX)
+
+    if "$@" > "$output" 2>&1; then
+        # Great
+        rm "$output"
+    else
+        # No good
+        local status=$?
+        cat "$output"
+        rm "$output"
+        exit $status
+    fi
+}
+
+function apply_patches {
+    local version="$1"
+
+    local patch_dir="$patches_dir/$version"
+
+    if [ -d "$patch_dir" ]; then
+        echo "Applying patches for $version"
+        for patch in $(cd "$patch_dir" && find . -name "*.patch" | sort -n); do
+            apply_patch "$version" "$patch"
+        done
+    else
+        echo "No patches for $version"
+    fi
+}
+
+function php_with_errors {
+    env WMF_MAINTENANCE_OFFLINE=1 WMF_DATACENTER=eqiad php -d display_errors=on -d error_reporting=E_ALL "$@"
+}
+
+function mwscript {
+    php_with_errors multiversion/MWScript.php "$@"
+}
+
+function same {
+    # diff returns true (exit 0) if the files are the same.
+    diff "$@" >/dev/null
+}
+
+function update_atomically {
+    local file="$1"
+    local tmp="$2"
+
+    shift 2
+
+    # Run the user-supplied command. It is expected to create $tmp
+    "$@"
+    if [ ! -f "$tmp" ]; then
+        echo "update_atomically: Command '$*' did not create $tmp as expected"
+        return 1
+    fi
+
+    if [ ! -f "$file" ] || ! same "$tmp" "$file"; then
+        #echo "$file was updated"
+        mv "$tmp" "$file"
+    else
+        #echo "$file did not change"
+        rm "$tmp"
+    fi
+}
+
+function merge_message_file_list {
+    multiversion/bin/list-versions.php | while read -r wikidb version; do
+        local em="wmf-config/ExtensionMessages-$version.php"
+        local tmp="$em.tmp"
+
+        update_atomically "$em" "$tmp" \
+          run_quietly_if_ok \
+            mwscript mergeMessageFileList.php \
+                 --wiki="$wikidb" \
+                 --list-file=wmf-config/extension-list \
+                 --output="$tmp"
+    done
+}
+
+function setup_l10n {
+    multiversion/bin/list-versions.php | while read -r wikidb version; do
+        echo "Building/updating L10N files for $version"
+        mwscript rebuildLocalisationCache.php \
+                 --wiki="$wikidb" \
+                 --store-class=LCStoreCDB \
+                 --threads="$(nproc)" \
+                 --skip-message-purge
+    done
+}
+
+function clone_or_update_repo {
+    local repo="$1"
+    local dir="$2"
+    local branch="$3"
+
+    echo "Clone or update $repo, branch: $branch, dir: $dir"
+
+    if [ "$perform_updates" == "no" ]; then
+        echo "\$perform_updates is no.  Skipping"
+        return
+    fi
+
+    if [ ! -d "$dir" ] || empty_dir "$dir"; then
+        echo Fresh clone
+        git clone -b "$branch" "$repo" "$dir"
+    fi
+
+    (
+        cd "$dir"
+
+        # This discards patches (which aren't committed).
+        echo Resetting checkout
+        run_quietly_if_ok git reset --hard
+        run_quietly_if_ok git submodule foreach --recursive 'git reset --hard'
+
+        echo Updating checkout from origin
+        git fetch
+        git log HEAD..FETCH_HEAD
+        git checkout -B "$branch" "origin/$branch"
+
+        echo Updating submodules
+        git submodule update --init --recursive --jobs "$(nproc)"
+        # FIXME: Submodule logs need better treatment
+    )
+
+    echo
+}
+
+function checkout_or_update_version {
+    local version="$1"
+
+    local dir="php-$version"
+    local branch="wmf/$version"
+
+    clone_or_update_repo https://gerrit.wikimedia.org/r/mediawiki/core "$dir" "$branch"
+    # NOTE: Patches result in files that are modified in each run of auto-stage.
+    apply_patches "$version"
+}
+
+function prepare_mw_versions {
+    php_with_errors multiversion/bin/generate-php-wikiversions.php
+    php_with_errors multiversion/bin/update-all-localsettings.php
+    generate_all_gitinfos
+}
+
+function generate_all_gitinfos {
+    local version
+
+    for version in $(active_versions); do
+        generate_gitinfos_for_version "$version"
+    done
+}
+
+function generate_gitinfos_for_version {
+    local version="$1"
+
+    echo "Generating gitinfos for $version"
+
+    local dir="php-$version"
+    local output_dir="$dir/cache/gitinfo"
+
+    mkdir -p "$output_dir"
+
+    generate_gitinfo_for_dir "$dir" "$output_dir/info.json"
+
+    for type in extensions skins; do
+        for sub in "$dir/$type"/*; do
+            if [ -d "$sub" ]; then
+                info_file="$output_dir/info-$type-$(basename "$sub").json"
+                generate_gitinfo_for_dir "$sub" "$info_file"
+            fi
+        done
+    done
+
+    echo "Done generating gitinfos for $version"
+}
+
+function generate_gitinfo_for_dir {
+    local dir="$1"
+    local outfile="$2"
+
+    local temp
+    temp="$(mktemp)"
+
+    update_atomically "$outfile" "$temp" generate_gitinfo_for_dir_1 "$dir" "$temp"
+
+    chmod a+r "$outfile"
+}
+
+function generate_gitinfo_for_dir_1 {
+    local dir="$1"
+    local outfile="$2"
+
+    local git_dir
+    local head_sha1
+    local head
+    local commit_date
+    local branch
+    local remote_url
+
+    git_dir="$(git -C "$dir" rev-parse --git-dir)"
+    # Change relative path to absolute
+    if ! [[ "$git_dir" =~ ^/ ]]; then
+        git_dir="$dir/$git_dir"
+    fi
+
+    # Security note:  We rely on the fact that apply_patch does not commit patches.
+    head_sha1="$(git -C "$dir" rev-parse HEAD)"
+    head="$(sed -e 's/^ref: //' < "$git_dir/HEAD")"
+    commit_date="$(git -C "$dir" show -s --format=%ct)"
+    branch="$(echo "$head" | sed -E -e 's,^refs/(heads|tags)/,,')"
+    remote_url="$(git -C "$dir" ls-remote --get-url)"
+
+    cat <<EOF > "$outfile"
+{
+  "@directory": "$(readlink -e "$dir")",
+  "head": "$head",
+  "headSHA1": "$head_sha1",
+  "headCommitDate": "$commit_date",
+  "branch": "$branch",
+  "remoteURL": "$remote_url"
+}
+EOF
+}
+
+
+function empty_dir {
+    local dir="$1"
+
+    [ "$(/bin/ls -A "$dir" | wc -l)" == 0 ]
+}
+
+function setup_private_settings {
+    echo Setup private settings
+    if [ "${ON_RELEASES_SERVER:-}" ]; then
+        rsync -av --delete --exclude .git \
+              deployment.eqiad.wmnet::srv-mediawiki-private-primary/ private/
+    else
+        echo Using stub
+        # Stub
+        cp -p private/readme.php private/PrivateSettings.php
+    fi
+    echo Finished private settings
+    echo
+}
+
+function setup_patches {
+    echo Setup patches
+
+    if [ -d /srv/patches ]; then
+        patches_dir=/srv/patches
+        echo "Using $patches_dir for patches"
+    elif [ "${ON_RELEASES_SERVER:-}" ]; then
+        rsync -av --delete --exclude .git \
+              deployment.eqiad.wmnet::srv-patches-releases-primary/ /tmp/patches/
+    else
+        echo No patches
+    fi
+
+    echo Finished setting up patches
+    echo
+}
+
+function announce {
+    echo
+    echo "**" "$@" "**"
+    echo
+}
+
+function generate_build_signature {
+    local operations_mediawiki_config
+
+    operations_mediawiki_config=$(git rev-parse HEAD)
+
+    echo "{\"operations/mediawiki-config\": \"$operations_mediawiki_config\","
+
+    echo '"mediawiki/core": {'
+    local need_comma=
+    for version in $(active_versions); do
+        local dir="php-$version"
+
+        local version_hash
+        version_hash=$(git -C "$dir" rev-parse HEAD)
+
+        if [ "$need_comma" ]; then
+            echo -n ","
+        fi
+
+        echo "\"$version\": \"$version_hash\""
+
+        need_comma=y
+    done
+    echo '}'
+
+    echo '}'
+}
+
+function write_build_signature {
+    generate_build_signature | jq . > build-signature
+}
+
+workdir=/srv/mediawiki
+patches_dir=/tmp/patches
+
+announce auto-stage running
+
+clone_or_update_repo https://gerrit.wikimedia.org/r/operations/mediawiki-config "$workdir" "${MW_CONFIG_BRANCH:-master}"
+
+cd "$workdir"
+
+setup_private_settings
+setup_patches
+
+for version in $(active_versions); do
+    checkout_or_update_version "$version"
+done
+
+write_build_signature
+
+# FIXME: Delete inactive php-<version> dirs that have aged out.
+
+prepare_mw_versions
+
+merge_message_file_list
+setup_l10n
+
+announce auto-stage finished

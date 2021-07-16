@@ -1,0 +1,61 @@
+.PHONY: build-image push-last-image auto-stage setup-workdir clean-workdir build-auto-stage-image build-multiversion-base-image
+
+build-image: auto-stage build-multiversion-base-image
+	./build-mv-image $$(pwd)/workdir
+
+build-and-push-image: build-image push-last-image
+
+push-last-image:
+	if [ -f last-build ]; then \
+		sudo /usr/local/bin/docker-pusher $$(cat last-build); \
+	else \
+		echo Nothing to push yet; \
+		false; \
+	fi
+
+run-last-image:
+	@if [ -f last-build ]; then \
+		docker run -it --rm --entrypoint /bin/bash $$(cat last-build); \
+	else \
+		echo No last build; \
+		false; \
+	fi
+
+on_releases_server := $(shell if hostname -f | egrep -q '^releases.*\.wmnet$$'; then echo yes; fi)
+
+ifneq ($(PATCHES_DIR),)
+patches_volume := -v $$(readlink -e $$PATCHES_DIR):/srv/patches
+endif
+
+# Do a single auto-stage run
+auto-stage: build-auto-stage-image setup-workdir
+	docker run --rm \
+		-e http_proxy=$(http_proxy) \
+		-e https_proxy=$(https_proxy) \
+		-e ON_RELEASES_SERVER=$(on_releases_server) \
+		-e MW_CONFIG_BRANCH=$(MW_CONFIG_BRANCH) \
+		-v $$(pwd)/workdir:/srv/mediawiki \
+		$(patches_volume) \
+		auto-stage
+
+build-auto-stage-image:
+	$(MAKE) -C auto-stage build
+
+build-multiversion-base-image:
+	$(MAKE) -C multiversion-base
+
+setup-workdir:
+	./setup-workdir $$(pwd)/workdir
+
+clean-workdir:
+	./setup-workdir --delete $$(pwd)/workdir
+
+check:
+	shellcheck auto-stage/auto-stage build-mv-image setup-workdir new-train-version
+
+purge-restricted-images:
+	docker image ls --format '{{.Repository}}:{{.Tag}}' docker-registry.discovery.wmnet/restricted/mediawiki-multiversion | xargs -r docker image rm
+
+# Remove images older than a day
+purge-old-images:
+	docker image ls docker-registry.discovery.wmnet/restricted/mediawiki-multiversion  | grep 'days ago' | awk '{print $$1 ":" $$2}' | xargs -r docker image rm

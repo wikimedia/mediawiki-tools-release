@@ -1,0 +1,167 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+function usage {
+    cat <<EOF
+Usage: $0 WORKDIR
+EOF
+    exit 1
+}
+
+function announce {
+    echo
+    echo "**" "$@" "**"
+    echo
+}
+
+default_base=multiversion-base:latest
+
+rsync_args=(-a --stats --delete --exclude .git)
+
+# Satisfy shellcheck
+rsync_transferpct=
+rsync_nfiles=
+
+last_estimated_image=
+
+function estimate_rsync {
+    local image="$1"
+
+    if [ "$image" = "$last_estimated_image" ]; then
+        return
+    fi
+
+    local rsync_out
+    rsync_out="$(mktemp)"
+
+    echo "Estimating $image"
+    if docker run --rm \
+              -v "$workdir:/workdir" \
+              --entrypoint /usr/bin/rsync \
+              "$image" \
+              "${rsync_args[@]}" -n \
+              "/workdir/" "/srv/mediawiki/" \
+              > "$rsync_out" 2>&1; then
+        # This sets a few rsync_* variables.  See grok-rsync-output for details.
+        eval "$(./grok-rsync-output < "$rsync_out")"
+        echo "$image rsync_transferpct: $rsync_transferpct"
+
+        last_estimated_image="$image"
+    else
+        local status=$?
+        cat "$rsync_out"
+        rm "$rsync_out"
+        exit $status
+    fi
+}
+
+function count_image_layers {
+    local image="$1"
+
+    docker inspect "$image" --format '{{len .RootFS.Layers}}'
+}
+
+function image_is_suitable_as_base {
+    local image="$1"
+
+    if [ "$image" = "$default_base" ]; then
+        # The default base image is always suitable.
+        return 0
+    fi
+
+    if ! image_exists_locally "$image"; then
+       # Nonexistent images are not suitable.
+       return 1
+    fi
+
+    local num_layers
+    num_layers="$(count_image_layers "$image")"
+
+    if [ "$num_layers" -ge 125 ]; then
+        # Too many layers.  Max layer count of 125 for overlayfs
+        # measured on Linux 4.19.0-14-amd64
+        echo "Image $image is not suitable as a base image because it has $num_layers layers."
+        return 1
+    fi
+
+    if ./new-train-version "$workdir" "$image"; then
+        # A new train version is incoming, so we only want to use the default base.
+        return 1
+    fi
+
+    # Looks ok
+    return 0
+}
+
+
+# sets $base_image global
+function select_base_image {
+    base_image="$default_base"
+
+    if [ -f last-build ]; then
+        base_image="$(cat last-build)"
+    fi
+
+    if ! image_is_suitable_as_base "$base_image"; then
+        echo "Falling back to $default_base"
+        base_image="$default_base"
+    fi
+
+    # Run estimate_rsync here to set the final value of rsync_* globals
+    estimate_rsync "$base_image"
+}
+
+function image_exists_locally {
+    local image="$1"
+
+    [ "$(docker image ls -q "$image" | wc -l)" -gt 0 ]
+}
+
+if [ $# -ne 1 ]; then
+    usage
+fi
+
+workdir="$1"
+
+if [ ! -d "$workdir" ]; then
+    echo "$0: work dir $workdir does not exist"
+    exit 1
+fi
+
+# Expand workdir to a full path (for places where we use it as the
+# source of a bind mount).
+workdir="$(readlink -e "$workdir")"
+
+announce build-mv-image running
+
+select_base_image
+echo "Using $base_image as base image"
+
+echo Starting build container
+builder_id=$(docker run --rm -d "$base_image")
+
+trap 'docker rm -f $builder_id >/dev/null' EXIT
+
+verbose=
+if [ "$rsync_nfiles" -le 100 ]; then
+    verbose=-v
+fi
+
+echo "rsync $workdir to container:/srv/mediawiki"
+
+time rsync "${rsync_args[@]}" $verbose \
+     -e 'docker exec -i' \
+     "$workdir/" "$builder_id:/srv/mediawiki/"
+
+tag=$(date '+%Y-%m-%d-%H%M%S-publish')
+image="docker-registry.discovery.wmnet/restricted/mediawiki-multiversion:$tag"
+echo "Commit $image"
+time docker commit "$builder_id" "$image"
+
+echo "$image has $(count_image_layers "$image") layers"
+
+echo "$image" > last-build.tmp
+mv last-build.tmp last-build
+
+announce build-mv-image finished

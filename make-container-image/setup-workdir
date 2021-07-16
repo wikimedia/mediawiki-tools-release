@@ -1,0 +1,105 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+function usage {
+    cat <<EOF
+Usage: $0 [ --force ] [ --delete] WORKDIR
+
+Changes the ownership of WORKDIR to www-data (id 33) so that it can be
+used by auto-stage.  This is done by using docker to run a debian
+image with root privs.
+
+Unless --force is supplied, if WORKDIR is non-empty and not already
+owned by www-data, the script will exit non-zero status.
+
+If --delete is supplied, all files and subdirectories in WORKDIR
+are deleted. WORKDIR will remain.
+Use with caution.
+
+EOF
+    exit 1
+}
+
+function empty_dir {
+    local dir="$1"
+
+    [ "$(/bin/ls -A "$dir" | wc -l)" == 0 ]
+}
+
+function setup_workdir {
+    local workdir="$1"
+
+    mkdir -p "$workdir"
+
+    dir_uid="$(stat -c '%u' "$workdir")"
+
+    if [ "$dir_uid" = 33 ]; then
+        #echo "$workdir is owned by www-data"
+        exit 0
+    fi
+
+    if [ "$force" = y ] || empty_dir "$workdir"; then
+        docker run --rm -v "$(readlink -e "$workdir"):/workdir" docker-registry.wikimedia.org/wikimedia-buster chown -R www-data: /workdir
+    else
+        echo "$0: Refusing to change ownership of non-empty directory $workdir"
+        exit 1
+    fi
+}
+
+function delete_workdir {
+    local workdir="$1"
+
+    if [ -d "$workdir" ]; then
+        # clunky and dangerous
+        docker run --rm -v "$(readlink -e "$workdir"):/workdir" docker-registry.wikimedia.org/wikimedia-buster rm -fr /workdir || true
+    fi
+}
+
+
+
+if ! TEMP=$(getopt -o '' --long 'force,delete' -n "$0" -- "$@"); then
+    echo 'Terminating...' >&2
+    exit 1
+fi
+
+eval set -- "$TEMP"
+unset TEMP
+
+force=
+delete=
+
+while true; do
+    case "$1" in
+        '--force')
+            force=y
+            shift
+            continue
+            ;;
+        '--delete')
+            delete=y
+            shift
+            continue
+            ;;
+        '--')
+            shift
+            break
+            ;;
+        *)
+            echo 'Internal error!' >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [ "$#" -ne 1 ]; then
+    usage
+fi
+
+workdir="$1"
+
+if [ "$delete" = "y" ]; then
+    delete_workdir "$workdir"
+else
+    setup_workdir "$workdir"
+fi
