@@ -27,49 +27,49 @@ class Wmf extends Branch {
 	/**
 	 * @inheritDoc
 	 */
-	public static function getShortname() :string {
+	public static function getShortname(): string {
 		return 'wmf';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public static function getDescription() :string {
+	public static function getDescription(): string {
 		return 'Create a WMF Branch';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function getWorkDir() :string {
+	public function getWorkDir(): string {
 		return sys_get_temp_dir() . '/make-wmf-branch';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	protected function getBranchPrefix() :string {
+	protected function getBranchPrefix(): string {
 		return "wmf/";
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function getRepoPath() :string {
+	public function getRepoPath(): string {
 		return 'https://gerrit.wikimedia.org/r/mediawiki';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	protected function getBranchDir() :string {
+	protected function getBranchDir(): string {
 		return 'wmf';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	protected function getConfigJson( string $dir ) :string {
+	protected function getConfigJson( string $dir ): string {
 		return $dir . '/config.json';
 	}
 
@@ -78,7 +78,7 @@ class Wmf extends Branch {
 	 *
 	 * @return string
 	 */
-	public function setupBuildDirectory() :string {
+	public function setupBuildDirectory(): string {
 		$this->teardownBuildDirectory();
 		if ( !mkdir( $this->buildDir ) ) {
 			$this->croak(
@@ -91,7 +91,7 @@ class Wmf extends Branch {
 	/**
 	 * Remove the build directory if it exists
 	 */
-	public function teardownBuildDirectory() :void {
+	public function teardownBuildDirectory(): void {
 		if ( file_exists( $this->buildDir ) ) {
 			$this->control->rmdir( $this->buildDir );
 		}

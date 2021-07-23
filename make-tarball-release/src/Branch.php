@@ -68,49 +68,49 @@ abstract class Branch {
 	 *
 	 * @return string
 	 */
-	abstract public static function getShortname() :string;
+	abstract public static function getShortname(): string;
 
 	/**
 	 * Tell the user what kind of branches this class handles
 	 *
 	 * @return string
 	 */
-	abstract public static function getDescription() :string;
+	abstract public static function getDescription(): string;
 
 	/**
 	 * Get a directory where we can work.
 	 *
 	 * @return string
 	 */
-	abstract public function getWorkDir() :string;
+	abstract public function getWorkDir(): string;
 
 	/**
 	 * Get the branch prefix default;
 	 *
 	 * @return string
 	 */
-	abstract protected function getBranchPrefix() :string;
+	abstract protected function getBranchPrefix(): string;
 
 	/**
 	 * Get the git repo path
 	 *
 	 * @return string
 	 */
-	abstract public function getRepoPath() :string;
+	abstract public function getRepoPath(): string;
 
 	/**
 	 * Get the directory to put the branch in
 	 *
 	 * @return string
 	 */
-	abstract protected function getBranchDir() :string;
+	abstract protected function getBranchDir(): string;
 
 	/**
 	 * Set up the build directory
 	 *
 	 * @return string dir
 	 */
-	abstract public function setupBuildDirectory() :string;
+	abstract public function setupBuildDirectory(): string;
 
 	/**
 	 * Get the config.json file to use for this branch type
@@ -118,14 +118,14 @@ abstract class Branch {
 	 * @param string $dir
 	 * @return string
 	 */
-	abstract protected function getConfigJson( string $dir ) :string;
+	abstract protected function getConfigJson( string $dir ): string;
 
 	/**
 	 * Set up the options for the command line program
 	 *
 	 * @param Options $opt
 	 */
-	public static function setupOptions( Options $opt ) :void {
+	public static function setupOptions( Options $opt ): void {
 		$opt->setHelp( "Create Branches" );
 		$opt->setCommandHelp( "Specify one of the following branch styles:" );
 		$opt->setCompactHelp();
@@ -159,7 +159,7 @@ abstract class Branch {
 	 *
 	 * @return array
 	 */
-	public static function getAvailableBranchTypes() :array {
+	public static function getAvailableBranchTypes(): array {
 		$finder = new Finder;
 		$iter = new ClassIterator( $finder->in( __DIR__ ) );
 		$thisClass = __CLASS__;
@@ -192,7 +192,7 @@ abstract class Branch {
 		?string $type,
 		Options $opt,
 		LoggerInterface $logger
-	) :self {
+	): self {
 		if ( !$type ) {
 			throw new Usage( "Please specify a branch type!" );
 		}
@@ -273,7 +273,7 @@ abstract class Branch {
 	 *
 	 * @param string $dir
 	 */
-	protected function setDefaults( string $dir ) :void {
+	protected function setDefaults( string $dir ): void {
 		$repoPath = $this->getRepoPath();
 		$branchPrefix = $this->getBranchPrefix();
 		$buildDir = $this->getWorkDir();
@@ -309,7 +309,7 @@ abstract class Branch {
 	 *
 	 * @param string $localGit
 	 */
-	public function setLocalGitURL( string $localGit ) :void {
+	public function setLocalGitURL( string $localGit ): void {
 		if ( $localGit === '' ) {
 			return;
 		}
@@ -331,7 +331,7 @@ abstract class Branch {
 	 */
 	protected function stupidSchemaCheck(
 		string $text, array &$var, string $file
-	) :void {
+	): void {
 		foreach (
 			[ 'extensions', 'submodules', 'special_extensions' ] as $key
 		) {
@@ -349,7 +349,7 @@ abstract class Branch {
 	 *
 	 * @param string $dir
 	 */
-	protected function setBranchLists( string $dir ) :void {
+	protected function setBranchLists( string $dir ): void {
 		$branchLists = [];
 		$configJson = $this->getConfigJson( $dir );
 
@@ -382,7 +382,7 @@ abstract class Branch {
 	 * @param string $dir
 	 * @param string $branch
 	 */
-	public function check( string $dir, string $branch = "master" ) :void {
+	public function check( string $dir, string $branch = "master" ): void {
 		$changes = $this->control->getChanges();
 		if ( $changes ) {
 			$this->logger->notice(
@@ -395,7 +395,7 @@ abstract class Branch {
 	/**
 	 * Handle brancher initialization
 	 */
-	public function initialize() :void {
+	public function initialize(): void {
 		// Best way to get the full path to the file being executed.
 		[ $arg0 ] = get_included_files();
 		$dir = dirname( $arg0 );
@@ -413,7 +413,7 @@ abstract class Branch {
 	 * @param string|null $extName - name of extension from which to
 	 * start branching
 	 */
-	public function setStartExtension( string $extName = null ) :void {
+	public function setStartExtension( string $extName = null ): void {
 		if ( $extName === null ) {
 			return;
 		}
@@ -454,7 +454,7 @@ abstract class Branch {
 	 * @param string $msg
 	 * @return never-returns
 	 */
-	public function croak( string $msg ) :void {
+	public function croak( string $msg ): void {
 		$this->logger->error( $msg );
 		exit( 1 );
 	}
@@ -467,7 +467,7 @@ abstract class Branch {
 	 * @param array $repos list of repositories
 	 * @return array
 	 */
-	protected function queryBranchPoints( array $repos ) :array {
+	protected function queryBranchPoints( array $repos ): array {
 		return $this->control->getBranchInfo( $this->getMappedRepos( $repos ) );
 	}
 
@@ -492,7 +492,7 @@ abstract class Branch {
 	 * @param string $thatStr
 	 * @return bool
 	 */
-	protected function startsWith( string $thisStr, string $thatStr ) :bool {
+	protected function startsWith( string $thisStr, string $thatStr ): bool {
 		$len = mb_strlen( $thatStr, 'utf-8' );
 		return mb_substr( $thisStr, 0, $len, 'utf-8' ) === $thatStr;
 	}
@@ -503,7 +503,7 @@ abstract class Branch {
 	 * @param string $repo
 	 * @return string
 	 */
-	protected function qualifyRepo( string $repo ) :string {
+	protected function qualifyRepo( string $repo ): string {
 		if (
 			$this->startsWith( $repo, "extensions/" ) ||
 			$this->startsWith( $repo, "skins/" ) ||
@@ -519,7 +519,7 @@ abstract class Branch {
 	 *
 	 * @param array $extension
 	 */
-	public function branchAndAddGroup( array $extension ) :void {
+	public function branchAndAddGroup( array $extension ): void {
 		$map = [];
 		foreach ( $extension as $ext ) {
 			$map[$ext] = $this->qualifyRepo( $ext );
@@ -541,7 +541,7 @@ abstract class Branch {
 	/**
 	 * Entry point to branching
 	 */
-	public function execute() :void {
+	public function execute(): void {
 		$branchPoints = [];
 
 		if ( !$this->control->hasBranch( self::MWREPO, $this->newVersion ) ) {
@@ -562,7 +562,7 @@ abstract class Branch {
 	 * @param string $branchName
 	 * @param string $from branch point
 	 */
-	public function createBranch( string $branchName, string $from ) :void {
+	public function createBranch( string $branchName, string $from ): void {
 		$this->control->createBranch( 'origin', $branchName, $from );
 	}
 
@@ -575,7 +575,7 @@ abstract class Branch {
 	public function branchRepo(
 		string $repo,
 		string $branch = 'master'
-	) :void {
+	): void {
 		$this->logger->notice( "Creating {$this->newVersion} branch for $repo" );
 		$this->control->createBranch( $repo, $branch, $this->newVersion );
 	}
@@ -585,7 +585,7 @@ abstract class Branch {
 	 *
 	 * @param string $repo to create it for
 	 */
-	public function create( string $repo ) :void {
+	public function create( string $repo ): void {
 		$hasBranch = $this->control->hasBranch( $repo, $this->newVersion );
 		if ( !$hasBranch ) {
 			$this->logger->notice(
@@ -598,7 +598,7 @@ abstract class Branch {
 	/**
 	 * Take care of updating the version variagble
 	 */
-	public function handleVersionUpdate() :void {
+	public function handleVersionUpdate(): void {
 		# Fix MW_VERSION
 		if ( $this->fixVersion( "includes/Defines.php" ) ) {
 			# Do intermediate commit
@@ -620,7 +620,7 @@ abstract class Branch {
 	/**
 	 * Take care of any other git checkouts
 	 */
-	public function handleSubmodules() :void {
+	public function handleSubmodules(): void {
 		# Add extensions/skins/vendor
 		foreach ( $this->branchedExtensions as $name ) {
 			$this->control->addSubmodule(
@@ -645,7 +645,7 @@ abstract class Branch {
 	 *
 	 * @param string $branchName
 	 */
-	public function branch( string $branchName ) :void {
+	public function branch( string $branchName ): void {
 		# Clone the repository
 		$oldVersion = $this->oldVersion === $branchName
 					? $branchName
@@ -660,7 +660,7 @@ abstract class Branch {
 	/**
 	 * Push the branch to gerrit.
 	 */
-	public function publish() :void {
+	public function publish(): void {
 		$this->control->push( self::MWREPO );
 	}
 
@@ -670,7 +670,7 @@ abstract class Branch {
 	 * @param string $fileName
 	 * @return bool
 	 */
-	public function fixVersion( string $fileName ) :bool {
+	public function fixVersion( string $fileName ): bool {
 		$ret = false;
 		$before = file_get_contents( $fileName );
 		if ( $before === false ) {

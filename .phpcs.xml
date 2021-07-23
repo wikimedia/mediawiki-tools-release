@@ -10,7 +10,9 @@
 	<arg name="report" value="full"/>
 	<arg name="report" value="summary"/>
 
-	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki" />
+	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
+		<exclude name="MediaWiki.NamingConventions.PrefixedGlobalFunctions.allowedPrefix" />
+	</rule>
 
 	<rule ref="MediaWiki.NamingConventions.PrefixedGlobalFunctions.wfPrefix">
 		<severity>0</severity>

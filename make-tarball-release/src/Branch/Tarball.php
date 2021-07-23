@@ -29,21 +29,21 @@ class Tarball extends Branch {
 	/**
 	 * @inheritDoc
 	 */
-	public static function getShortname() :string {
+	public static function getShortname(): string {
 		return 'tarball';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public static function getDescription() :string {
+	public static function getDescription(): string {
 		return 'Prepare the tree for a tarball release';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function getWorkDir() :string {
+	public function getWorkDir(): string {
 		$dir = getenv( "mwDir" );
 		if ( !$dir ) {
 			$dir = sys_get_temp_dir() . '/make-tarball-branch';
@@ -54,14 +54,14 @@ class Tarball extends Branch {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getBranchPrefix() :string {
+	protected function getBranchPrefix(): string {
 		return "";
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function getRepoPath() :string {
+	public function getRepoPath(): string {
 		$path = getenv( "gerritHead" );
 		if ( !$path ) {
 			$path = 'https://gerrit.wikimedia.org/r';
@@ -72,7 +72,7 @@ class Tarball extends Branch {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getBranchDir() :string {
+	protected function getBranchDir(): string {
 		$branch = getenv( "relBranch" );
 		if ( $branch === false ) {
 			// Psalm complains if we let $branch remain false since
@@ -86,11 +86,11 @@ class Tarball extends Branch {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getConfigJson( string $dir ) :string {
+	protected function getConfigJson( string $dir ): string {
 		return $dir . '/tarball-config.json';
 	}
 
-	public function setupBuildDirectory() :string {
+	public function setupBuildDirectory(): string {
 		if ( !is_dir( $this->buildDir ) ) {
 			AtEase::suppressWarnings();
 			if ( lstat( $this->buildDir ) !== false ) {

@@ -77,7 +77,7 @@ class Control {
 	 *
 	 * @param string $url
 	 */
-	public function setGerritURL( string $url ) :void {
+	public function setGerritURL( string $url ): void {
 		$this->gerritURL = $url;
 		$this->gerrit = new GerritRestAPI( $url );
 		if ( $this->dryRun ) {
@@ -88,7 +88,7 @@ class Control {
 	/**
 	 * @param ?string|null $url = null
 	 */
-	public function setLocalGitURL( ?string $url = null ) :void {
+	public function setLocalGitURL( ?string $url = null ): void {
 		$this->localGitURL = $url;
 	}
 
@@ -98,7 +98,7 @@ class Control {
 	 * @param string $msg
 	 * @return never-return
 	 */
-	protected function croak( string $msg ) :void {
+	protected function croak( string $msg ): void {
 		$this->brancher->croak( $msg );
 	}
 
@@ -107,7 +107,7 @@ class Control {
 	 *
 	 * @param string $dir
 	 */
-	public function chdir( string $dir ) :void {
+	public function chdir( string $dir ): void {
 		$this->dirs[] = getcwd();
 		if ( !chdir( $dir ) ) {
 			$this->croak( "Unable to change working directory to $dir" );
@@ -118,7 +118,7 @@ class Control {
 	/**
 	 * Change dir to the previous directory.
 	 */
-	public function popdir() :void {
+	public function popdir(): void {
 		$dir = array_pop( $this->dirs );
 		if ( !chdir( $dir ) ) {
 			$this->croak( "Unable to return to the $dir directory" );
@@ -132,7 +132,7 @@ class Control {
 	 *
 	 * @return string
 	 */
-	public function getChanges() :string {
+	public function getChanges(): string {
 		return $this->cmdOutNoTrim( 'git', 'status', '--porcelain' );
 	}
 
@@ -143,7 +143,7 @@ class Control {
 	 * @param string $branch to check for
 	 * @return bool
 	 */
-	public function hasBranch( string $repo, string $branch ) :bool {
+	public function hasBranch( string $repo, string $branch ): bool {
 		$branchList = $this->getBranches( $repo );
 		$res = in_array( $branch, $branchList );
 		if ( $res ) {
@@ -160,7 +160,7 @@ class Control {
 	 * @param string $repo to get
 	 * @return array<int|string> of branches
 	 */
-	public function getBranches( string $repo ) :array {
+	public function getBranches( string $repo ): array {
 		$branchInfo = $this->getBranchInfo( [ $repo ] );
 		return $branchInfo[$repo];
 	}
@@ -171,7 +171,7 @@ class Control {
 	 * @param array $repo
 	 * @return array
 	 */
-	public function getBranchInfo( array $repo ) :array {
+	public function getBranchInfo( array $repo ): array {
 		if ( !$this->gerrit ) {
 			$this->croak( "Please set up the Gerrit remote first!" );
 		}
@@ -199,7 +199,7 @@ class Control {
 		string $repo,
 		string $branchFrom,
 		string $newBranch
-	) :BranchInfo {
+	): BranchInfo {
 		if ( !$this->gerrit ) {
 			$this->croak( "Please set up the Gerrit remote first!" );
 		}
@@ -220,7 +220,7 @@ class Control {
 		string $repo,
 		string $branch,
 		string $loc
-	) :void {
+	): void {
 		$repoURL = $this->makeRepoURL( $repo );
 		if ( $this->cmd( "git", "clone", "-b", $branch, $repoURL, $loc ) ) {
 			$this->croak( "Trouble cloning!" );
@@ -245,7 +245,7 @@ class Control {
 	 * @param string $dir
 	 * @throws Exception
 	 */
-	public function ensureEmptyDir( string $dir ) :void {
+	public function ensureEmptyDir( string $dir ): void {
 		if ( $this->cmd( "rm", "-rf", $dir ) ) {
 			throw new Exception( "Could not erase $dir!" );
 		}
@@ -261,7 +261,7 @@ class Control {
 	 * @param bool $useLocal use a local copy
 	 * @return string URL
 	 */
-	public function makeRepoURL( string $repo, bool $useLocal = true ) : string {
+	public function makeRepoURL( string $repo, bool $useLocal = true ): string {
 		if ( !$this->gerritURL ) {
 			$this->croak( "Please set up the Gerrit URL first!" );
 		}
@@ -284,7 +284,7 @@ class Control {
 		string $repo,
 		string $subRepo,
 		string $loc
-	) :bool {
+	): bool {
 	}
 
 	/**
@@ -299,7 +299,7 @@ class Control {
 		string $repo,
 		string $subRepo,
 		string $loc
-	) :bool {
+	): bool {
 	}
 
 	/**
@@ -308,7 +308,7 @@ class Control {
 	 * @param array ...$args
 	 * @return int exit code
 	 */
-	public function runCmd( ...$args ) :int {
+	public function runCmd( ...$args ): int {
 		if ( is_array( $args[0] ) ) {
 			$args = $args[0];
 		}
@@ -331,7 +331,7 @@ class Control {
 	 * @param array ...$args
 	 * @return string
 	 */
-	public function cmdOut( ...$args ) :string {
+	public function cmdOut( ...$args ): string {
 		$this->storeOutput = true;
 		$this->output = '';
 		$this->cmd( $args );
@@ -345,7 +345,7 @@ class Control {
 	 * @param array ...$args
 	 * @return string
 	 */
-	public function cmdOutNoTrim( ...$args ) :string {
+	public function cmdOutNoTrim( ...$args ): string {
 		$this->storeOutput = true;
 		$this->output = '';
 		$this->cmd( $args );
@@ -359,7 +359,7 @@ class Control {
 	 * @param array ...$args
 	 * @return int
 	 */
-	public function runWriteCmd( ...$args ) :int {
+	public function runWriteCmd( ...$args ): int {
 		$ret = 0;
 		if ( $this->dryRun ) {
 			$this->logger->debug( "[dry-run] " . implode( ' ', $args ) );
@@ -375,7 +375,7 @@ class Control {
 	 * @param array ...$args
 	 * @return int (exit code)
 	 */
-	public function cmd( ...$args ) :int {
+	public function cmd( ...$args ): int {
 		if ( is_array( $args[0] ) ) {
 			$args = $args[0];
 		}
@@ -390,7 +390,7 @@ class Control {
 		$loop->addReadStream(
 			$proc->getReadStream(),
 			/** @param resource $stream */
-			function ( $stream ) use ( $loop ) :void {
+			function ( $stream ) use ( $loop ): void {
 				$out = fgets( $stream );
 				if ( $out !== false ) {
 					if ( $this->storeOutput ) {
@@ -405,7 +405,7 @@ class Control {
 		$loop->addReadStream(
 			$proc->getErrorStream(),
 			/** @param resource $stream */
-			function ( $stream ) :void {
+			function ( $stream ): void {
 				$out = fgets( $stream );
 				if ( $out !== false ) {
 					$this->logger->warning( $out );
@@ -422,7 +422,7 @@ class Control {
 	 *
 	 * @param string $branch
 	 */
-	public function checkout( string $branch ) :void {
+	public function checkout( string $branch ): void {
 		throw new \Exception( "Implement me! " . __METHOD__ );
 	}
 
@@ -433,7 +433,7 @@ class Control {
 	 * @param string $repo
 	 * @param string $dir
 	 */
-	public function checkoutSubmodule( string $topRepo, string $repo, string $dir ) :void {
+	public function checkoutSubmodule( string $topRepo, string $repo, string $dir ): void {
 		throw new \Exception( "Implement me! " . __METHOD__ );
 	}
 
@@ -442,7 +442,7 @@ class Control {
 	 *
 	 * @param string $branch
 	 */
-	public function push( string $branch ) :void {
+	public function push( string $branch ): void {
 		throw new \Exception( "Implement me! " . __METHOD__ );
 	}
 }
