@@ -21,7 +21,7 @@
             "window": "Wikimedia Portals Update"
         },
         "puppet": {
-            "deployer": "{{ircnick|jbond42|JBond}}, {{ircnick|rzl|Reuven}}",
+            "deployer": "{{ircnick|jbond|JBond}}, {{ircnick|rzl|Reuven}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to Puppet change''",
             "window": "[[Puppet request window]]<br/><small>'''(Max 6 patches)'''</small>"
         },
