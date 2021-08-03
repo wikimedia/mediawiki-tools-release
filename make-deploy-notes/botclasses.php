@@ -37,7 +37,7 @@
  * Forks/Alternative versions:
  * There's a couple of different versions of this code lying around.
  * I'll try to list them here for reference purpopses:
- * 		https://en.wikinews.org/wiki/User:NewsieBot/botclasses.php
+ *    https://en.wikinews.org/wiki/User:NewsieBot/botclasses.php
  */
 
 /**
@@ -52,9 +52,9 @@ class http {
     public $getfollowredirs;
     public $quiet=false;
 
-	public function http_code () {
-		return curl_getinfo( $this->ch, CURLINFO_HTTP_CODE );
-	}
+    public function http_code () {
+        return curl_getinfo( $this->ch, CURLINFO_HTTP_CODE );
+    }
 
     function data_encode ($data, $keyprefix = "", $keypostfix = "") {
         assert( is_array($data) );
@@ -102,17 +102,17 @@ class http {
         curl_setopt($this->ch,CURLOPT_CONNECTTIMEOUT,10);
         curl_setopt($this->ch,CURLOPT_POST,1);
 //      curl_setopt($this->ch,CURLOPT_FAILONERROR,1);
-//	curl_setopt($this->ch,CURLOPT_POSTFIELDS, substr($this->data_encode($data), 0, -1) );
+//      curl_setopt($this->ch,CURLOPT_POSTFIELDS, substr($this->data_encode($data), 0, -1) );
         curl_setopt($this->ch,CURLOPT_POSTFIELDS, $data);
         $data = curl_exec($this->ch);
-//	echo "Error: ".curl_error($this->ch);
-//	var_dump($data);
-//	global $logfd;
-//	if (!is_resource($logfd)) {
-//		$logfd = fopen('php://stderr','w');
-	if (!$this->quiet)
+//      echo "Error: ".curl_error($this->ch);
+//      var_dump($data);
+//      global $logfd;
+//      if (!is_resource($logfd)) {
+//            $logfd = fopen('php://stderr','w');
+        if (!$this->quiet)
             echo 'POST: '.$url.' ('.(microtime(1) - $time).' s) ('.strlen($data)." b)\n";
-// 	}
+//      }
         return $data;
     }
 
@@ -182,17 +182,17 @@ class wikipedia {
         $this->url = $url;
         $this->ecTimestamp = null;
         if ($hu!==null)
-        	$this->http->setHTTPcreds($hu,$hp);
+            $this->http->setHTTPcreds($hu,$hp);
     }
 
     function __set($var,$val) {
-	switch($var) {
-  		case 'quiet':
-			$this->http->quiet=$val;
-     			break;
-   		default:
-     			echo "WARNING: Unknown variable ($var)!\n";
- 	}
+        switch($var) {
+            case 'quiet':
+                $this->http->quiet=$val;
+                break;
+            default:
+                echo "WARNING: Unknown variable ($var)!\n";
+        }
     }
 
     /**
@@ -207,13 +207,13 @@ class wikipedia {
         } else {
             $ret = $this->http->post($this->url.$query,$post);
         }
-		if ($this->http->http_code() != "200") {
-			if ($repeat < 10) {
-				return $this->query($query,$post,++$repeat);
-			} else {
-				throw new Exception("HTTP Error.");
-			}
-		}
+            if ($this->http->http_code() != "200") {
+                if ($repeat < 10) {
+                    return $this->query($query,$post,++$repeat);
+                } else {
+                    throw new Exception("HTTP Error.");
+                }
+            }
         return unserialize($ret);
     }
 
@@ -365,7 +365,7 @@ class wikipedia {
             }
          }
      }
-    
+
     /**
      * Returns an array with all the subpages of $page
      * @param $page
@@ -405,12 +405,12 @@ class wikipedia {
      * @return array
      **/
     function login ($user,$pass) {
-    	$post = array('lgname' => $user, 'lgpassword' => $pass);
+        $post = array('lgname' => $user, 'lgpassword' => $pass);
         $ret = $this->query('?action=login&format=php',$post);
         /* This is now required - see https://bugzilla.wikimedia.org/show_bug.cgi?id=23076 */
         if ($ret['login']['result'] == 'NeedToken') {
-        	$post['lgtoken'] = $ret['login']['token'];
-        	$ret = $this->query( '?action=login&format=php', $post );
+            $post['lgtoken'] = $ret['login']['token'];
+            $ret = $this->query( '?action=login&format=php', $post );
         }
         if ($ret['login']['result'] != 'Success') {
             echo "Login error: \n";
@@ -775,19 +775,18 @@ class wikipedia {
                 'file'            => '@'.$file
         );
         return $this->query('?action=upload&format=php',$params);
-     }
-    
+    }
+
     /*
     $page - page
     $revs - rev ids to delete (seperated with ,)
     $comment - delete comment
     */
     function revdel ($page,$revs,$comment) {
-    	
         if ($this->token==null) {
             $this->token = $this->getedittoken();
         }
-        
+
         $post = array(
             'wpEditToken'       => $this->token,
             'ids' => $revs,
@@ -843,18 +842,18 @@ class wikipedia {
         );
         return $this->query('?action=userrights&format=php',$params);
     }
-	
+
     /**
      * Gets the number of images matching a particular sha1 hash.
      * @param $hash The sha1 hash for an image.
      * @return The number of images with the same sha1 hash.
      **/
     function imagematches ($hash) {
-		$x = $this->query('?action=query&list=allimages&format=php&aisha1='.$hash);
-		return count($x['query']['allimages']);
+        $x = $this->query('?action=query&list=allimages&format=php&aisha1='.$hash);
+        return count($x['query']['allimages']);
     }
 
-	/**  BMcN 2012-09-16
+    /**  BMcN 2012-09-16
      * Retrieve a media file's actual location.
      * @param $page The "File:" page on the wiki which the URL of is desired.
      * @return The URL pointing directly to the media file (Eg http://upload.mediawiki.org/wikipedia/en/1/1/Example.jpg)
@@ -868,7 +867,7 @@ class wikipedia {
                 return false;
         }
     }
- 
+
     /**  BMcN 2012-09-16
      * Retrieve a media file's uploader.
      * @param $page The "File:" page
@@ -934,7 +933,7 @@ class extended extends wikipedia
         $data = $this->getpage( $page );
         return str_replace( $string, $newstring, $data );
     }
-    
+
     /**
      * Get a template from a page
      * @param $page The page we're working with
@@ -950,7 +949,5 @@ class extended extends wikipedia
            return $matches[0][0];
        else
            return NULL;
-     }    
+     }
 }
-
-
