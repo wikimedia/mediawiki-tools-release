@@ -34,12 +34,16 @@ $mwPass = $_SERVER['MEDIAWIKI_PSW'];
 $output = file_get_contents( $notesFile );
 
 require_once __DIR__ . '/botclasses.php';
-$wiki = new wikipedia( 'https://www.mediawiki.org/w/api.php' );
+$wiki = new MediaWikiApi( 'https://www.mediawiki.org/w/api.php' );
 $wiki->login( $mwUser, $mwPass );
 
 list( $major, $minor ) = getMajorMinor( $version );
-$wiki->edit( "MediaWiki 1.{$major}/wmf.{$minor}/Changelog",
-	$output, "Update changelog for $version", false, false );
+$wiki->query( 'action=edit', [
+	'title' => "MediaWiki 1.{$major}/wmf.{$minor}/Changelog",
+	'text' => $output,
+	'token' => $wiki->getedittoken(),
+	'summary' => "Update changelog for $version"
+] );
 
 print "Changelog updated\n";
 

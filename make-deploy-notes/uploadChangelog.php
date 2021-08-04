@@ -45,7 +45,7 @@ if ( stripos( $output, "array\n(" ) !== false ) {
 }
 
 require_once __DIR__ . '/botclasses.php';
-$wiki = new wikipedia( 'https://www.mediawiki.org/w/api.php' );
+$wiki = new MediaWikiApi( 'https://www.mediawiki.org/w/api.php' );
 
 if ( isset( $argv[2] ) && isset( $argv[3] ) ) {
 	$wiki->login( $argv[2], $argv[3] );
@@ -57,8 +57,12 @@ if ( isset( $argv[2] ) && isset( $argv[3] ) ) {
 }
 
 list( $major, $minor ) = getMajorMinor( $version );
-$wiki->edit( "MediaWiki 1.{$major}/wmf.{$minor}/Changelog",
-	$output, "Update changelog for $version", false, false );
+$wiki->query( 'action=edit', [
+	'title' => "MediaWiki 1.{$major}/wmf.{$minor}/Changelog",
+	'text' => $output,
+	'token' => $wiki->getedittoken(),
+	'summary' => "Update changelog for $version",
+] );
 
 print "Changelog updated\n";
 

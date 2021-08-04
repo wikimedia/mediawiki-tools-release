@@ -14,7 +14,8 @@
 		"fix": "phpcbf",
 		"test": [
 			"composer lint",
-			"composer phpcs"
+			"composer phpcs",
+			"php make-deploy-notes/test-botclasses.php"
 		]
 	}
 }

@@ -1,3 +1,4 @@
+# Test and development
 *.pyc
 /.tox
 local.conf
@@ -6,3 +7,6 @@ composer.lock
 .cache
 *.gz
 /.pytest_cache
+
+# Runtime
+/check-new-error-tasks/*.json
