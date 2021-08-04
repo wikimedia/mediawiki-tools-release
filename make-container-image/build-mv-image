@@ -118,20 +118,31 @@ function image_exists_locally {
     [ "$(docker image ls -q "$image" | wc -l)" -gt 0 ]
 }
 
+function volume_exists {
+    local volume="$1"
+
+    docker volume inspect "$volume" >/dev/null 2>&1
+}
+
 if [ $# -ne 1 ]; then
     usage
 fi
 
 workdir="$1"
 
-if [ ! -d "$workdir" ]; then
-    echo "$0: work dir $workdir does not exist"
-    exit 1
+if [ "${workdir:0:1}" = "/" ]; then
+    # workdir is an absolute path
+    if [ ! -d "$workdir" ]; then
+        echo "$0: work dir $workdir does not exist"
+        exit 1
+    fi
+else
+    # workdir doesn't begin with a slash. Assume it is a named volume
+    if ! volume_exists "$workdir"; then
+        echo "$0: A volume named '$workdir' does not exist"
+        exit 1
+    fi
 fi
-
-# Expand workdir to a full path (for places where we use it as the
-# source of a bind mount).
-workdir="$(readlink -e "$workdir")"
 
 announce build-mv-image running
 
@@ -139,7 +150,7 @@ select_base_image
 echo "Using $base_image as base image"
 
 echo Starting build container
-builder_id=$(docker run --rm -d "$base_image")
+builder_id=$(docker run --rm -d -v "$workdir:/workdir" "$base_image")
 
 trap 'docker rm -f $builder_id >/dev/null' EXIT
 
@@ -150,9 +161,10 @@ fi
 
 echo "rsync $workdir to container:/srv/mediawiki"
 
-time rsync "${rsync_args[@]}" $verbose \
-     -e 'docker exec -i' \
-     "$workdir/" "$builder_id:/srv/mediawiki/"
+time docker exec "$builder_id" \
+     /usr/bin/rsync \
+     "${rsync_args[@]}" $verbose \
+     "/workdir/" "/srv/mediawiki/"
 
 tag=$(date '+%Y-%m-%d-%H%M%S-publish')
 image="docker-registry.discovery.wmnet/restricted/mediawiki-multiversion:$tag"

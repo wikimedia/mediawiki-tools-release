@@ -16,14 +16,15 @@ EOF
 function get_wikiversions_json {
     local type=$1
 
-    case "$type" in
-        incoming)
-            cat "$workdir/wikiversions.json"
-            ;;
-        target)
-            docker run --rm --entrypoint /bin/bash "$target_image" -c 'cat /srv/mediawiki/wikiversions.json'
-            ;;
-    esac
+    local volume=
+
+    if [ "$type" = "incoming" ]; then
+        volume="-v $workdir:/srv/mediawiki"
+    fi
+
+    # Word splitting for $volume is desired
+    # shellcheck disable=SC2086
+    docker run --rm $volume --entrypoint /bin/bash "$target_image" -c 'cat /srv/mediawiki/wikiversions.json'
 }
 
 function unique_wikiversions {
