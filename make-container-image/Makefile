@@ -1,15 +1,31 @@
-.PHONY: build-image push-last-image auto-stage setup-workdir clean-workdir build-auto-stage-image build-multiversion-base-image
+.PHONY: build-image push-last-image auto-stage setup-workdir clean-workdir build-auto-stage-image build-multiversion-base-image build-debug-image
 
 SHELL = /bin/bash
 
 build-image: auto-stage build-multiversion-base-image
 	./build-mv-image $$(pwd)/workdir
 
+build-debug-image:
+	if [ -f last-build ]; then \
+		./build-debug-image $$(cat last-build); \
+	else \
+		echo "Can't build debug image until regular image is built"; \
+		false; \
+	fi
+
 build-and-push-image: build-image push-last-image
 
 push-last-image:
 	if [ -f last-build ]; then \
 		time sudo /usr/local/bin/docker-pusher $$(cat last-build); \
+	else \
+		echo Nothing to push yet; \
+		false; \
+	fi
+
+push-last-debug-image:
+	if [ -f last-debug-build ]; then \
+		time sudo /usr/local/bin/docker-pusher $$(cat last-debug-build); \
 	else \
 		echo Nothing to push yet; \
 		false; \
@@ -53,7 +69,7 @@ clean-workdir:
 	./setup-workdir --delete $$(pwd)/workdir
 
 check:
-	shellcheck auto-stage/auto-stage build-mv-image setup-workdir new-train-version
+	shellcheck auto-stage/auto-stage build-mv-image setup-workdir new-train-version build-debug-image
 
 purge-restricted-images:
 	docker image ls --format '{{.Repository}}:{{.Tag}}' docker-registry.discovery.wmnet/restricted/mediawiki-multiversion | xargs -r docker image rm
