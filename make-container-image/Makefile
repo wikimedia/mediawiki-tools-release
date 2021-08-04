@@ -7,7 +7,7 @@ build-and-push-image: build-image push-last-image
 
 push-last-image:
 	if [ -f last-build ]; then \
-		sudo /usr/local/bin/docker-pusher $$(cat last-build); \
+		time sudo /usr/local/bin/docker-pusher $$(cat last-build); \
 	else \
 		echo Nothing to push yet; \
 		false; \
