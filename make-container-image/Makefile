@@ -1,5 +1,7 @@
 .PHONY: build-image push-last-image auto-stage setup-workdir clean-workdir build-auto-stage-image build-multiversion-base-image
 
+SHELL = /bin/bash
+
 build-image: auto-stage build-multiversion-base-image
 	./build-mv-image $$(pwd)/workdir
 
