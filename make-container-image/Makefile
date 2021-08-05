@@ -72,7 +72,7 @@ check:
 	shellcheck auto-stage/auto-stage build-mv-image setup-workdir new-train-version build-debug-image
 
 purge-restricted-images:
-	docker image ls --format '{{.Repository}}:{{.Tag}}' docker-registry.discovery.wmnet/restricted/mediawiki-multiversion | xargs -r docker image rm
+	docker image ls --format '{{.Repository}}:{{.Tag}}' | grep docker-registry.discovery.wmnet/restricted | xargs -r docker image rm
 
 # Remove images older than a day
 purge-old-images:
