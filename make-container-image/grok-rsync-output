@@ -3,14 +3,21 @@
 use strict;
 
 my $nfiles;
+my $ndelfiles;
 my $totalsize;
 my $transfersize;
 
 while (<STDIN>) {
+    # uncomment for debugging
+    #print STDERR;
     if (/^Number of regular files transferred: ([\d,]+)/) {
         $nfiles = $1;
         $nfiles =~ s/,//g;
         print "rsync_nfiles=$nfiles\n";
+    } elsif (/^Number of deleted files: ([\d,]+)/) {
+        $ndelfiles = $1;
+        $ndelfiles =~ s/,//g;
+        print "rsync_ndelfiles=$ndelfiles\n";
     } elsif (/^Total file size: ([\d,]+)/) {
         $totalsize = $1;
         $totalsize =~ s/,//g;

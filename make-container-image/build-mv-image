@@ -22,6 +22,7 @@ rsync_args=(-a --stats --delete --exclude .git)
 # Satisfy shellcheck
 rsync_transferpct=
 rsync_nfiles=
+rsync_ndelfiles=
 
 last_estimated_image=
 
@@ -155,7 +156,7 @@ builder_id=$(docker run --rm -d -v "$workdir:/workdir" "$base_image")
 trap 'docker rm -f $builder_id >/dev/null' EXIT
 
 verbose=
-if [ "$rsync_nfiles" -le 100 ]; then
+if [ "$rsync_nfiles" -le 100 ] && [ "$rsync_ndelfiles" -le 100 ]; then
     verbose=-v
 fi
 
