@@ -357,6 +357,32 @@ function write_build_signature {
     generate_build_signature | jq . > build-signature
 }
 
+# Delete inactive php-<version> dirs that have aged out.
+function delete_old_checkouts {
+
+    echo Deleting old checkouts
+
+    declare -A active_versions
+    for version in $(active_versions); do
+        active_versions[$version]=1
+    done
+
+    # This command copied from https://wikitech.wikimedia.org/wiki/Heterogeneous_deployment/Train_deploys#Weekly_steps
+    for candidate in $(find . -mindepth 2 -maxdepth 2 -type f -path './php-*/README.md' -ctime +7 -exec dirname {} \; | sed -e 's,^\./php-,,'); do
+        echo -n "$candidate: "
+        if [ "${active_versions[$candidate]:-}" ]; then
+            echo "Active.  Will not delete"
+        else
+            echo "Deleting..."
+            rm -fr "php-$candidate"
+            rm -f "wmf-config/ExtensionMessages-$candidate.php"
+        fi
+    done
+
+    echo Done deleting old checkouts
+    echo
+}
+
 workdir=/srv/mediawiki
 patches_dir=/tmp/patches
 
@@ -369,13 +395,13 @@ cd "$workdir"
 setup_private_settings
 setup_patches
 
+delete_old_checkouts
+
 for version in $(active_versions); do
     checkout_or_update_version "$version"
 done
 
 write_build_signature
-
-# FIXME: Delete inactive php-<version> dirs that have aged out.
 
 prepare_mw_versions
 
