@@ -137,6 +137,7 @@ bundles:
         - "mediawiki/extensions/MobileFrontend"
         - "mediawiki/extensions/MultimediaViewer"
         - "mediawiki/extensions/NavigationTiming"
+        - "mediawiki/extensions/NearbyPages"
         - "mediawiki/extensions/Newsletter"
         - "mediawiki/extensions/NewUserMessage"
         - "mediawiki/extensions/Nuke"
