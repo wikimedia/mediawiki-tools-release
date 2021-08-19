@@ -212,6 +212,7 @@ bundles:
         - "mediawiki/extensions/WikidataPageBanner"
         - "mediawiki/extensions/WikiEditor"
         - "mediawiki/extensions/wikihiero"
+        - "mediawiki/extensions/WikiLambda"
         - "mediawiki/extensions/WikiLove"
         - "mediawiki/extensions/WikimediaApiPortalOAuth"
         - "mediawiki/extensions/WikimediaBadges"
