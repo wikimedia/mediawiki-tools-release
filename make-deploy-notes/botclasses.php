@@ -410,7 +410,7 @@ class wikipedia {
         /* This is now required - see https://bugzilla.wikimedia.org/show_bug.cgi?id=23076 */
         if ($ret['login']['result'] == 'NeedToken') {
             $post['lgtoken'] = $ret['login']['token'];
-            $ret = $this->query( '?action=login', $post );
+            $ret = $this->query( 'action=login', $post );
         }
         if ($ret['login']['result'] != 'Success') {
             echo "Login error: \n";
