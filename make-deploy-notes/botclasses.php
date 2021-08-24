@@ -415,7 +415,7 @@ class wikipedia {
         if ($ret['login']['result'] != 'Success') {
             echo "Login error: \n";
             print_r($ret);
-            die();
+            exit(1);
         } else {
             return $ret;
         }
