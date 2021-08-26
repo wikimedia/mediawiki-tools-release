@@ -13,6 +13,7 @@ bundles:
         - "mediawiki/extensions/InputBox"
         - "mediawiki/extensions/Interwiki"
         - "mediawiki/extensions/LocalisationUpdate"
+        - "mediawiki/extensions/Math"
         - "mediawiki/extensions/MultimediaViewer"
         - "mediawiki/extensions/Nuke"
         - "mediawiki/extensions/OATHAuth"
