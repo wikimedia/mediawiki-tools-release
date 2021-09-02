@@ -6,7 +6,7 @@ build-image: auto-stage build-multiversion-base-image
 	./build-mv-image make-container-image-workdir
 
 build-debug-image:
-	if [ -f last-build ]; then \
+	@if [ -f last-build ]; then \
 		./build-debug-image $$(cat last-build); \
 	else \
 		echo "Can't build debug image until regular image is built"; \
@@ -20,7 +20,7 @@ push-last-image:
 	time support/push-last-build
 
 push-last-debug-image:
-	if [ -f last-debug-build ]; then \
+	@if [ -f last-debug-build ]; then \
 		echo Pushing debug image to registry; \
 		time sudo /usr/local/bin/docker-pusher $$(cat last-debug-build); \
 	else \

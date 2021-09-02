@@ -23,7 +23,12 @@ fi
 
 output_image="docker-registry.discovery.wmnet/restricted/mediawiki-multiversion-debug:$tag"
 
-cat <<EOF | docker build -t "$output_image" -f- empty/
+echo "** Building debug image: $output_image **"
+
+cat <<EOF | docker build \
+                   --build-arg "http_proxy=${http_proxy:-}" \
+                   --build-arg "https_proxy=${https_proxy:-}" \
+                   -t "$output_image" -f- empty/
 FROM $base
 USER root
 RUN apt-get update && apt-get install php-tideways-xhprof
