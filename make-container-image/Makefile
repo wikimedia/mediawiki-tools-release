@@ -16,15 +16,12 @@ build-debug-image:
 build-and-push-image: build-image push-last-image
 
 push-last-image:
-	if [ -f last-build ]; then \
-		time sudo /usr/local/bin/docker-pusher $$(cat last-build); \
-	else \
-		echo Nothing to push yet; \
-		false; \
-	fi
+	@echo Pushing image to registry
+	time support/push-last-build
 
 push-last-debug-image:
 	if [ -f last-debug-build ]; then \
+		echo Pushing debug image to registry; \
 		time sudo /usr/local/bin/docker-pusher $$(cat last-debug-build); \
 	else \
 		echo Nothing to push yet; \
@@ -69,7 +66,7 @@ clean-workdir:
 	docker volume rm make-container-image-workdir
 
 check:
-	shellcheck auto-stage/auto-stage build-mv-image setup-workdir new-train-version build-debug-image
+	shellcheck auto-stage/auto-stage build-mv-image setup-workdir new-train-version build-debug-image support/*
 
 purge-restricted-images:
 	docker image ls --format '{{.Repository}}:{{.Tag}}' | grep docker-registry.discovery.wmnet/restricted | xargs -r docker image rm

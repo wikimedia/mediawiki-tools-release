@@ -15,7 +15,7 @@ fi
 
 base="$1"
 
-tag=$(echo "$base" | cut -d: -f2)
+tag=$(support/extract-image-tag "$base")
 if [ -z "$tag" ]; then
     echo "Could not extract the tag from base image name: $base"
     exit 1

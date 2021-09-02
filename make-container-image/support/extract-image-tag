@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+function usage {
+    cat <<EOF
+Usage: $0 IMAGE:TAG
+
+Extracts TAG and writes it to stdout
+EOF
+    exit 1
+}
+
+if [ $# -ne 1 ]; then
+    usage
+fi
+
+image="$1"
+
+tag=$(echo "$image" | awk 'BEGIN { FS = ":" } ; { print $2 }')
+if [ -z "$tag" ]; then
+    echo "Could not extract the tag from base image name: $image"
+    exit 1
+fi
+
+echo "$tag"
