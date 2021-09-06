@@ -32,7 +32,7 @@ cat <<EOF | docker build \
 FROM $base
 USER root
 RUN apt-get update && apt-get install php-tideways-xhprof
-USER www-data
+USER 33
 EOF
 
 echo "$output_image" > last-debug-build.tmp
