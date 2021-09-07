@@ -308,7 +308,7 @@ def print_formatted_changes(old, new, extension, header, display_name=None):
     Print our changes if there are any, otherwise store the repository name for later use
     """
     if not display_name:
-        display_name = os.path.basename(extension)
+        display_name = extension
 
     changes = format_changes(old, new, extension)
     if changes:
@@ -351,35 +351,50 @@ def main():
     old = os.path.join('wmf', args.oldbranch)
     new = os.path.join('wmf', args.newbranch)
 
-    extensions = get_bundle('wmf_branch')
-
     print_formatted_changes(old, new, 'mediawiki/core', '== Core changes ==')
     print_formatted_changes(old, new, 'mediawiki/vendor', '=== Vendor ===')
 
+    repos = get_bundle('wmf_branch')
     printed_skins = False
+    printed_misc = False
 
+    # The below relies on get_bundle returning repos in the following order:
+    # - mediawiki/extensions/*
+    # - mediawiki/skins/*
+    # - misc repos (e.g. mediawiki/vendor, and VisualEditor/VisualEditor)
     print("== Extensions ==")
-    for extension in extensions:
-        extension_name = os.path.basename(extension)
-
+    for repo_full_name in repos:
         # We already did vendor
-        if extension_name == 'vendor':
+        if repo_full_name == 'mediawiki/vendor':
             continue
 
-        # Print a skin header at the start of the skins
-        if 'skins' in extension and not printed_skins:
+        repo_is_ext = repo_full_name.startswith('mediawiki/extensions/')
+        repo_is_skin = repo_full_name.startswith('mediawiki/skins/')
+        repo_is_misc = not (repo_is_ext or repo_is_skin)
+        repo_display_name = repo_full_name
+        if repo_is_ext or repo_is_skin:
+            repo_display_name = os.path.basename(repo_full_name)
+
+        # Print a header at the start
+        if repo_is_skin and not printed_skins:
             printed_skins = True
             print('== Skins ==')
 
-        print_formatted_changes(old, new, extension, '=== {} ==='.format(extension_name),
-                                display_name=extension_name)
+        # Print a skin header at the start
+        if repo_is_misc and not printed_misc:
+            printed_misc = True
+            print('== Misc ==')
+
+        print_formatted_changes(old, new, repo_full_name,
+                                '=== {} ==='.format(repo_display_name),
+                                display_name=repo_display_name)
 
     if len(NO_CHANGES) > 0:
-        print('== No Changes ==')
+        print('== No changes ==')
         for component in NO_CHANGES:
             print('* {}'.format(component))
 
-    print("== Total Changes ==\n"
+    print("== Total changes ==\n"
           "'''{}''' Changes "
           "in '''{}''' repos "
           "by '''{}''' authors".format(
