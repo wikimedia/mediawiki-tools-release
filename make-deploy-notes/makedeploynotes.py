@@ -391,7 +391,7 @@ def main():
 
     if len(NO_CHANGES) > 0:
         print('== No changes ==')
-        for component in NO_CHANGES:
+        for component in sorted(NO_CHANGES):
             print('* {}'.format(component))
 
     print("== Total changes ==\n"
