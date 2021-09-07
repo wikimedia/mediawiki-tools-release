@@ -13,6 +13,11 @@ Example:
     # print the changes
     makedeploynotes.py 1.35.0-wmf.18 1.35.0-wmf.19
 
+Usage locally:
+
+    make-tools-release$ tox -e make-deploy-notes -v
+    make-tools-release$ .tox/make-deploy-notes/bin/python3 make-deploy-notes/makedeploynotes.py 1.35.0-wmf.18 1.35.0-wmf.19
+
 Notes:
     symlinks to mwrelease because python doesn't allow importing a package
     from a parent directory.
