@@ -42,15 +42,19 @@ NO_CHANGES = set()
 
 # Messages we don't want to see in the git log
 SKIP_MESSAGES = [
-    'Localisation updates from',
     # Fix for escaping fail leaving a commit summary of $COMMITMSG
     'COMMITMSG',
     r'Add (\.gitreview( and )?)?\.gitignore',
     # Branching commit; set version, defaultbranch, add submodules
     'Creating new WMF',
-    'Updating development dependencies',
     # git submodule autobumps
     r'Updated mediawiki\/core',
+]
+SKIP_AUTHORS = [
+    'l10n-bot@translatewiki.net',
+    # In mediawiki-related repos, this updates development dependencies
+    # which don't affect source code.
+    'tools.libraryupgrader@tools.wmflabs.org',
 ]
 
 ALL_CHANGE_SHA1S = []
@@ -251,13 +255,16 @@ def maybe_task(message):
     return task
 
 
-def valid_change(message):
+def valid_change(message, author_email):
     """
     validates a change based on a commit
     """
     for skip_message in SKIP_MESSAGES:
         if re.search(skip_message, message):
             return False
+
+    if author_email in SKIP_AUTHORS:
+        return False
 
     return True
 
@@ -271,18 +278,20 @@ def format_changes(old, new, repo):
     changes = git_log(old, new, repo)
 
     for change in changes:
-        if not valid_change(change['message']):
+        author_email = change['author']['email']
+
+        if not valid_change(change['message'], author_email):
             continue
 
         link = patch_url(change['commit'].strip())
+        author_name = change['author']['name'].strip()
 
-        author = change['author']['name'].strip()
-        TOTALS['unique_authors'].add(author)
+        TOTALS['unique_authors'].add(author_name)
 
         message = change['message'].splitlines()[0].strip()
 
         formatted_change = '* {} - <nowiki>{}</nowiki>{} by {}'.format(
-            link, message, maybe_task(change['message']), author)
+            link, message, maybe_task(change['message']), author_name)
 
         valid_changes.append(formatted_change)
 
