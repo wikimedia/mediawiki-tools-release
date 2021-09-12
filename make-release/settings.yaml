@@ -8,6 +8,7 @@ bundles:
         - "mediawiki/extensions/CiteThisPage"
         - "mediawiki/extensions/CodeEditor"
         - "mediawiki/extensions/ConfirmEdit"
+        - "mediawiki/extensions/DiscussionTools"
         - "mediawiki/extensions/Gadgets"
         - "mediawiki/extensions/ImageMap"
         - "mediawiki/extensions/InputBox"
