@@ -45,25 +45,25 @@
             "what": "See [[mw:Extension:Graph|Graphoid]]",
             "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / [[ORES]]"
         },
-        "eu_backport": {
+        "utc_am_backport": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
-        "eu_training": {
+        "utc_am_training": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|apergos|Ariel}}",
             "what": "Training to do backport and config deployment. To sign up for deployment training use the [https://phabricator.wikimedia.org/project/profile/5265/ Deployment Training Request phabricator milestone]\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
-            "window": "[[Backport windows|EU Backport and Config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
+            "window": "[[Backport windows|UTC morning backport and config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
-        "us_backport": {
+        "utc_pm_backport": {
             "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Niharika|Niharika}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
-        "us_training": {
+        "utc_pm_training": {
             "deployer": "{{ircnick|brennen|Brennen}}",
             "what": "Training to do backport and config deployment. To sign up for deployment training use the [https://phabricator.wikimedia.org/project/profile/5265/ Deployment Training Request phabricator milestone]\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
-            "window": "[[Backport windows|US Backport and Config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
+            "window": "[[Backport windows|UTC late backport and config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "train": {
             "deployer": "<%= train_deployer %>",
@@ -165,7 +165,7 @@
             }
         ]
     },
-    "schedule@American": {
+    "schedule@UTC-7": {
         "mon": [
             {
                 "name": "train_branch",
@@ -174,10 +174,10 @@
         ],
         "mon,wed-thu": [
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning backport window"
+                    "window_name": "UTC evening backport window"
                 }
             }
         ],
@@ -218,32 +218,32 @@
                 }
             },
 			{
-				"name": "eu_training",
+				"name": "utc_am_training",
 				"hour": "04"
 			},
 			{
-				"name": "us_training",
+				"name": "utc_pm_training",
 				"hour": "16"
 			}
         ],
         "mon-wed": [
             {
-                "name": "eu_backport",
+                "name": "utc_am_backport",
                 "hour": "04",
                 "vars": {
-                    "window_name": "European mid-day backport window"
+                    "window_name": "UTC morning backport window"
                 }
             },
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "16",
                 "vars": {
-                    "window_name": "Evening backport window"
+                    "window_name": "UTC late backport window"
                 }
             }
         ]
     },
-    "schedule@European": {
+    "schedule@UTC-0": {
         "mon": [
             {
                 "name": "train_branch",
@@ -283,18 +283,18 @@
                 }
             },
             {
-                "name": "eu_training",
+                "name": "utc_am_training",
                 "hour": "04"
             },
             {
-                "name": "us_training",
+                "name": "utc_pm_training",
                 "hour": "16"
             },
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning backport window"
+                    "window_name": "UTC evening backport window"
                 }
             }
         ],
@@ -306,24 +306,24 @@
         ],
         "mon-wed": [
             {
-                "name": "eu_backport",
+                "name": "utc_am_backport",
                 "hour": "04",
                 "vars": {
-                    "window_name": "European mid-day backport window"
+                    "window_name": "UTC morning backport window"
                 }
             },
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "16",
                 "vars": {
-                    "window_name": "Evening backport window"
+                    "window_name": "UTC late backport window"
                 }
             },
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning backport window"
+                    "window_name": "UTC evening backport window"
                 }
             }
         ]
@@ -331,39 +331,39 @@
     "schedule@NoTrain": {
         "mon-wed": [
             {
-                "name": "eu_backport",
+                "name": "utc_am_backport",
                 "hour": "04",
                 "vars": {
-                    "window_name": "European mid-day backport window"
+                    "window_name": "UTC morning backport window"
                 }
             },
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "16",
                 "vars": {
-                    "window_name": "Evening backport window"
+                    "window_name": "UTC late backport window"
                 }
             },
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning backport window"
+                    "window_name": "UTC evening backport window"
                 }
             }
         ],
         "thu": [
             {
-                "name": "eu_training",
+                "name": "utc_am_training",
                 "hour": "04"
             },
             {
-                "name": "us_training",
+                "name": "utc_pm_training",
                 "hour": "16"
             }
         ]
     },
-    "schedule@American+European": {
+    "schedule@UTC-7+UTC-0": {
         "mon": [
             {
                 "name": "train_branch",
@@ -372,10 +372,10 @@
         ],
         "mon,wed-thu": [
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning backport window"
+                    "window_name": "UTC evening backport window"
                 }
             }
         ],
@@ -434,32 +434,32 @@
                 }
             },
             {
-                "name": "eu_training",
+                "name": "utc_am_training",
                 "hour": "04"
             },
             {
-                "name": "us_training",
+                "name": "utc_pm_training",
                 "hour": "16"
             }
         ],
         "mon-wed": [
             {
-                "name": "eu_backport",
+                "name": "utc_am_backport",
                 "hour": "04",
                 "vars": {
-                    "window_name": "European mid-day backport window"
+                    "window_name": "UTC morning backport window"
                 }
             },
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "16",
                 "vars": {
-                    "window_name": "Evening backport window"
+                    "window_name": "UTC late backport window"
                 }
             }
         ]
     },
-    "schedule@European+American": {
+    "schedule@UTC-0+UTC-7": {
         "mon": [
             {
                 "name": "train_branch",
@@ -527,18 +527,18 @@
                 }
             },
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning backport window"
+                    "window_name": "UTC evening backport window"
                 }
             },
             {
-                "name": "eu_training",
+                "name": "utc_am_training",
                 "hour": "04"
             },
             {
-                "name": "us_training",
+                "name": "utc_pm_training",
                 "hour": "16"
             }
         ],
@@ -550,24 +550,24 @@
         ],
         "mon-wed": [
             {
-                "name": "eu_backport",
+                "name": "utc_am_backport",
                 "hour": "04",
                 "vars": {
-                    "window_name": "European mid-day backport window"
+                    "window_name": "UTC morning backport window"
                 }
             },
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "16",
                 "vars": {
-                    "window_name": "Evening backport window"
+                    "window_name": "UTC late backport window"
                 }
             },
             {
-                "name": "us_backport",
+                "name": "utc_pm_backport",
                 "hour": "11",
                 "vars": {
-                    "window_name": "Morning backport window"
+                    "window_name": "UTC evening backport window"
                 }
             }
         ]

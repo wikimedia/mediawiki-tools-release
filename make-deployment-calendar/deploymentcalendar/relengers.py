@@ -5,12 +5,12 @@ from collections import namedtuple
 Relenger = namedtuple('Relenger', ['fullname', 'ircnick', 'schedule'])
 
 RELENGERS = {
-    'dancy': Relenger('Ahmon', 'dancy', 'American'),
-    'hashar': Relenger('Antoine', 'hashar', 'European'),
-    'brennen': Relenger('Brennen', 'brennen', 'American'),
-    'dduvall': Relenger('Dan', 'dduvall', 'American'),
-    'jeena': Relenger('Jeena', 'jeena', 'American'),
-    'mmodell': Relenger('Mukunda', 'twentyafterfour', 'American'),
+    'dancy': Relenger('Ahmon', 'dancy', 'UTC-7'),
+    'hashar': Relenger('Antoine', 'hashar', 'UTC-0'),
+    'brennen': Relenger('Brennen', 'brennen', 'UTC-7'),
+    'dduvall': Relenger('Dan', 'dduvall', 'UTC-7'),
+    'jeena': Relenger('Jeena', 'jeena', 'UTC-7'),
+    'mmodell': Relenger('Mukunda', 'twentyafterfour', 'UTC-7'),
 }
 
 

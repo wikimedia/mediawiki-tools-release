@@ -476,7 +476,7 @@ def parse_args(argv=None):
     )
     ap.add_argument(
         '--schedule', dest='schedules', action='append',
-        help='Active alternate schedules (e.g., American)'
+        help='Active alternate schedules (e.g., UTC-7)'
     )
     ap.add_argument(
         '--start-date',
