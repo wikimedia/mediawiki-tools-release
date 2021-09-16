@@ -104,7 +104,10 @@ function select_base_image {
         base_image="$(cat last-build)"
     fi
 
-    if ! image_is_suitable_as_base "$base_image"; then
+    if [ "${FORCE_FULL_BUILD:-}" ]; then
+        echo "FORCE_FULL_BUILD requested.   Using $default_base"
+        base_image="$default_base"
+    elif ! image_is_suitable_as_base "$base_image"; then
         echo "Falling back to $default_base"
         base_image="$default_base"
     fi
