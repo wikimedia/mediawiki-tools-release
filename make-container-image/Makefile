@@ -44,6 +44,8 @@ ifneq ($(PATCHES_DIR),)
 patches_volume := -v $$(readlink -e $$PATCHES_DIR):/srv/patches
 endif
 
+auto_stage_network ?= bridge
+
 # Do a single auto-stage run
 auto-stage: build-auto-stage-image setup-workdir
 	docker run --rm \
@@ -51,6 +53,8 @@ auto-stage: build-auto-stage-image setup-workdir
 		-e https_proxy=$(https_proxy) \
 		-e ON_RELEASES_SERVER=$(on_releases_server) \
 		-e MW_CONFIG_BRANCH=$(MW_CONFIG_BRANCH) \
+		-e GIT_BASE=$(git_base) \
+		--network $(auto_stage_network) \
 		-v $(workdir_volume):/srv/mediawiki \
 		$(patches_volume) \
 		auto-stage

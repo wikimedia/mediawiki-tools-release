@@ -2,6 +2,10 @@
 
 set -eu -o pipefail
 
+DEFAULT_GIT_BASE=https://gerrit.wikimedia.org/r
+
+GIT_BASE=${GIT_BASE:-$DEFAULT_GIT_BASE}
+
 # Leave this set to 'yes' normally.  If you're doing development on
 # this script you can set this to 'no' to reduce test cycle time.
 perform_updates=yes
@@ -190,7 +194,7 @@ function checkout_or_update_version {
     local dir="php-$version"
     local branch="wmf/$version"
 
-    clone_or_update_repo https://gerrit.wikimedia.org/r/mediawiki/core "$dir" "$branch"
+    clone_or_update_repo "$GIT_BASE/mediawiki/core" "$dir" "$branch"
     # NOTE: Patches result in files that are modified in each run of auto-stage.
     apply_patches "$version"
 }
@@ -388,7 +392,11 @@ patches_dir=/tmp/patches
 
 announce auto-stage running
 
-clone_or_update_repo https://gerrit.wikimedia.org/r/operations/mediawiki-config "$workdir" "${MW_CONFIG_BRANCH:-master}"
+if [ "$GIT_BASE" != "$DEFAULT_GIT_BASE" ]; then
+    git config --global "url.$GIT_BASE.insteadOf" "$DEFAULT_GIT_BASE"
+fi
+
+clone_or_update_repo "$GIT_BASE/operations/mediawiki-config" "$workdir" "${MW_CONFIG_BRANCH:-master}"
 
 cd "$workdir"
 
