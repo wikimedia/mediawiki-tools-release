@@ -2,8 +2,10 @@
 
 SHELL = /bin/bash
 
+workdir_volume = make-container-image-workdir
+
 build-image: auto-stage build-multiversion-base-image
-	./build-mv-image make-container-image-workdir
+	./build-mv-image $(workdir_volume)
 
 build-debug-image:
 	@if [ -f last-build ]; then \
@@ -49,7 +51,7 @@ auto-stage: build-auto-stage-image setup-workdir
 		-e https_proxy=$(https_proxy) \
 		-e ON_RELEASES_SERVER=$(on_releases_server) \
 		-e MW_CONFIG_BRANCH=$(MW_CONFIG_BRANCH) \
-		-v make-container-image-workdir:/srv/mediawiki \
+		-v $(workdir_volume):/srv/mediawiki \
 		$(patches_volume) \
 		auto-stage
 
@@ -60,10 +62,10 @@ build-multiversion-base-image:
 	$(MAKE) -C multiversion-base
 
 setup-workdir:
-	./setup-workdir make-container-image-workdir
+	./setup-workdir $(workdir_volume)
 
 clean-workdir:
-	docker volume rm make-container-image-workdir
+	docker volume rm $(workdir_volume)
 
 check:
 	shellcheck auto-stage/auto-stage build-mv-image setup-workdir new-train-version build-debug-image support/*
