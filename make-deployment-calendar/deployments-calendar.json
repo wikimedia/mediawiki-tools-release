@@ -96,7 +96,7 @@
         "mon": [
             {
                 "name": "portals",
-                "hour": "03",
+                "hour": "08",
                 "minute": "30",
                 "length": "0.5"
             },
