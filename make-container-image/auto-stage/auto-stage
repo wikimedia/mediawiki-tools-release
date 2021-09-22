@@ -167,6 +167,8 @@ function clone_or_update_repo {
         git clone -b "$branch" "$repo" "$dir"
     fi
 
+    # NOTE: Signals such as SIGINT will not be processed until this
+    # subshell exits.  This could be a long operation.
     (
         cd "$dir"
 
@@ -396,6 +398,14 @@ workdir=/srv/mediawiki
 patches_dir=/tmp/patches
 
 announce auto-stage running
+
+# These traps make auto-stage more responsive to being interrupted.  I
+# don't know why it helps, though, since the default signal handlers
+# should do what we want in the first place.  The auto-stage is
+# executed using docker run --init ..., so this script does not run as
+# PID 1 (and therefore _should_ have default signal handling behavior).
+trap 'echo auto-stage caught SIGINT. Exiting' SIGINT
+trap 'echo auto-stage caught SIGTERM. Exiting' SIGTERM
 
 if [ "$GIT_BASE" != "$DEFAULT_GIT_BASE" ]; then
     git config --global "url.$GIT_BASE.insteadOf" "$DEFAULT_GIT_BASE"

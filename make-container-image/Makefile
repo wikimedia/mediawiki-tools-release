@@ -48,7 +48,7 @@ auto_stage_network ?= bridge
 
 # Do a single auto-stage run
 auto-stage: build-auto-stage-image setup-workdir
-	docker run --rm \
+	docker run --rm --init \
 		-e http_proxy=$(http_proxy) \
 		-e https_proxy=$(https_proxy) \
 		-e ON_RELEASES_SERVER=$(on_releases_server) \
