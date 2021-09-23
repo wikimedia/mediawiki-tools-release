@@ -170,6 +170,11 @@ function clone_or_update_repo {
     (
         cd "$dir"
 
+        # Be resilient to changes in the origin.  For example, in
+        # train-dev, $repo might be git://<temporaryIP>:<randomport>
+        # whose parts may change from run to run.
+        git remote set-url origin "$repo"
+
         # This discards patches (which aren't committed).
         echo Resetting checkout
         run_quietly_if_ok git reset --hard
