@@ -97,7 +97,6 @@ bundles:
         - "mediawiki/extensions/Gadgets"
         - "mediawiki/extensions/GeoCrumbs"
         - "mediawiki/extensions/GeoData"
-        - "mediawiki/extensions/GettingStarted"
         - "mediawiki/extensions/GlobalBlocking"
         - "mediawiki/extensions/GlobalCssJs"
         - "mediawiki/extensions/GlobalPreferences"
