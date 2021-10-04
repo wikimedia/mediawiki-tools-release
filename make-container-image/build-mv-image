@@ -91,6 +91,16 @@ function image_is_suitable_as_base {
         return 1
     fi
 
+    estimate_rsync "$image"
+    # As of Fri Jul 23 08:44:41 PDT 2021, changing a value in
+    # languages/i18n/en.json and rebuilding l10n results in a
+    # transferpct of 29.
+    if [ "$rsync_transferpct" -gt 25 ]; then
+        # The candidate base image doesn't provide sufficient data transfer savings.
+        echo "Image $image is not suitable due to rsync transfer pct $rsync_transferpct (threshold is 25)"
+        return 1
+    fi
+
     # Looks ok
     return 0
 }
