@@ -203,14 +203,17 @@ assert_repository_is_updated() {
 }
 
 select_git_push_dest() {
-    if [ "$(cat /etc/wikimedia-cluster)" = "dev" ]; then
-        # In train-dev environment:
-        # * Use plain git
-        # * Use the current branch name
-        git symbolic-ref --short HEAD
+    local branch
+
+    branch=$(git symbolic-ref --short HEAD)
+
+    # Does the remote looks like a simple git server?
+    if git remote get-url origin | grep -q '^git://git'; then
+        # Use the current branch name
+	echo "$branch"
     else
-        # Gerrit is used in production
-        echo "refs/for/master%topic=${VERSION},l=Code-Review+2"
+        # Gerrit is assumed otherwise
+        echo "refs/for/${branch}%topic=${VERSION},l=Code-Review+2"
     fi
 }
 
