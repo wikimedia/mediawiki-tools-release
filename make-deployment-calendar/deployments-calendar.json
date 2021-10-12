@@ -71,9 +71,9 @@
             "window": "MediaWiki train - <%= version %> Version"
         },
         "train_branch": {
-            "deployer": "",
+            "deployer": "N/A",
             "what": "Branch <code>wmf/<%= new_train %></code>",
-            "window": "Branching MediaWiki, extensions, skins, and vendor – See [[Heterogeneous_deployment/Train_deploys]]"
+            "window": "Automatic branching of MediaWiki, extensions, skins, and vendor – see [[Heterogeneous_deployment/Train_deploys]]"
         },
         "train_secondary": {
             "deployer": "<%= train_deployer %>",
