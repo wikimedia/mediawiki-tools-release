@@ -1,6 +1,8 @@
 """
 Test deployment calendar
 """
+import datetime
+import time
 import os
 
 import pytest
@@ -9,16 +11,23 @@ import deploymentcalendar
 
 
 def test_parse_date():
+    # parse_date uses naive datetime which is not TZ aware
+    expected = time.mktime(
+        datetime.date(2020, 12, 1).timetuple()
+        )
     dec_1 = deploymentcalendar.findtrain.parse_date('Tue 1 Dec 2020')
-    assert dec_1.timestamp() == 1606806000
+    assert dec_1.timestamp() == expected
 
 
 def test_get_next_monday():
-    nov_30 = 1606719600
+    # parse_date uses naive datetime which is not TZ aware
+    expected = time.mktime(
+        datetime.date(2020, 11, 30).timetuple()
+        )
     next_monday = deploymentcalendar.findtrain.get_next_monday(
         deploymentcalendar.findtrain.parse_date('Mon 30 Nov 2020')
     )
-    assert next_monday.timestamp() == nov_30
+    assert next_monday.timestamp() == expected
 
 
 def test_flatten_for_post():
