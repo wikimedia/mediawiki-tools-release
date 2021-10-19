@@ -10,8 +10,18 @@ GIT_BASE=${GIT_BASE:-$DEFAULT_GIT_BASE}
 # this script you can set this to 'no' to reduce test cycle time.
 perform_updates=yes
 
+###
+
+WIKIVERSIONS_JSON=wikiversions.json
+WIKIVERSIONS_PHP=wikiversions.php
+
+if [ "${MW_CONFIG_BRANCH:-}" = "train-dev" ]; then
+    WIKIVERSIONS_JSON=wikiversions-dev.json
+    WIKIVERSIONS_PHP=wikiversions-dev.php
+fi
+
 function active_versions {
-    jq -r 'values[]' < wikiversions.json | sort -u | sed -e 's/^php-//'
+    jq -r 'values[]' < $WIKIVERSIONS_JSON | sort -u | sed -e 's/^php-//'
 }
 
 # Security note: Patches are never committed by apply_patch.  Applied
@@ -207,7 +217,8 @@ function checkout_or_update_version {
 }
 
 function prepare_mw_versions {
-    php_with_errors multiversion/bin/generate-php-wikiversions.php
+    echo multiversion/bin/generate-php-wikiversions.php "$WIKIVERSIONS_JSON" "$WIKIVERSIONS_PHP"
+    php_with_errors multiversion/bin/generate-php-wikiversions.php "$WIKIVERSIONS_JSON" "$WIKIVERSIONS_PHP"
     php_with_errors multiversion/bin/update-all-localsettings.php
     generate_all_gitinfos
 }
@@ -299,11 +310,15 @@ function empty_dir {
     [ "$(/bin/ls -A "$dir" | wc -l)" == 0 ]
 }
 
+# FIXME: private settings should be handled using a ConfigMap
 function setup_private_settings {
     echo Setup private settings
     if [ "${ON_RELEASES_SERVER:-}" ]; then
         rsync -av --delete --exclude .git \
               deployment.eqiad.wmnet::srv-mediawiki-private-primary/ private/
+    elif [ "${MW_CONFIG_BRANCH:-}" = "train-dev" ]; then
+        echo Setting up private/PrivateSettings.php for train-dev
+        cp -p /PrivateSettings-train-dev.php private/PrivateSettings.php
     else
         echo Using stub
         # Stub

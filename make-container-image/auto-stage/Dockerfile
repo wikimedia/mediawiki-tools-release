@@ -12,5 +12,6 @@ RUN mkdir -p /var/www && chown www-data: /var/www
 USER www-data
 
 COPY /auto-stage /
+COPY /PrivateSettings-train-dev.php /
 
 ENTRYPOINT ["/auto-stage"]
