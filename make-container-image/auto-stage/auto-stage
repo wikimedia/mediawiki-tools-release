@@ -15,7 +15,12 @@ perform_updates=yes
 WIKIVERSIONS_JSON=wikiversions.json
 WIKIVERSIONS_PHP=wikiversions.php
 
-if [ "${MW_CONFIG_BRANCH:-}" = "train-dev" ]; then
+# Returns true if building for train-dev environment
+function train_dev {
+    [ "${MW_CONFIG_BRANCH:-}" = "train-dev" ]
+}
+
+if train_dev; then
     WIKIVERSIONS_JSON=wikiversions-dev.json
     WIKIVERSIONS_PHP=wikiversions-dev.php
 fi
@@ -101,7 +106,13 @@ function apply_patches {
 }
 
 function php_with_errors {
-    env WMF_MAINTENANCE_OFFLINE=1 WMF_DATACENTER=eqiad php -d display_errors=on -d error_reporting=E_ALL "$@"
+    local dc=eqiad
+
+    if train_dev; then
+        dc=dev
+    fi
+    
+    env WMF_MAINTENANCE_OFFLINE=1 WMF_DATACENTER=$dc php -d display_errors=on -d error_reporting=E_ALL "$@"
 }
 
 function mwscript {
@@ -135,8 +146,12 @@ function update_atomically {
     fi
 }
 
+function list_versions {
+    multiversion/bin/list-versions.php $WIKIVERSIONS_JSON
+}
+
 function merge_message_file_list {
-    multiversion/bin/list-versions.php | while read -r wikidb version; do
+    list_versions | while read -r wikidb version; do
         local em="wmf-config/ExtensionMessages-$version.php"
         local tmp="$em.tmp"
 
@@ -150,7 +165,7 @@ function merge_message_file_list {
 }
 
 function setup_l10n {
-    multiversion/bin/list-versions.php | while read -r wikidb version; do
+    list_versions | while read -r wikidb version; do
         echo "Building/updating L10N files for $version"
         mwscript rebuildLocalisationCache.php \
                  --wiki="$wikidb" \
@@ -316,7 +331,7 @@ function setup_private_settings {
     if [ "${ON_RELEASES_SERVER:-}" ]; then
         rsync -av --delete --exclude .git \
               deployment.eqiad.wmnet::srv-mediawiki-private-primary/ private/
-    elif [ "${MW_CONFIG_BRANCH:-}" = "train-dev" ]; then
+    elif train_dev; then
         echo Setting up private/PrivateSettings.php for train-dev
         cp -p /PrivateSettings-train-dev.php private/PrivateSettings.php
     else
