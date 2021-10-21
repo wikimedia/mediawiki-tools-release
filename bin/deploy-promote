@@ -28,7 +28,7 @@
 # The above command promotes all group0 wikis (testwiki and mediawiki.org)
 # to version 1.26wmf10.
 
-set -eu
+set -eu -o pipefail
 
 REPO=$(cd "$(dirname "$(dirname "$0")")"; pwd -P)
 
