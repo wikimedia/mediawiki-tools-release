@@ -289,6 +289,21 @@ update_versions() {
     check_versions
 }
 
+on_real_deploy_server() {
+    hostname -f | grep -q '\.wmnet$'
+}
+
+get_train_task() {
+    local proxy=
+
+    if on_real_deploy_server; then
+       proxy="--proxy http://webproxy:8080"
+    fi
+
+    # Unquoted use of $proxy is intentional.
+    curl -fsS $proxy https://train-blockers.toolforge.org/api.php | jq '.current.task_id|match("^T[0-9]+").string' -r
+}
+
 main() {
     set_realm
 
@@ -333,7 +348,7 @@ main() {
     assert_repository_is_clean
     assert_repository_is_updated
 
-    PHABTASK=$(curl --proxy http://webproxy:8080 -s https://train-blockers.toolforge.org/api.php | jq '.current.task_id|match("^T[0-9]+").string' -r)
+    PHABTASK=$(get_train_task)
     PROMOTE_MSG=
     if [[ -n "${PHABTASK:-}" ]]; then
         PROMOTE_MSG=" refs ${PHABTASK}"
