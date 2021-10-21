@@ -16,6 +16,7 @@ USER www-data
 ARG CACHEBUSTER
 RUN echo CACHEBUSTER value is $CACHEBUSTER
 RUN git clone --depth=1 https://gerrit.wikimedia.org/r/operations/mediawiki-config /srv/mediawiki
+RUN git -C /srv/mediawiki submodule update --init --recursive
 RUN cd /srv/mediawiki && rm -fr .git wmf-config tests php src multiversion
 
 ########

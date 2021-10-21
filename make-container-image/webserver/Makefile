@@ -1,5 +1,4 @@
-# FIXME: Remove -test once Giuseppe signs off.
-tag := $(shell date '+%Y-%m-%d-%H%M%S-webserver-test')
+tag := $(shell date '+%Y-%m-%d-%H%M%S-webserver')
 # FIXME: There are no secrets in this image so it doesn't need to be
 # in the restricted section.
 fqin := docker-registry.discovery.wmnet/restricted/mediawiki-webserver:$(tag)
