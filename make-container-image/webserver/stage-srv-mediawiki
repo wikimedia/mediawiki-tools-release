@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+DEFAULT_GIT_BASE=https://gerrit.wikimedia.org/r
+
+GIT_BASE=${GIT_BASE:-$DEFAULT_GIT_BASE}
+BRANCH=${BRANCH:-master}
+
+cat <<EOF
+Stage /srv/mediawiki
+
+CACHEBUSTER: $CACHEBUSTER
+GIT_BASE:    $GIT_BASE
+BRANCH:      $BRANCH
+EOF
+
+git clone --depth=1 --branch=${BRANCH} ${GIT_BASE}/operations/mediawiki-config /srv/mediawiki
+if [ "$GIT_BASE" != "$DEFAULT_GIT_BASE" ]; then
+    git config --global "url.$GIT_BASE.insteadOf" "$DEFAULT_GIT_BASE"
+fi
+cd /srv/mediawiki
+git submodule update --init --recursive
+rm -fr .git wmf-config tests php src multiversion

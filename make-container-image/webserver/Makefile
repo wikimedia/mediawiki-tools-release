@@ -9,6 +9,8 @@ image:
 		--build-arg "http_proxy=$(http_proxy)" \
 		--build-arg "https_proxy=$(https_proxy)" \
 		--build-arg "CACHEBUSTER=$(tag)" \
+		--build-arg "BRANCH=$(BRANCH)" \
+		--build-arg "GIT_BASE=$(GIT_BASE)" \
 		-t $(fqin) \
 		.
 

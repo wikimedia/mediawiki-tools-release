@@ -9,15 +9,18 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y git wmf-certificates
 
 RUN mkdir /srv/mediawiki && chown www-data: /srv/mediawiki
+# So the stager can run git config --global ...
+RUN mkdir /var/www && chown www-data: /var/www
 
 USER www-data
 
 # CACHEBUSTER arg because we want git clone to run for every build
 ARG CACHEBUSTER
-RUN echo CACHEBUSTER value is $CACHEBUSTER
-RUN git clone --depth=1 https://gerrit.wikimedia.org/r/operations/mediawiki-config /srv/mediawiki
-RUN git -C /srv/mediawiki submodule update --init --recursive
-RUN cd /srv/mediawiki && rm -fr .git wmf-config tests php src multiversion
+ARG GIT_BASE
+ARG BRANCH
+
+COPY stage-srv-mediawiki /
+RUN bash /stage-srv-mediawiki
 
 ########
 ########
