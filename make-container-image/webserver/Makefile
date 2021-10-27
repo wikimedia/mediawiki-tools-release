@@ -13,6 +13,8 @@ image:
 		--build-arg "GIT_BASE=$(GIT_BASE)" \
 		-t $(fqin) \
 		.
+	echo $(fqin) > last-build.tmp
+	mv last-build.tmp last-build
 
 push:
 	sudo /usr/local/bin/docker-pusher $(fqin)
