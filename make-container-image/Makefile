@@ -54,6 +54,7 @@ auto-stage: build-auto-stage-image setup-workdir
 		-e ON_RELEASES_SERVER=$(on_releases_server) \
 		-e MW_CONFIG_BRANCH=$(MW_CONFIG_BRANCH) \
 		-e GIT_BASE=$(git_base) \
+		-e AUTO_STAGE_LANG=$(AUTO_STAGE_LANG) \
 		--network $(auto_stage_network) \
 		-v $(workdir_volume):/srv/mediawiki \
 		$(patches_volume) \

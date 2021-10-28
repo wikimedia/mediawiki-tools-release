@@ -111,7 +111,7 @@ function php_with_errors {
     if train_dev; then
         dc=dev
     fi
-    
+
     env WMF_MAINTENANCE_OFFLINE=1 WMF_DATACENTER=$dc php -d display_errors=on -d error_reporting=E_ALL "$@"
 }
 
@@ -165,10 +165,25 @@ function merge_message_file_list {
 }
 
 function setup_l10n {
+    # If AUTO_STAGE_LANG is set, generate l10n only for that
+    # language.
+    local lang=${AUTO_STAGE_LANG:-}
+    local langoption=
+
+    if [ "$lang" ]; then
+        langoption="--lang $lang"
+    fi
+
     list_versions | while read -r wikidb version; do
-        echo "Building/updating L10N files for $version"
+        echo -n "Building/updating L10N files for $version"
+        if [ "$lang" ]; then
+            echo " ($lang only)"
+        fi
+        echo
+        # shellcheck disable=SC2086
         mwscript rebuildLocalisationCache.php \
                  --wiki="$wikidb" \
+                 $langoption \
                  --store-class=LCStoreCDB \
                  --threads="$(nproc)" \
                  --skip-message-purge
