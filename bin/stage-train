@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+
+"""
+stage-train
+===========
+All the Tuesday stuff for the train
+
+Example usage:
+
+./bin/stage-train 1.38.0-wmf.7
+
+The above command:
+
+* Ensures you're in a tmux window
+* Ensures you've got a running ssh-agent
+* Checks for the new branch
+* Preps the new branch
+* Applies patches to the new branch
+* Deploys the new branch to testwikis
+* Cleans up out-of-date branches
+"""
+import argparse
+import os
+import pathlib
+import subprocess
+import sys
+
+from datetime import datetime, timedelta
+
+import scap.utils
+import scap.tasks
+
+BIN_DIR = pathlib.Path(__file__).parent.absolute()
+BASE_DIR = '/srv/mediawiki-staging'
+STAGES = [
+    'prep',
+    'patch',
+    'testwikis',
+    'clean',
+]
+
+# Minimum number of old versions to keep around on disk
+MINIMUM_VERSIONS = 1
+
+class ScapTasks:
+    def __init__(self, args):
+        self.args = args
+        self.version = self.args.version
+        # 8 days because ¯\_(ツ)_/¯, I'm being "careful"
+        self.one_week_ago = datetime.utcnow() - timedelta(days=8)
+
+    def _run(self, cmd, cwd=None):
+        if cwd is None:
+            cwd = BASE_DIR
+        cmd_str = ' '.join(cmd)
+        run_it = False
+        if self.args.yes or scap.utils.confirm(f'Run `{cmd_str}` now?'):
+            run_it = True
+
+        if run_it and self.args.dry_run:
+            print(f'Skipping `{cmd_str}`, dry run only...')
+            return
+
+        if run_it:
+            subprocess.run(cmd, cwd=cwd)
+
+    def prep(self):
+        cmd = ['scap', 'prep', self.version]
+        self._run(cmd)
+
+    def patch(self):
+        cmd = ['scap', 'apply-patches', '--train', self.version]
+        self._run(cmd)
+
+    def testwikis(self):
+        cmd = [str(BIN_DIR / 'deploy-promote')]
+        if self.args.yes:
+            cmd.append('--yes')
+        cmd += ['testwikis', self.version]
+        self._run(cmd, cwd=str(pathlib.Path.home()))
+
+    def clean(self):
+        versions_on_disk = scap.tasks.get_wikiversions_ondisk(BASE_DIR)
+        versions_to_remove = []
+        for version, version_date in versions_on_disk:
+            # Less than == before
+            if version_date < self.one_week_ago:
+                if version.startswith(BASE_DIR):
+                    version = version[len('/srv/mediawiki-staging/php-'):]
+                versions_to_remove.append(version)
+
+        # Minus one for the version we just added
+        if len(versions_to_remove) >= len(versions_on_disk) - 1:
+            print(f'Keeping at least {MINIMUM_VERSIONS} on disk')
+            versions_to_remove = versions_to_remove[MINIMUM_VERSIONS:]
+
+        for version in versions_to_remove:
+            self._run(['scap', 'clean', '--delete', version])
+
+def ensure_tmux():
+    if os.environ.get('TMUX') is None and os.environ.get('STY') is None:
+        print('No tmux or screen process found. Try either:')
+        print('\tTMUX: tmux new-session -s "🚂🌈"')
+        print('\tSCREEN: screen -D -RR train')
+        sys.exit(1)
+
+
+def ensure_ssh_agent():
+    if os.environ.get('SSH_AUTH_SOCK') is None:
+        print('No ssh-agent found in environment')
+        print('try: $(ssh-agent) && ssh-add ~/.ssh/id_ed25519')
+        sys.exit(1)
+
+
+def parse_args(argv):
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-y', '--yes', action='store_true',
+                    help='Default to Yes for prompts')
+    ap.add_argument('--start-from', choices=STAGES,
+                    default=STAGES[0], help='Stage to start from')
+    ap.add_argument('--dry-run', action='store_true', help='Dry run')
+    ap.add_argument('version', help='Wikiversion needing staging')
+    return ap.parse_args()
+
+
+def main(argv):
+    args = parse_args(argv)
+    ensure_tmux()
+    ensure_ssh_agent()
+
+    st = ScapTasks(args)
+    count = 1
+    stages = STAGES[STAGES.index(args.start_from):]
+    for stage in stages:
+        print('----------------------------')
+        print(f'{count}. Starting: {stage}')
+        getattr(st, stage)()
+        print('DONE!')
+        count += 1
+
+
+if __name__ == '__main__':
+    main(sys.argv)
