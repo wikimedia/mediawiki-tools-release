@@ -49,12 +49,12 @@ auto_stage_network ?= bridge
 # Do a single auto-stage run
 auto-stage: build-auto-stage-image setup-workdir
 	docker run --rm --init \
-		-e http_proxy=$(http_proxy) \
-		-e https_proxy=$(https_proxy) \
+		-e http_proxy \
+		-e https_proxy \
 		-e ON_RELEASES_SERVER=$(on_releases_server) \
-		-e MW_CONFIG_BRANCH=$(MW_CONFIG_BRANCH) \
-		-e GIT_BASE=$(git_base) \
-		-e AUTO_STAGE_LANG=$(AUTO_STAGE_LANG) \
+		-e MW_CONFIG_BRANCH \
+		-e GIT_BASE \
+		-e AUTO_STAGE_LANG \
 		-e MEDIAWIKI_CONFIG_COMMIT \
 		-e MEDIAWIKI_COMMITS \
 		--network $(auto_stage_network) \
