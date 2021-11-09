@@ -225,15 +225,43 @@ function clone_or_update_repo {
         echo Updating checkout from origin
         git fetch
         git log HEAD..FETCH_HEAD
-        git checkout -B "$branch" "origin/$branch"
+        git checkout -B "$branch" "$(select_commit "$repo" "$branch")"
+        echo "$repo checked out at commit $(git rev-parse HEAD)"
 
         echo Updating submodules
         git submodule update --init --recursive --jobs "$(nproc)"
-        # FIXME: Submodule logs need better treatment
     )
 
     echo
 }
+
+function select_commit {
+    local repo="$1"
+    local branch="$2"
+
+    if [ "$repo" = "$GIT_BASE/operations/mediawiki-config" ] && [ "${MEDIAWIKI_CONFIG_COMMIT:-}" ]; then
+        echo "$MEDIAWIKI_CONFIG_COMMIT"
+    elif [ "$repo" = "$GIT_BASE/mediawiki/core" ] && [ "$(get_mediawiki_commit_env "$branch")" ]; then
+        get_mediawiki_commit_env "$branch"
+    else
+        echo "origin/$branch"
+    fi
+}
+
+function get_mediawiki_commit_env {
+    local branch="$1" # This will be something like wmf/1.38.0-wmf.7
+
+    if [ "${MEDIAWIKI_COMMITS:-}" ]; then
+        local res
+
+        res=$(echo "$MEDIAWIKI_COMMITS" | jq -r ".[\"$branch\"]")
+
+        if [ "$res" != "null" ]; then
+            echo "$res"
+        fi
+    fi
+}
+
 
 function checkout_or_update_version {
     local version="$1"
