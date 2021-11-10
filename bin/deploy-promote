@@ -301,7 +301,7 @@ get_train_task() {
     fi
 
     # Unquoted use of $proxy is intentional.
-    curl -fsS $proxy https://train-blockers.toolforge.org/api.php | jq '.current.task_id|match("^T[0-9]+").string' -r
+    curl -fsS $proxy https://train-blockers.toolforge.org/api.php | jq '.current.task_id // "" | match("^T[0-9]+").string' -r
 }
 
 main() {
