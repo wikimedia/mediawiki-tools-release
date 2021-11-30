@@ -169,7 +169,7 @@
         "mon": [
             {
                 "name": "train_branch",
-                "hour": "19"
+                "hour": "18"
             }
         ],
         "mon,wed-thu": [
@@ -247,7 +247,7 @@
         "mon": [
             {
                 "name": "train_branch",
-                "hour": "19"
+                "hour": "18"
             }
         ],
         "tue": [
@@ -367,7 +367,7 @@
         "mon": [
             {
                 "name": "train_branch",
-                "hour": "19"
+                "hour": "18"
             }
         ],
         "mon,wed-thu": [
@@ -463,7 +463,7 @@
         "mon": [
             {
                 "name": "train_branch",
-                "hour": "19"
+                "hour": "18"
             }
         ],
         "tue": [
