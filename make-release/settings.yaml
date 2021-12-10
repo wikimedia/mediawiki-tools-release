@@ -30,6 +30,7 @@ bundles:
         - "mediawiki/extensions/TitleBlacklist"
         - "mediawiki/extensions/VisualEditor"
         - "mediawiki/extensions/WikiEditor"
+        - "mediawiki/skins/MinervaNeue"
         - "mediawiki/skins/MonoBook"
         - "mediawiki/skins/Timeless"
         - "mediawiki/skins/Vector"
