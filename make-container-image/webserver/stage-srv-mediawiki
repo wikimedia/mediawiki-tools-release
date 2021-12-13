@@ -15,10 +15,29 @@ GIT_BASE:    $GIT_BASE
 BRANCH:      $BRANCH
 EOF
 
-git clone --depth=1 --branch=${BRANCH} ${GIT_BASE}/operations/mediawiki-config /srv/mediawiki
+git clone --depth=1 --branch="${BRANCH}" "${GIT_BASE}/operations/mediawiki-config" /srv/mediawiki
 if [ "$GIT_BASE" != "$DEFAULT_GIT_BASE" ]; then
     git config --global "url.$GIT_BASE.insteadOf" "$DEFAULT_GIT_BASE"
 fi
 cd /srv/mediawiki
 git submodule update --init --recursive
+# hack: find the current latest branch from the php link
+MW_BRANCH=$(readlink php | sed 's/^php-/wmf\//')
+# Remove files that are not needed
 rm -fr .git wmf-config tests php src multiversion
+# Find broken links (typically to the php directory) and try to fix them.
+# Do a temporary checkout of the branch. Note we don't use the "php" directory
+# to avoid making broken links work by chance
+git clone --depth=1 --branch="${MW_BRANCH}" "${GIT_BASE}/mediawiki/core" php-current
+# Now let's find broken links
+while IFS= read -r -d '' broken_link
+do
+    lnk=$(readlink "$broken_link")
+    actual=${lnk/\/php/\/php-current}
+    if [[ -f "$actual" ]]; then
+        cp -Lp "$actual" "$broken_link"
+    else
+        echo "skipping copying ${actual} to ${broken_link}: not a file"
+    fi
+done < <(find /srv/mediawiki -xtype l -not -path "/srv/mediawiki/php-current/*" )
+rm -fr php-current
