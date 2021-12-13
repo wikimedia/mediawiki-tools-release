@@ -101,12 +101,11 @@ function apply_patches {
         for patch in $(cd "$patch_dir" && find . -name "*.patch" | sort -n); do
             apply_patch "$version" "$patch"
         done
+        echo "Done applying patches for $version"
 
         if [ -d /tmp/patch-junk ]; then
             echo "/tmp/patch-junk after applying patches:"
             ls -lR /tmp/patch-junk
-        else
-            echo "no /tmp/patch-junk after applying patches"
         fi
 
     else
@@ -279,22 +278,6 @@ function checkout_or_update_version {
     local branch="wmf/$version"
 
     clone_or_update_repo "$GIT_BASE/mediawiki/core" "$dir" "$branch"
-
-    # vvv This cleanup section will be removed in a followup commit
-    if [ "$(find "$workdir" -name '*.orig')" ]; then
-        echo 'Undesired *.orig files found before applying patches:'
-        find "$workdir" -name '*.orig'
-        echo Deleting them
-        find "$workdir" -name '*.orig' -print0 | xargs -0 rm -f
-    fi
-    if [ "$(find "$workdir" -name '*~')" ]; then
-        echo 'Undesired *~ files found before applying patches:'
-        find "$workdir" -name '*~'
-        echo Deleting them
-        find "$workdir" -name '*~' -print0 | xargs -0 rm -f
-    fi
-    # ^^^ This cleanup section will be removed in a followup commit
-
     # NOTE: Patches result in files that are modified in each run of auto-stage.
     apply_patches "$version"
 
