@@ -68,7 +68,7 @@ function apply_patch {
     patchfile=$patches_dir/$version/$patchfile
     echo "Applying $patchfile in $targetdir"
 
-    if ! patch --forward -d "$targetdir" -p1 < "$patchfile"; then
+    if ! patch --forward -d "$targetdir" -p1 -B /tmp/patch-junk < "$patchfile"; then
         echo "Failed to apply $patchfile in $targetdir"
         exit 1
     fi
@@ -97,9 +97,18 @@ function apply_patches {
 
     if [ -d "$patch_dir" ]; then
         echo "Applying patches for $version"
+        rm -fr /tmp/patch-junk
         for patch in $(cd "$patch_dir" && find . -name "*.patch" | sort -n); do
             apply_patch "$version" "$patch"
         done
+
+        if [ -d /tmp/patch-junk ]; then
+            echo "/tmp/patch-junk after applying patches:"
+            ls -lR /tmp/patch-junk
+        else
+            echo "no /tmp/patch-junk after applying patches"
+        fi
+
     else
         echo "No patches for $version"
     fi
@@ -270,8 +279,35 @@ function checkout_or_update_version {
     local branch="wmf/$version"
 
     clone_or_update_repo "$GIT_BASE/mediawiki/core" "$dir" "$branch"
+
+    # vvv This cleanup section will be removed in a followup commit
+    if [ "$(find "$workdir" -name '*.orig')" ]; then
+        echo 'Undesired *.orig files found before applying patches:'
+        find "$workdir" -name '*.orig'
+        echo Deleting them
+        find "$workdir" -name '*.orig' -print0 | xargs -0 rm -f
+    fi
+    if [ "$(find "$workdir" -name '*~')" ]; then
+        echo 'Undesired *~ files found before applying patches:'
+        find "$workdir" -name '*~'
+        echo Deleting them
+        find "$workdir" -name '*~' -print0 | xargs -0 rm -f
+    fi
+    # ^^^ This cleanup section will be removed in a followup commit
+
     # NOTE: Patches result in files that are modified in each run of auto-stage.
     apply_patches "$version"
+
+    if [ "$(find "$workdir" -name '*.orig')" ]; then
+        echo 'Undesired *.orig files found after applying patches:'
+        find "$workdir" -name '*.orig'
+        false
+    fi
+    if [ "$(find "$workdir" -name '*~')" ]; then
+        echo 'Undesired *~ files found after applying patches:'
+        find "$workdir" -name '*~'
+        false
+    fi
 }
 
 function prepare_mw_versions {
