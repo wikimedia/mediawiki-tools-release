@@ -108,7 +108,7 @@ def ensure_tmux():
 def ensure_ssh_agent():
     if os.environ.get('SSH_AUTH_SOCK') is None:
         print('No ssh-agent found in environment')
-        print('try: $(ssh-agent) && ssh-add ~/.ssh/id_ed25519')
+        print('try: eval $(ssh-agent) && ssh-add ~/.ssh/id_ed25519')
         sys.exit(1)
 
 
