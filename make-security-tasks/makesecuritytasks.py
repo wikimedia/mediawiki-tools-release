@@ -1,8 +1,20 @@
 #!/usr/bin/env python3
 
+import argparse
 from phabricator import Phabricator
 
-phab = Phabricator(host='https://phabricator.wikimedia.org/api/', token='')
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    'versions',
+    help='Versions to be used in titles/descriptions. e.g. 1.31.16/1.35.4/1.36.2'
+)
+parser.add_argument(
+    'phabtoken',
+    help='Phabticator api token to use to make the tasks. Starts api-'
+)
+args = parser.parse_args()
+
+phab = Phabricator(host='https://phabricator.wikimedia.org/api/', token=args.phabtoken)
 
 # TODO: Can we do more complex ACLs from maniphest task creation/editing?
 # TODO: Set subtype?
@@ -14,8 +26,7 @@ projMWReleasing = 'PHID-PROJ-5p3mxnq5ejf4xs7cphgl'
 
 taskProjects = [projSec, projMWReleasing]
 
-# TODO: Take param from script argument
-version = '1.31.16/1.35.4/1.36.2'
+version = args.versions
 
 res = phab.maniphest.createtask(
     title='Release MediaWiki {0}'.format(version),
