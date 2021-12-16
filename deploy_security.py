@@ -57,7 +57,10 @@ def get_most_common_path(file_paths):
     common = []
     if not file_paths:
         return ''
-    file_paths = [i.split('/') for i in file_paths]
+    file_paths = [i.split('/') for i in file_paths
+                  if not i.startswith('tests/')]
+    if len(file_paths) == 1:
+        return '/'.join(file_paths[0])
     while True:
         for i in range(len(file_paths[0])):
             first_value = file_paths[0][i]
