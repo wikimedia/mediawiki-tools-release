@@ -2,6 +2,7 @@
 base_url: https://gerrit.wikimedia.org/r/
 bundles:
     base:
+        - "mediawiki/extensions/AbuseFilter"
         - "mediawiki/extensions/CategoryTree"
         - "mediawiki/extensions/Cite"
         - "mediawiki/extensions/CiteThisPage"
