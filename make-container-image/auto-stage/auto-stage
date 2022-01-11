@@ -29,10 +29,6 @@ function active_versions {
     jq -r 'values[]' < $WIKIVERSIONS_JSON | sort -u | sed -e 's/^php-//'
 }
 
-# Security note: Patches are never committed by apply_patch.  Applied
-# patches are left as uncommitted changes in the checkout.  The
-# generate_gitinfo code relies on this fact to avoid revealing the
-# existing of security patches.  Don't add code to make it commit!
 function apply_patch {
     local version="$1"
     # patchfile is expected to look like one of:
@@ -68,11 +64,25 @@ function apply_patch {
     patchfile=$patches_dir/$version/$patchfile
     echo "Applying $patchfile in $targetdir"
 
-    if ! patch --forward -d "$targetdir" -p1 -B /tmp/patch-junk < "$patchfile"; then
+    # Using --3way allows already-applied patches to be skipped.
+    if ! git_am "$targetdir" --3way "$patchfile"; then
+        echo Running git -C "$targetdir" am --abort
+        git_am "$targetdir" --abort || true
         echo "Failed to apply $patchfile in $targetdir"
         exit 1
     fi
 }
+
+function git_am {
+    local repodir="$1"
+    shift
+
+    git -C "$repodir" \
+         -c user.email=auto-stage@wikimedia.org \
+         -c user.name="Auto Stager" \
+         am "$@"
+}
+
 
 function run_quietly_if_ok {
     local output
@@ -97,17 +107,10 @@ function apply_patches {
 
     if [ -d "$patch_dir" ]; then
         echo "Applying patches for $version"
-        rm -fr /tmp/patch-junk
         for patch in $(cd "$patch_dir" && find . -name "*.patch" | sort -n); do
             apply_patch "$version" "$patch"
         done
         echo "Done applying patches for $version"
-
-        if [ -d /tmp/patch-junk ]; then
-            echo "/tmp/patch-junk after applying patches:"
-            ls -lR /tmp/patch-junk
-        fi
-
     else
         echo "No patches for $version"
     fi
@@ -286,6 +289,11 @@ function checkout_or_update_version {
         find "$workdir" -name '*.orig'
         false
     fi
+    if [ "$(find "$workdir" -name '*.rej')" ]; then
+        echo 'Undesired *.rej files found after applying patches:'
+        find "$workdir" -name '*.rej'
+        false
+    fi
     if [ "$(find "$workdir" -name '*~')" ]; then
         echo 'Undesired *~ files found after applying patches:'
         find "$workdir" -name '*~'
@@ -361,8 +369,12 @@ function generate_gitinfo_for_dir_1 {
         git_dir="$dir/$git_dir"
     fi
 
-    # Security note:  We rely on the fact that apply_patch does not commit patches.
-    head_sha1="$(git -C "$dir" rev-parse HEAD)"
+    # This information is used by https://<site>/wiki/Special:Version
+    # to construct a link to a commit in Gerrit (gitiles), so it must
+    # not refer to a local commit (i.e., a patch).  Use git merge-base
+    # to find the nearest public commit.
+    head_sha1="$(git -C "$dir" merge-base HEAD origin)"
+
     head="$(sed -e 's/^ref: //' < "$git_dir/HEAD")"
     commit_date="$(git -C "$dir" show -s --format=%ct)"
     branch="$(echo "$head" | sed -E -e 's,^refs/(heads|tags)/,,')"
