@@ -24,13 +24,13 @@ git submodule update --init --recursive
 # hack: find the current latest branch from the php link
 MW_BRANCH=$(readlink php | sed 's/^php-/wmf\//')
 # Remove files that are not needed
-rm -fr .git wmf-config tests php src multiversion
+rm -fr .git wmf-config tests php src multiversion docroot/noc
 # Find broken links (typically to the php directory) and try to fix them.
 # Do a temporary checkout of the branch. Note we don't use the "php" directory
 # to avoid making broken links work by chance
 git clone --depth=1 --branch="${MW_BRANCH}" "${GIT_BASE}/mediawiki/core" php-current
 # Now let's find broken links
-while IFS= read -r -d '' broken_link
+while read -r broken_link
 do
     lnk=$(readlink "$broken_link")
     actual=${lnk/\/php/\/php-current}
