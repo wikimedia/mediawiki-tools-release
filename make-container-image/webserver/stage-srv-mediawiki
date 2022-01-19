@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu -o pipefail
+set -eux -o pipefail
 
 DEFAULT_GIT_BASE=https://gerrit.wikimedia.org/r
 
@@ -28,16 +28,12 @@ rm -fr .git wmf-config tests php src multiversion docroot/noc
 # Find broken links (typically to the php directory) and try to fix them.
 # Do a temporary checkout of the branch. Note we don't use the "php" directory
 # to avoid making broken links work by chance
-git clone --depth=1 --branch="${MW_BRANCH}" "${GIT_BASE}/mediawiki/core" php-current
-# Now let's find broken links
-while read -r broken_link
-do
-    lnk=$(readlink "$broken_link")
-    actual=${lnk/\/php/\/php-current}
-    if [[ -f "$actual" ]]; then
-        cp -Lp "$actual" "$broken_link"
-    else
-        echo "skipping copying ${actual} to ${broken_link}: not a file"
-    fi
-done < <(find /srv/mediawiki -xtype l -not -path "/srv/mediawiki/php-current/*" )
-rm -fr php-current
+git clone --depth=1 --branch="${MW_BRANCH}" "${GIT_BASE}/mediawiki/core" php
+# Now remove from the php tree:
+# - the languages directory
+# - git
+# - tests
+# - all php source files, given we don't want them to be reachable
+rm -rf php/languages php/tests php/.git
+find /srv/mediawiki/php -name "*.php" -delete
+
