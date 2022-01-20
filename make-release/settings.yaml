@@ -200,7 +200,6 @@ bundles:
         - "mediawiki/extensions/UploadsLink"
         - "mediawiki/extensions/UploadWizard"
         - "mediawiki/extensions/UrlShortener"
-        - "mediawiki/extensions/UserMerge"
         - "mediawiki/extensions/VipsScaler"
         - "mediawiki/extensions/VisualEditor"
         - "mediawiki/extensions/WebAuthn"
