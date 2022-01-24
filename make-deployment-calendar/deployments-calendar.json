@@ -46,24 +46,24 @@
             "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / [[ORES]]"
         },
         "utc_am_backport": {
-            "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
+            "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "utc_am_training": {
-            "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|apergos|Ariel}}",
+            "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|apergos|Ariel}}",
             "what": "Training to do backport and config deployment. To sign up for deployment training use the [https://phabricator.wikimedia.org/project/profile/5265/ Deployment Training Request phabricator milestone]\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
-            "window": "[[Backport windows|UTC morning backport and config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
+            "window": "[[Backport windows|UTC early backport and config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "utc_pm_backport": {
-            "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Urbanecm|Martin}}",
+            "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "utc_pm_training": {
             "deployer": "{{ircnick|brennen|Brennen}}",
             "what": "Training to do backport and config deployment. To sign up for deployment training use the [https://phabricator.wikimedia.org/project/profile/5265/ Deployment Training Request phabricator milestone]\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
-            "window": "[[Backport windows|UTC late backport and config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
+            "window": "[[Backport windows|UTC evening backport and config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "train": {
             "deployer": "<%= train_deployer %>",
@@ -93,6 +93,29 @@
     },
     "@schedule_doc": "Schedule the above windows",
     "schedule": {
+        "mon-wed": [
+            {
+                "name": "utc_am_backport",
+                "hour": "00",
+                "vars": {
+                    "window_name": "UTC morning backport window"
+                }
+            },
+            {
+                "name": "utc_pm_backport",
+                "hour": "06",
+                "vars": {
+                    "window_name": "UTC afternoon backport window"
+                }
+            },
+            {
+                "name": "utc_pm_backport",
+                "hour": "13",
+                "vars": {
+                    "window_name": "UTC late backport window"
+                }
+            }
+        ],
         "mon": [
             {
                 "name": "portals",
@@ -141,6 +164,21 @@
             {
                 "name": "citoid",
                 "hour": "3"
+            },
+            {
+                "name": "utc_am_training",
+                "hour": "00"
+            },
+            {
+                "name": "utc_pm_training",
+                "hour": "13"
+            },
+            {
+                "name": "utc_pm_backport",
+                "hour": "13",
+                "vars": {
+                    "window_name": "UTC late backport window"
+                }
             }
         ],
         "fri": [
@@ -172,23 +210,10 @@
                 "hour": "18"
             }
         ],
-        "mon,wed-thu": [
-            {
-                "name": "utc_pm_backport",
-                "hour": "11",
-                "vars": {
-                    "window_name": "UTC evening backport window"
-                }
-            }
-        ],
         "tue": [
             {
-                "name": "break",
-                "hour": "11"
-            },
-            {
                 "name": "train",
-                "hour": "12",
+                "hour": "11",
                 "length": "2",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
@@ -199,7 +224,7 @@
         "wed": [
             {
                 "name": "train",
-                "hour": "12",
+                "hour": "11",
                 "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
@@ -210,35 +235,11 @@
         "thu": [
             {
                 "name": "train",
-                "hour": "12",
+                "hour": "11",
                 "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
-                }
-            },
-			{
-				"name": "utc_am_training",
-				"hour": "04"
-			},
-			{
-				"name": "utc_pm_training",
-				"hour": "16"
-			}
-        ],
-        "mon-wed": [
-            {
-                "name": "utc_am_backport",
-                "hour": "04",
-                "vars": {
-                    "window_name": "UTC morning backport window"
-                }
-            },
-            {
-                "name": "utc_pm_backport",
-                "hour": "16",
-                "vars": {
-                    "window_name": "UTC late backport window"
                 }
             }
         ]
@@ -253,7 +254,7 @@
         "tue": [
             {
                 "name": "train",
-                "hour": "06",
+                "hour": "01",
                 "length": "2",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
@@ -264,7 +265,7 @@
         "wed": [
             {
                 "name": "train",
-                "hour": "06",
+                "hour": "01",
                 "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
@@ -275,93 +276,16 @@
         "thu": [
             {
                 "name": "train",
-                "hour": "06",
+                "hour": "01",
                 "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
                 }
-            },
-            {
-                "name": "utc_am_training",
-                "hour": "04"
-            },
-            {
-                "name": "utc_pm_training",
-                "hour": "16"
-            },
-            {
-                "name": "utc_pm_backport",
-                "hour": "11",
-                "vars": {
-                    "window_name": "UTC evening backport window"
-                }
-            }
-        ],
-        "tue-thu": [
-            {
-                "name": "break",
-                "hour": "05"
-            }
-        ],
-        "mon-wed": [
-            {
-                "name": "utc_am_backport",
-                "hour": "04",
-                "vars": {
-                    "window_name": "UTC morning backport window"
-                }
-            },
-            {
-                "name": "utc_pm_backport",
-                "hour": "16",
-                "vars": {
-                    "window_name": "UTC late backport window"
-                }
-            },
-            {
-                "name": "utc_pm_backport",
-                "hour": "11",
-                "vars": {
-                    "window_name": "UTC evening backport window"
-                }
             }
         ]
     },
     "schedule@NoTrain": {
-        "mon-wed": [
-            {
-                "name": "utc_am_backport",
-                "hour": "04",
-                "vars": {
-                    "window_name": "UTC morning backport window"
-                }
-            },
-            {
-                "name": "utc_pm_backport",
-                "hour": "16",
-                "vars": {
-                    "window_name": "UTC late backport window"
-                }
-            },
-            {
-                "name": "utc_pm_backport",
-                "hour": "11",
-                "vars": {
-                    "window_name": "UTC evening backport window"
-                }
-            }
-        ],
-        "thu": [
-            {
-                "name": "utc_am_training",
-                "hour": "04"
-            },
-            {
-                "name": "utc_pm_training",
-                "hour": "16"
-            }
-        ]
     },
     "schedule@UTC-7+UTC-0": {
         "mon": [
@@ -370,23 +294,10 @@
                 "hour": "18"
             }
         ],
-        "mon,wed-thu": [
-            {
-                "name": "utc_pm_backport",
-                "hour": "11",
-                "vars": {
-                    "window_name": "UTC evening backport window"
-                }
-            }
-        ],
         "tue": [
             {
-                "name": "break",
-                "hour": "11"
-            },
-            {
                 "name": "train",
-                "hour": "12",
+                "hour": "11",
                 "length": "2",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
@@ -397,7 +308,7 @@
         "wed": [
             {
                 "name": "train_secondary",
-                "hour": "06",
+                "hour": "01",
                 "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
@@ -406,7 +317,7 @@
             },
             {
                 "name": "train",
-                "hour": "12",
+                "hour": "11",
                 "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
@@ -417,7 +328,7 @@
         "thu": [
             {
                 "name": "train_secondary",
-                "hour": "06",
+                "hour": "01",
                 "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
@@ -426,35 +337,11 @@
             },
             {
                 "name": "train",
-                "hour": "12",
+                "hour": "11",
                 "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
-                }
-            },
-            {
-                "name": "utc_am_training",
-                "hour": "04"
-            },
-            {
-                "name": "utc_pm_training",
-                "hour": "16"
-            }
-        ],
-        "mon-wed": [
-            {
-                "name": "utc_am_backport",
-                "hour": "04",
-                "vars": {
-                    "window_name": "UTC morning backport window"
-                }
-            },
-            {
-                "name": "utc_pm_backport",
-                "hour": "16",
-                "vars": {
-                    "window_name": "UTC late backport window"
                 }
             }
         ]
@@ -469,7 +356,7 @@
         "tue": [
             {
                 "name": "train",
-                "hour": "06",
+                "hour": "01",
                 "length": "2",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
@@ -478,7 +365,7 @@
             },
             {
                 "name": "train_secondary",
-                "hour": "12",
+                "hour": "11",
                 "length": "2",
                 "vars": {
                     "group": "group0 to <%= mw_train_link %>",
@@ -490,7 +377,7 @@
         "wed": [
             {
                 "name": "train",
-                "hour": "06",
+                "hour": "01",
                 "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
@@ -499,7 +386,7 @@
             },
             {
                 "name": "train_secondary",
-                "hour": "12",
+                "hour": "11",
                 "length": "2",
                 "vars": {
                     "group": "group1 to <%= mw_train_link %>",
@@ -510,7 +397,7 @@
         "thu": [
             {
                 "name": "train",
-                "hour": "06",
+                "hour": "01",
                 "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
@@ -519,55 +406,11 @@
             },
             {
                 "name": "train_secondary",
-                "hour": "12",
+                "hour": "11",
                 "length": "2",
                 "vars": {
                     "group": "group2 to <%= mw_train_link %>",
                     "minical": "{{DeployOneWeekMini|<%= new_train %>|<%= new_train %>|<%= old_train %>-><%= new_train %>}}"
-                }
-            },
-            {
-                "name": "utc_pm_backport",
-                "hour": "11",
-                "vars": {
-                    "window_name": "UTC evening backport window"
-                }
-            },
-            {
-                "name": "utc_am_training",
-                "hour": "04"
-            },
-            {
-                "name": "utc_pm_training",
-                "hour": "16"
-            }
-        ],
-        "tue-thu": [
-            {
-                "name": "break",
-                "hour": "05"
-            }
-        ],
-        "mon-wed": [
-            {
-                "name": "utc_am_backport",
-                "hour": "04",
-                "vars": {
-                    "window_name": "UTC morning backport window"
-                }
-            },
-            {
-                "name": "utc_pm_backport",
-                "hour": "16",
-                "vars": {
-                    "window_name": "UTC late backport window"
-                }
-            },
-            {
-                "name": "utc_pm_backport",
-                "hour": "11",
-                "vars": {
-                    "window_name": "UTC evening backport window"
                 }
             }
         ]
