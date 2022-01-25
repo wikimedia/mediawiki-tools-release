@@ -40,11 +40,6 @@
             "what": "Held deployment window for Security-team related deploys.",
             "window": "Weekly Security deployment window"
         },
-        "services": {
-            "deployer": "Chris ({{ircnick|chrisalbon}}), Andy ({{ircnick|accraze}})",
-            "what": "See [[mw:Extension:Graph|Graphoid]]",
-            "window": "[[mw:Services|Services]] – [[mw:Extension:Graph|Graphoid]] / [[ORES]]"
-        },
         "utc_am_backport": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
@@ -144,17 +139,7 @@
                 "hour": "17"
             }
         ],
-        "mon,wed": [
-            {
-                "name": "services",
-                "hour": "13"
-            }
-        ],
         "tue,thu": [
-            {
-                "name": "services",
-                "hour": "10"
-            },
             {
                 "name": "puppet",
                 "hour": "09"
