@@ -23,10 +23,10 @@
 #
 # Example usage:
 #
-# bin/deploy-promote group0 1.26wmf10
+# bin/deploy-promote group0 1.38.0-wmf.20
 #
 # The above command promotes all group0 wikis (testwiki and mediawiki.org)
-# to version 1.26wmf10.
+# to version 1.38.0-wmf.20.
 
 set -eu -o pipefail
 
@@ -156,49 +156,6 @@ check_versions() {
     else
         print_results "FAIL"
         exit 3
-    fi
-}
-
-assert_repository_is_clean() {
-    if [ "$(git -C "$REPO" status --porcelain)" != "" ]; then
-        echo "Git repo $REPO is not clean!"
-        echo
-        git -C "$REPO" status
-        echo
-        if ask "Continue anyway?" N; then
-            echo 'continuing...'
-        else
-            abort
-        fi
-    fi
-}
-
-remote_sha1() {
-    git -C "$REPO" \
-        ls-remote --quiet \
-        https://gerrit.wikimedia.org/r/mediawiki/tools/release \
-        refs/heads/master \ |
-        awk '{print $1}'
-}
-
-local_sha1() {
-    git -C "$REPO" rev-parse --verify HEAD
-}
-
-assert_repository_is_updated() {
-    local remote_head local_head
-
-    remote_head="$(remote_sha1)"
-    local_head="$(local_sha1)"
-
-    if [ "$remote_head" != "$local_head" ]; then
-        printf 'The "mediawiki/tools/release" repo is not up-to-date with upstream!\n'
-        printf '(remote: "%s" != local: "%s")\n' "$remote_head" "$local_head"
-        if ask "Continue anyway?" N; then
-            printf 'continuing...\n'
-        else
-            abort
-        fi
     fi
 }
 
@@ -344,9 +301,6 @@ main() {
         usage
         die 1 "'/srv/mediawiki-staging/dblists/$GRP.dblist' does not exist"
     fi
-
-    assert_repository_is_clean
-    assert_repository_is_updated
 
     PHABTASK=$(get_train_task)
     PROMOTE_MSG=
