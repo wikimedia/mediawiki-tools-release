@@ -2,9 +2,14 @@
 
 SHELL = /bin/bash
 
+# Despite this appearing to be an unconditional assignment, any value
+# specified on the command line takes precedence.
 workdir_volume = make-container-image-workdir
 
 build-image: auto-stage build-multiversion-base-image
+	./build-mv-image $(workdir_volume)
+
+build-mv-image: build-multiversion-base-image
 	./build-mv-image $(workdir_volume)
 
 build-debug-image:

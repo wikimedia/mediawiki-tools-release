@@ -164,7 +164,7 @@ select_base_image
 echo "Using $base_image as base image"
 
 echo Starting build container
-builder_id=$(docker run --rm -d -v "$workdir:/workdir" "$base_image")
+builder_id=$(docker run --rm -d -v "$workdir:/workdir:ro" "$base_image")
 
 trap 'docker rm -f $builder_id >/dev/null' EXIT
 
