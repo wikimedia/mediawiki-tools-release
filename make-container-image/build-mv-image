@@ -17,7 +17,11 @@ function announce {
 
 default_base=multiversion-base:latest
 
-rsync_args=(-a --stats --delete --exclude .git)
+rsync_args=(-a --stats \
+	       --delete --delete-excluded \
+	       --exclude .git \
+	       --exclude **/cache/l10n/upstream \
+	   )
 
 # Satisfy shellcheck
 rsync_transferpct=
