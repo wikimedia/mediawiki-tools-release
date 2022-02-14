@@ -41,7 +41,7 @@
             "window": "Weekly Security deployment window"
         },
         "utc_am_backport": {
-            "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}",
+            "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}, {{ircnick|taavi|Taavi}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
