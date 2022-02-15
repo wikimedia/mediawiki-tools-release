@@ -40,25 +40,30 @@
             "what": "Held deployment window for Security-team related deploys.",
             "window": "Weekly Security deployment window"
         },
-        "utc_am_backport": {
+        "utc_morning_backport": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}, {{ircnick|taavi|Taavi}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
-        "utc_am_training": {
+        "utc_morning_training": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|apergos|Ariel}}",
             "what": "Training to do backport and config deployment. To sign up for deployment training use the [https://phabricator.wikimedia.org/project/profile/5265/ Deployment Training Request phabricator milestone]\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|UTC early backport and config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
-        "utc_pm_backport": {
+        "utc_afternoon_backport": {
             "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
-        "utc_pm_training": {
+        "utc_afternoon_training": {
             "deployer": "{{ircnick|brennen|Brennen}}",
             "what": "Training to do backport and config deployment. To sign up for deployment training use the [https://phabricator.wikimedia.org/project/profile/5265/ Deployment Training Request phabricator milestone]\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|UTC evening backport and config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
+        },
+        "utc_late_backport": {
+            "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Urbanecm|Martin}}",
+            "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
+            "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "train": {
             "deployer": "<%= train_deployer %>",
@@ -90,21 +95,21 @@
     "schedule": {
         "mon-wed": [
             {
-                "name": "utc_am_backport",
+                "name": "utc_morning_backport",
                 "hour": "00",
                 "vars": {
                     "window_name": "UTC morning backport window"
                 }
             },
             {
-                "name": "utc_pm_backport",
+                "name": "utc_afternoon_backport",
                 "hour": "06",
                 "vars": {
                     "window_name": "UTC afternoon backport window"
                 }
             },
             {
-                "name": "utc_pm_backport",
+                "name": "utc_late_backport",
                 "hour": "13",
                 "vars": {
                     "window_name": "UTC late backport window"
@@ -151,15 +156,15 @@
                 "hour": "3"
             },
             {
-                "name": "utc_am_training",
+                "name": "utc_morning_training",
                 "hour": "00"
             },
             {
-                "name": "utc_pm_training",
+                "name": "utc_afternoon_training",
                 "hour": "13"
             },
             {
-                "name": "utc_pm_backport",
+                "name": "utc_late_backport",
                 "hour": "13",
                 "vars": {
                     "window_name": "UTC late backport window"
