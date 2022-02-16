@@ -50,6 +50,7 @@ function estimate_rsync {
               > "$rsync_out" 2>&1; then
         # This sets a few rsync_* variables.  See grok-rsync-output for details.
         eval "$(./grok-rsync-output < "$rsync_out")"
+        rm "$rsync_out"
         echo "$image rsync_transferpct: $rsync_transferpct"
 
         last_estimated_image="$image"
