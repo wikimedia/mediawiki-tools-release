@@ -160,15 +160,15 @@
                 "hour": "00"
             },
             {
-                "name": "utc_afternoon_training",
-                "hour": "13"
+                "name": "utc_afternoon_backport",
+                "hour": "06",
+                "vars": {
+                    "window_name": "UTC afternoon backport window"
+                }
             },
             {
-                "name": "utc_late_backport",
-                "hour": "13",
-                "vars": {
-                    "window_name": "UTC late backport window"
-                }
+                "name": "utc_afternoon_training",
+                "hour": "13"
             }
         ],
         "fri": [
