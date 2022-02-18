@@ -43,7 +43,7 @@
         "utc_morning_backport": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}, {{ircnick|taavi|Taavi}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
-            "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
+            "window": "[[Backport windows|UTC morning backport window]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "utc_morning_training": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|apergos|Ariel}}",
@@ -53,7 +53,7 @@
         "utc_afternoon_backport": {
             "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Lucas_WMDE|Lucas}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
-            "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
+            "window": "[[Backport windows|UTC afternoon backport window]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "utc_late_training": {
             "deployer": "{{ircnick|brennen|Brennen}}",
@@ -63,7 +63,7 @@
         "utc_late_backport": {
             "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Urbanecm|Martin}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
-            "window": "[[Backport windows|<%= window_name %>]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
+            "window": "[[Backport windows|UTC late backport window]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "train": {
             "deployer": "<%= train_deployer %>",
@@ -96,24 +96,15 @@
         "mon-wed": [
             {
                 "name": "utc_morning_backport",
-                "hour": "00",
-                "vars": {
-                    "window_name": "UTC morning backport window"
-                }
+                "hour": "00"
             },
             {
                 "name": "utc_afternoon_backport",
-                "hour": "06",
-                "vars": {
-                    "window_name": "UTC afternoon backport window"
-                }
+                "hour": "06"
             },
             {
                 "name": "utc_late_backport",
-                "hour": "13",
-                "vars": {
-                    "window_name": "UTC late backport window"
-                }
+                "hour": "13"
             }
         ],
         "mon": [
@@ -161,10 +152,7 @@
             },
             {
                 "name": "utc_afternoon_backport",
-                "hour": "06",
-                "vars": {
-                    "window_name": "UTC afternoon backport window"
-                }
+                "hour": "06"
             },
             {
                 "name": "utc_late_training",
