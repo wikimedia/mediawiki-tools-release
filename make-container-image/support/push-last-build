@@ -8,7 +8,7 @@ if [ ! -f last-build ]; then
 fi
 
 image=$(cat last-build)
-image_base=$(echo "$image" | awk 'BEGIN { FS = ":" } ; { print $1 }')
+image_base=$(echo "$image" | sed -r -e 's/^(.*):[^:]+$/\1/')
 image_latest="$image_base:latest"
 
 docker tag "$image" "$image_latest"

@@ -17,6 +17,9 @@ function announce {
 
 default_base=multiversion-base:latest
 
+# Image name including registry, but excluding the tag.
+mv_image_name="${mv_image_name:-docker-registry.discovery.wmnet/restricted/mediawiki-multiversion}"
+
 rsync_args=(-a --stats \
 	       --delete --delete-excluded \
 	       --exclude .git \
@@ -186,13 +189,13 @@ time docker exec "$builder_id" \
      "/workdir/" "/srv/mediawiki/"
 
 tag=$(date '+%Y-%m-%d-%H%M%S-publish')
-image="docker-registry.discovery.wmnet/restricted/mediawiki-multiversion:$tag"
-echo "Commit $image"
-time docker commit "$builder_id" "$image"
+fqin="$mv_image_name:$tag"
+echo "Commit $fqin"
+time docker commit "$builder_id" "$fqin"
 
-echo "$image has $(count_image_layers "$image") layers"
+echo "$fqin has $(count_image_layers "$fqin") layers"
 
-echo "$image" > last-build.tmp
+echo "$fqin" > last-build.tmp
 mv last-build.tmp last-build
 
 announce build-mv-image finished

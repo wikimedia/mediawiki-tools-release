@@ -1,7 +1,10 @@
 tag := $(shell date '+%Y-%m-%d-%H%M%S-webserver')
 # FIXME: There are no secrets in this image so it doesn't need to be
 # in the restricted section.
-fqin := docker-registry.discovery.wmnet/restricted/mediawiki-webserver:$(tag)
+# This can be overriden on the command line.
+webserver_image_name = docker-registry.discovery.wmnet/restricted/mediawiki-webserver
+
+fqin := $(webserver_image_name):$(tag)
 
 image:
 	docker build \

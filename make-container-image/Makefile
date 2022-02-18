@@ -1,4 +1,5 @@
-.PHONY: build-image push-last-image auto-stage setup-workdir clean-workdir build-auto-stage-image build-multiversion-base-image build-debug-image
+.PHONY: build-image build-mv-image push-last-image auto-stage setup-workdir clean-workdir \
+	build-auto-stage-image build-multiversion-base-image build-debug-image build-webserver-image
 
 SHELL = /bin/bash
 
@@ -6,9 +7,9 @@ SHELL = /bin/bash
 # specified on the command line takes precedence.
 workdir_volume = make-container-image-workdir
 
-build-image: auto-stage build-multiversion-base-image
-	./build-mv-image $(workdir_volume)
+build-image: auto-stage build-mv-image
 
+# Like build-image, but doesn't run auto-stage.  Intended to be invoked by scap.
 build-mv-image: build-multiversion-base-image
 	./build-mv-image $(workdir_volume)
 
@@ -21,6 +22,13 @@ build-debug-image:
 	fi
 
 build-and-push-image: build-image push-last-image
+
+# like build-and-push-image but doesn't run auto-stage.
+build-and-push-mv-image: build-mv-image push-last-image
+
+# To be invoked by scap
+build-and-push-all-images: build-and-push-mv-image
+	$(MAKE) -C webserver build-and-push-image
 
 push-last-image:
 	@echo Pushing image to registry
