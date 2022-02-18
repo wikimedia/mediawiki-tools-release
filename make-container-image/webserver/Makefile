@@ -23,3 +23,14 @@ push:
 	sudo /usr/local/bin/docker-pusher $(fqin)
 
 build-and-push-image: image push
+
+# Alternate building approach to be used by scap
+new-build-and-push-image: new-webserver-image push
+
+new-webserver-image: webserver-base-image
+	./build-webserver-image $(fqin)
+	echo $(fqin) > last-build.tmp
+	mv last-build.tmp last-build
+
+webserver-base-image:
+	docker build --pull -f Dockerfile.webserver-base-image -t webserver-image-base .

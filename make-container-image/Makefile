@@ -28,7 +28,7 @@ build-and-push-mv-image: build-mv-image push-last-image
 
 # To be invoked by scap
 build-and-push-all-images: build-and-push-mv-image
-	$(MAKE) -C webserver build-and-push-image
+	$(MAKE) -C webserver new-build-and-push-image
 
 push-last-image:
 	@echo Pushing image to registry
@@ -88,10 +88,10 @@ clean-workdir:
 	docker volume rm $(workdir_volume)
 
 check:
-	shellcheck auto-stage/auto-stage build-mv-image setup-workdir new-train-version build-debug-image support/*
+	shellcheck auto-stage/auto-stage build-mv-image setup-workdir new-train-version build-debug-image support/* webserver/{build-webserver-image,stage-srv-mediawiki}
 
 purge-restricted-images:
-	docker image ls --format '{{.Repository}}:{{.Tag}}' | grep docker-registry.discovery.wmnet/restricted | xargs -r docker image rm
+	docker image ls --format '{{.Repository}}:{{.Tag}}' | grep restricted/mediawiki | xargs -r docker image rm
 
 # Remove images older than a day
 purge-old-images:

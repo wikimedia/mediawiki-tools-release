@@ -1,0 +1,48 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 fully-qualified-image-name"
+    exit 1
+fi
+
+fqin="$1"
+
+source_dir=/srv/mediawiki-staging
+
+base_image=webserver-image-base
+
+# Save the original entrypoint since we override it in the 'docker run' below
+# and 'docker commit' saves that as the entrypoint (if we don't do anything about it,
+# but we do).
+original_entrypoint="$(docker image inspect "$base_image" | jq -c .[0].Config.Entrypoint)"
+
+id="$(docker run --rm -d -v "${source_dir}:/source:ro" --entrypoint /bin/sleep $base_image 1d)"
+
+trap 'docker rm -f $id' EXIT
+
+php_dir_to_keep="$(readlink "${source_dir}/php")"
+
+echo Populating webserver image via rsync...
+time docker exec "$id" rsync -a /source/ /srv/mediawiki/ \
+      --delete-excluded \
+      --exclude "**/.git" \
+      --exclude /wmf-config \
+      --exclude /tests \
+      --exclude /src \
+      --exclude /multiversion \
+      --exclude /docroot/noc \
+      --exclude /private \
+      --include "/$php_dir_to_keep" \
+      --exclude "/$php_dir_to_keep/cache" \
+      --exclude "/$php_dir_to_keep/extensions" \
+      --exclude "/$php_dir_to_keep/languages" \
+      --exclude "/$php_dir_to_keep/skins" \
+      --exclude "/$php_dir_to_keep/tests" \
+      --exclude "/$php_dir_to_keep/vendor" \
+      --exclude "/$php_dir_to_keep/**.php" \
+      --exclude "/php-*"
+
+echo committing...
+time docker commit -c "ENTRYPOINT $original_entrypoint" "$id" "$fqin"

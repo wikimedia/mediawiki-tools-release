@@ -1,0 +1,8 @@
+FROM docker-registry.wikimedia.org/mediawiki-httpd
+
+ENV DEBIAN_FRONTEND=noninteractive
+USER root
+RUN apt-get update && apt-get install -y rsync
+
+RUN mkdir /srv/mediawiki && chown www-data: /srv/mediawiki
+USER www-data
