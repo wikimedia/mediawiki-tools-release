@@ -65,6 +65,42 @@ function estimate_rsync {
     fi
 }
 
+# Writes the Id of the specified image to stdout
+function image_id {
+    docker inspect -f '{{.Id}}' "$1"
+}
+
+# Writes the Id of the parent of the specified image to stdout.
+# If there is no parent, there is no output.
+function parent {
+    docker inspect -f '{{.Parent}}' "$1"
+}
+
+# Returns true if image1 is a descendent of image2.
+function is_descendent_of {
+    local image1="$1"
+    local image2="$2"
+
+    local image2_id
+    image2_id="$(image_id "$image2")"
+
+    local image="$image1"
+
+    while true; do
+        parent="$(parent "$image")"
+
+        if [ -z "$parent" ]; then
+            return 1
+        fi
+
+        if [ "$parent" == "$image2_id" ]; then
+            return 0
+        fi
+
+        image="$parent"
+    done
+}
+
 function count_image_layers {
     local image="$1"
 
@@ -82,6 +118,11 @@ function image_is_suitable_as_base {
     if ! image_exists_locally "$image"; then
        # Nonexistent images are not suitable.
        return 1
+    fi
+
+    if ! is_descendent_of "$image" "$default_base"; then
+        echo "$image is not a descendent of $default_base"
+        return 1
     fi
 
     local num_layers
