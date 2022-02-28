@@ -109,6 +109,7 @@ bundles:
         - "mediawiki/extensions/GuidedTour"
         - "mediawiki/extensions/GWToolset"
         - "mediawiki/extensions/ImageMap"
+        - "mediawiki/extensions/ImageSuggestions"
         - "mediawiki/extensions/InputBox"
         - "mediawiki/extensions/Insider"
         - "mediawiki/extensions/intersection"
