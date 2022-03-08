@@ -30,7 +30,6 @@ from datetime import datetime, timedelta
 import scap.utils
 import scap.tasks
 
-BIN_DIR = pathlib.Path(__file__).parent.absolute()
 BASE_DIR = '/srv/mediawiki-staging'
 STAGES = [
     'prep',
@@ -77,8 +76,8 @@ class ScapTasks:
         self._run(cmd)
 
     def testwikis(self):
-        cmd = [str(BIN_DIR / 'deploy-promote'), '--yes', 'testwikis', self.version]
-        self._run(cmd, cwd=str(pathlib.Path.home()))
+        cmd = ['scap', 'deploy-promote', '--yes','testwikis', self.version]
+        self._run(cmd)
 
     def clean(self):
         versions_on_disk = scap.tasks.get_wikiversions_ondisk(BASE_DIR)
