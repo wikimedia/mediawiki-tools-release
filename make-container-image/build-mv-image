@@ -9,6 +9,9 @@ EOF
     exit 1
 }
 
+# shellcheck source=support/utils.sh
+source "$(dirname "$0")/support/utils.sh"
+
 function announce {
     echo
     echo "**" "$@" "**"
@@ -187,6 +190,22 @@ function volume_exists {
     docker volume inspect "$volume" >/dev/null 2>&1
 }
 
+function augment_rsync_args {
+    # Add --include's for active branches, based on reading workdir's
+    # wikiversions.json file.
+
+    local version
+    for version in $(unique_wikiversions "$workdir"); do
+        rsync_args+=(--include "/php-$version")
+    done
+
+    # And exclude any other trees that may be lurking
+    rsync_args+=(--exclude "/php-*")
+
+    echo "rsync_args: ${rsync_args[*]}"
+}
+
+
 if [ $# -ne 1 ]; then
     usage
 fi
@@ -208,6 +227,8 @@ else
 fi
 
 announce build-mv-image running
+
+augment_rsync_args
 
 select_base_image
 echo "Using $base_image as base image"
