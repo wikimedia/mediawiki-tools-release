@@ -4,6 +4,7 @@ Test deployment calendar
 import datetime
 import time
 import os
+from unittest import mock
 
 import pytest
 
@@ -44,6 +45,21 @@ def test_phab_get_conduit_token():
     os.environ['CONDUIT_TOKEN'] = 'x'
     p = deploymentcalendar.findtrain.Phab()
     assert p._get_token() == 'x'
+
+
+@mock.patch.dict('os.environ', clear=True)
+def test_phab_query_handles_error():
+    with mock.patch('deploymentcalendar.findtrain.requests') as r:
+        response = r.post.return_value = mock.Mock()
+        response.json.return_value = {
+            'error_code': '42',
+            'error_info': 'the universal response',
+            }
+        with pytest.raises(
+            Exception,
+            match='Phabricator API error 42: the universal response'
+        ):
+            deploymentcalendar.findtrain.Phab().query('x', {})
 
 
 if __name__ == '__main__':

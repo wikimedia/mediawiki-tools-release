@@ -207,7 +207,15 @@ class Phab(object):
             os.path.join(self.phab_url, method),
             data=data)
         r.raise_for_status()
-        return r.json()
+        response = r.json()
+        if response.get('error_code') is not None:
+            raise Exception(
+                'Phabricator API error %s: %s' % (
+                    response['error_code'],
+                    response['error_info'],
+                )
+            )
+        return response
 
 
 def find_train_finder(monday):
