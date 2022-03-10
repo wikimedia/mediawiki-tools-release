@@ -17,7 +17,7 @@ USER www-data
 # CACHEBUSTER arg because we want git clone to run for every build
 ARG CACHEBUSTER
 ARG GIT_BASE
-ARG BRANCH
+ARG MW_CONFIG_BRANCH
 
 COPY stage-srv-mediawiki /
 RUN bash /stage-srv-mediawiki
