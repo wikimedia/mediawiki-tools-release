@@ -3,5 +3,6 @@ Jinja2
 mwparserfromhell
 python-dateutil
 pywikibot
+PyYAML
 requests
 requests-oauth

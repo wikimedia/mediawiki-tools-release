@@ -18,7 +18,7 @@
 #
 import argparse
 from datetime import datetime, timedelta, timezone
-import json
+import yaml
 import os
 import re
 import sys
@@ -30,7 +30,7 @@ import jinja2
 import deploymentcalendar.findtrain
 
 BASE_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
-DEFAULT_CONFIG = os.path.join(BASE_PATH, '..', 'deployments-calendar.json')
+DEFAULT_CONFIG = os.path.join(BASE_PATH, '..', 'deployments-calendar.yaml')
 DAYS_OF_THE_WEEK = range(0, 7)
 HOURS_OF_THE_DAY = range(0, 24)
 MINUTES_OF_THE_HOUR = range(0, 60)
@@ -40,7 +40,7 @@ DESC = """
 deployments-calendar
 ====================
 
-Module that renders the Wikitech Deployments calendar based on json input.
+Module that renders the Wikitech Deployments calendar based on yaml input.
 """
 
 
@@ -375,7 +375,7 @@ class Train(object):
 
 def parse_config(config_file):
     with open(config_file) as f:
-        return json.load(f)
+        return yaml.safe_load(f)
 
 
 def make_deployers(train):
@@ -439,7 +439,7 @@ def parse_args(argv=None):
     )
     ap.add_argument(
         '-c', '--config-file', default=DEFAULT_CONFIG,
-        help='config json file'
+        help='config yaml file'
     )
     ap.add_argument(
         '-m', '--message', action='append',

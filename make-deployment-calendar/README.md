@@ -2,7 +2,7 @@
 
 ## Modify the deployment calendar
 
-The deployment calendar is generated from the data in `deployment-calendar.json`.
+The deployment calendar is generated from the data in `deployment-calendar.yaml`.
 The `windows` key defines metadata about the windows: name, deployers, descriptions.
 The `schedules` key schedules `windows` throughout the week. The keys in schedules
 are train schedules (whether the train conductor is American or European means
