@@ -1,6 +1,7 @@
 from unittest import mock
 
 from mwrelease import branch
+import pytest
 
 
 @mock.patch('mwrelease.branch.gerrit_client')
@@ -36,17 +37,19 @@ def test_delete_noop_should_not_write(gerrit, capsys):
 
 
 @mock.patch('mwrelease.branch.gerrit_client')
-def test_delete_tag_failure_does_delete_branch(gerrit, capsys):
+def test_delete_tag_failure_does_not_delete_branch(gerrit, capsys):
     gerrit.return_value.get.return_value = {'revision': '<revision>'}
     gerrit.return_value.put.side_effect = Exception('<error>')
     delete = gerrit.return_value.delete
 
-    branch.delete_branch('test/gerrit-ping', 'wmf/xx')
+    with pytest.raises(Exception) as e:
+        branch.delete_branch('test/gerrit-ping', 'wmf/xx')
+    assert '<error>' == str(e.value)
 
-    delete.assert_called()
+    delete.assert_not_called()
 
     captured = capsys.readouterr()
     assert captured.out == (
             'Failed to create tag wmf/xx: <error>\n'
-            'Moving on.\n'
+            'Aborting.\n'
     )

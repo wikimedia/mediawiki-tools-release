@@ -137,7 +137,8 @@ def delete_branch(repository, branch, convert_to_tag=True, noop=False):
                 tag_resp = gerrit_client().put(tag_url, tag)
                 print("Created %s" % tag_resp[0]['web_links'][0]['url'])
             except Exception as e:
-                print("Failed to create tag %s: %s\nMoving on." % (branch, e))
+                print("Failed to create tag %s: %s\nAborting." % (branch, e))
+                raise e
 
     # Delete the branch.
     if noop:
