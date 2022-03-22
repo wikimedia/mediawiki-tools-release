@@ -10,11 +10,6 @@
             "what": "See [[mw:Citoid|Citoid]]",
             "window": "[[mw:Services|Services]] – [[mw:Citoid|Citoid]] / Zotero "
         },
-        "phab": {
-            "deployer": "{{ircnick|twentyafterfour|Mukunda}}",
-            "what": "HOLD: Window to update phabricator.wikimedia.org",
-            "window": "Phabricator update"
-        },
         "portals": {
             "deployer": "{{ircnick|jan_drewniak|Jan Drewniak}}",
             "what": "Weekly window for the portals page: https://www.wikipedia.org/",
@@ -129,10 +124,6 @@
             {
                 "name": "train_log_triage",
                 "hour": "11"
-            },
-            {
-                "name": "phab",
-                "hour": "17"
             }
         ],
         "tue,thu": [
