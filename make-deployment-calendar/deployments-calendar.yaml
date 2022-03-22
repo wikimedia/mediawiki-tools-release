@@ -35,6 +35,11 @@
             "what": "Held deployment window for Security-team related deploys.",
             "window": "Weekly Security deployment window"
         },
+        "primary_switchover": {
+            "deployer": "{{ircnick|kormat|Stevie Beth Mhaol}}, {{ircnick|marostegui|Manuel Arostegui}}, {{ircnick|Amir1|Amir}}",
+            "what": "Held deployment window for database primary masters maintenance",
+            "window": "Primary database switchover"
+        },
         "utc_morning_backport": {
             "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|awight|Adam}}, {{ircnick|Urbanecm|Martin}}, {{ircnick|taavi|Taavi}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
@@ -118,12 +123,22 @@
                 "name": "security",
                 "hour": "14",
                 "length": "2"
+            },
+            {
+                "name": "primary_switchover",
+                "hour": "23",
+                "length": "0.5",
             }
         ],
         "wed": [
             {
                 "name": "train_log_triage",
                 "hour": "11"
+            },
+            {
+                "name": "primary_switchover",
+                "hour": "23",
+                "length": "0.5",
             }
         ],
         "tue,thu": [
