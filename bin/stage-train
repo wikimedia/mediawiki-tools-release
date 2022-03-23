@@ -77,10 +77,7 @@ class ScapTasks:
         self._run(cmd)
 
     def testwikis(self):
-        cmd = [str(BIN_DIR / 'deploy-promote')]
-        if self.args.yes:
-            cmd.append('--yes')
-        cmd += ['testwikis', self.version]
+        cmd = [str(BIN_DIR / 'deploy-promote'), '--yes', 'testwikis', self.version]
         self._run(cmd, cwd=str(pathlib.Path.home()))
 
     def clean(self):
