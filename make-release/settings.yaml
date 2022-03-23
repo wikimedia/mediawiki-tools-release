@@ -80,7 +80,6 @@ bundles:
         - "mediawiki/extensions/DismissableSiteNotice"
         - "mediawiki/extensions/DonationInterface"
         - "mediawiki/extensions/DoubleWiki"
-        - "mediawiki/extensions/DynamicSidebar"
         - "mediawiki/extensions/Echo"
         - "mediawiki/extensions/Elastica"
         - "mediawiki/extensions/ElectronPdfService"
