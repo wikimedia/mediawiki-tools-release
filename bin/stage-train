@@ -64,7 +64,7 @@ class ScapTasks:
         if run_it:
             try:
                 subprocess.run(cmd, cwd=cwd, check=True)
-            except (subprocess.CalledProcessError, KeyboardInterrupt) as e:
+            except subprocess.CalledProcessError as e:
                 print(e)
                 sys.exit(1)
 
@@ -132,12 +132,17 @@ def main(argv):
     st = ScapTasks(args)
     count = 1
     stages = STAGES[STAGES.index(args.start_from):]
-    for stage in stages:
-        print('----------------------------')
-        print(f'{count}. Starting: {stage}')
-        getattr(st, stage)()
-        print('DONE!')
-        count += 1
+
+    try:
+        for stage in stages:
+            print('----------------------------')
+            print(f'{count}. Starting: {stage}')
+            getattr(st, stage)()
+            print('DONE!')
+            count += 1
+    except KeyboardInterrupt:
+        print("Interrupted")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
