@@ -62,7 +62,11 @@ class ScapTasks:
             return
 
         if run_it:
-            subprocess.run(cmd, cwd=cwd)
+            try:
+                subprocess.run(cmd, cwd=cwd, check=True)
+            except (subprocess.CalledProcessError, KeyboardInterrupt) as e:
+                print(e)
+                sys.exit(1)
 
     def prep(self):
         cmd = ['scap', 'prep', self.version]
