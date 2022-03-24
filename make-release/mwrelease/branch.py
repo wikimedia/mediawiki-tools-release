@@ -106,7 +106,7 @@ def create_branch(repository, branch, revision, noop=False):
 
 
 def delete_branch(repository, branch, convert_to_tag=True, noop=False):
-    """delete a branch for a given repo."""
+    """Delete a branch for a given repo."""
     if len(branch) < 1:
         raise ValueError('Invalid branch name: "%s"' % (branch))
     elif len(repository) < 1:
@@ -116,9 +116,18 @@ def delete_branch(repository, branch, convert_to_tag=True, noop=False):
         repository.replace('/', '%2F'),
         branch.replace('/', '%2F'))
 
+    try:
+        branch_info = gerrit_client().get(branch_url)
+    except HTTPError as httpe:
+        if httpe.response.status_code == 404:
+            print("Repo %s doesn't have a branch named %s" %
+                  (repository, branch))
+            return False
+        else:
+            raise
+
     if convert_to_tag:
         # Collect the commit id that the branch currently points to.
-        branch_info = gerrit_client().get(branch_url)
         rev = branch_info['revision']
 
         tag_url = '/projects/%s/tags/%s' % (
@@ -144,14 +153,7 @@ def delete_branch(repository, branch, convert_to_tag=True, noop=False):
     if noop:
         print("Would delete branch %s" % (branch))
     else:
-        try:
-            gerrit_client().delete(branch_url)
-        except HTTPError as httpe:
-            if httpe.response.status_code == 404:
-                print("Repo %s doesn't have a branch named %s" %
-                      (repository, branch))
-            else:
-                raise
+        gerrit_client().delete(branch_url)
 
 
 def get_bundle(bundle, conf=None):
