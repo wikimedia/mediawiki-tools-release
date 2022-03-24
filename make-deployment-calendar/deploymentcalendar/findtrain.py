@@ -74,8 +74,15 @@ class Train(object):
 
         self.release_date = task['fields']['custom.release.date']
         self.task_id = 'T{}'.format(task['id'])
-        self.primary_phid = task['fields']['ownerPHID']
-        self.secondary_phid = task['fields']['custom.train.backup'][0]
+        self.primary_phid = task['fields'].get(
+            'ownerPHID',
+            deploymentcalendar.relengers.DEFAULT
+        )
+        secondaries = task['fields']['custom.train.backup']
+        if secondaries:
+            self.secondary_phid = secondaries[0]
+        else:
+            self.secondary_phid = deploymentcalendar.relengers.DEFAULT
         self.version = task['fields']['custom.release.version']
         self.task = task
 

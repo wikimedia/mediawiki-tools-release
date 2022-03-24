@@ -3,14 +3,16 @@
 from collections import namedtuple
 
 Relenger = namedtuple('Relenger', ['fullname', 'ircnick', 'schedule'])
+DEFAULT = 'PHID-USER-5ewyncd6mpezaymyxfal'
 
 RELENGERS = {
-    'dancy': Relenger('Ahmon', 'dancy', 'UTC-7'),
-    'hashar': Relenger('Antoine', 'hashar', 'UTC-0'),
     'brennen': Relenger('Brennen', 'brennen', 'UTC-7'),
+    'dancy': Relenger('Ahmon', 'dancy', 'UTC-7'),
     'dduvall': Relenger('Dan', 'dduvall', 'UTC-7'),
+    'hashar': Relenger('Antoine', 'hashar', 'UTC-0'),
     'jeena': Relenger('Jeena', 'jeena', 'UTC-7'),
-    'mmodell': Relenger('Mukunda', 'twentyafterfour', 'UTC-7'),
+    'jnuche': Relenger('Jaime', 'jnuche', 'UTC-0'),
+    'thcipriani': Relenger('Tyler', 'thcipriani', 'UTC-7'),
 }
 
 
