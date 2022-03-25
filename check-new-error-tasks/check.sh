@@ -21,9 +21,9 @@ USAGE
   # See this usage info:
   ./check.sh --help
 
-This is a way to check status of current filters on the
-mediawiki-new-errors logstash dashboard.  It's hacks all the way
-down.
+This is a way to check status of current filters on a logstash
+dashboard, usually mediawiki-new-errors or its client-side equivalent.
+It's hacks all the way down.
 
 Prerequisites:
   jq       - sudo apt install jq
@@ -34,24 +34,55 @@ Once you have arcanist installed, you'll need to get a token with:
   $ arc set-config default https://phabricator.wikimedia.org/
   $ arc install-certificate
 
-You'll need to use your LDAP password to get dashboard.json, which
+You'll need to use your LDAP password to get the dashboard data, which
 _should_ be safe since this is https.
 
-Note that this will fail if the dashboard has in excess
-of 100 tasks on filters, since it doesn't handle Conduit API
-pagination.  Let's try to have fewer than 100 filters.
+Note that this will fail if the dashboard has in excess of 100 tasks
+on filters, since it doesn't handle Conduit API pagination.  Let's try
+to have fewer than 100 filters.
+
+Filters are assumed to have custom labels referencing Phabricator
+tasks. For example:
+
+  T269750 - PegTokenizer: UTF-8 errors
 DOC
 
   exit
 }
 
+# Extracts a JSON blob of dashboard info as a saved object from the
+# opensearch API.
+#
+# https://opensearch.org/docs/latest/troubleshoot/index/
+# https://www.elastic.co/guide/en/kibana/current/saved-objects-api-export.html
 curl_dashboard () {
   read -rp "LDAP username for logstash: " username
-  curl --fail --user "$username" "$1" -o "$2"
+
+  tempfile="$(mktemp errorcheck.XXXXX)"
+
+  curl --silent --show-error --fail \
+    --user "$username" \
+    -o "$tempfile" \
+    -X POST https://logstash.wikimedia.org/api/saved_objects/_export \
+    -H 'osd-xsrf: true' \
+    -H 'Content-Type: application/json' \
+    -d '{
+          "objects": [
+            {
+              "type": "dashboard",
+              "id": "'"$1"'"
+            }
+          ]
+        }'
+
+  mv "$tempfile" "$2"
 }
 
+# Extracts a list of tasks from the dashboard JSON blob.
 tasks () {
-  jq -r '.objects[0].attributes.kibanaSavedObjectMeta.searchSourceJSON | fromjson | .filter | .[].meta.alias' < "$1" \
+  # Returned data is http://ndjson.org/ - one record per line.
+  head -1 "$1" \
+    | jq -r '.attributes.kibanaSavedObjectMeta.searchSourceJSON | fromjson | .filter | .[].meta.alias' \
     | sed 's/^T\([0-9]\+\).*/\1/' \
     | grep -E '^[0-9]+$' \
     | paste -sd ','
@@ -68,7 +99,7 @@ elif [ "$1" = '--help' ] || [ "$1" = '-h' ]; then
 else
   dashboard_id="$1"
 fi
-dashboard_path="https://logstash.wikimedia.org/api/kibana/dashboards/export?dashboard=$dashboard_id"
+
 dashboard_json="$dashboard_id.json"
 
 if ! [ -e "$dashboard_json" ]; then
@@ -81,7 +112,7 @@ else
 fi
 case "$retrieve_dashboard" in
   [yY][eE][sS]|[yY])
-    curl_dashboard "$dashboard_path" "$dashboard_json"
+    curl_dashboard "$dashboard_id" "$dashboard_json"
     ;;
 esac
 
