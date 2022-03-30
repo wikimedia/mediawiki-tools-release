@@ -59,6 +59,7 @@ curl_dashboard () {
   read -rp "LDAP username for logstash: " username
 
   tempfile="$(mktemp errorcheck.XXXXX)"
+  trap "rm -f $tempfile" EXIT
 
   curl --silent --show-error --fail \
     --user "$username" \
