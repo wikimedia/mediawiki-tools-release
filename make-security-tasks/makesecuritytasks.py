@@ -10,7 +10,7 @@ parser.add_argument(
 )
 parser.add_argument(
     'phabtoken',
-    help='Phabticator api token to use to make the tasks. Starts api-'
+    help='Phabricator api token to use to make the tasks. Starts api-'
 )
 args = parser.parse_args()
 
