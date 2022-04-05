@@ -31,7 +31,7 @@
             "window": "Train log triage with CPT"
         },
         "security": {
-            "deployer": "{{ircnick|Reedy|Sam}}, {{ircnick|sbassett|Scott}}",
+            "deployer": "{{ircnick|Reedy|Sam}}, {{ircnick|sbassett|Scott}}, {{ircnick|Maryum|Maryum}}, {{ircnick|manfredi|Manfredi}}",
             "what": "Held deployment window for Security-team related deploys.",
             "window": "Weekly Security deployment window"
         },
