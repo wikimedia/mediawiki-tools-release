@@ -61,7 +61,7 @@
             "window": "[[Backport windows|UTC late backport and config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "utc_late_backport": {
-            "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Urbanecm|Martin}}, {{irc|cjming|Clare}}",
+            "deployer": "{{ircnick|RoanKattouw|Roan}}, {{ircnick|Urbanecm|Martin}}, {{ircnick|cjming|Clare}}",
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|UTC late backport window]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
