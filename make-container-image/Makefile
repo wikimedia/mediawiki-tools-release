@@ -96,3 +96,7 @@ purge-restricted-images:
 # Remove images older than a day
 purge-old-images:
 	docker image ls docker-registry.discovery.wmnet/restricted/mediawiki-multiversion  | grep 'days ago' | awk '{print $$1 ":" $$2}' | xargs -r docker image rm
+
+# Temporary.  For use on the deploy server
+clear-deploy-mwdebug-error:
+	rm /var/lib/deploy-mwdebug/error
