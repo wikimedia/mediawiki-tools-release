@@ -100,3 +100,7 @@ purge-old-images:
 # Temporary.  For use on the deploy server
 clear-deploy-mwdebug-error:
 	rm /var/lib/deploy-mwdebug/error
+
+# Temporary.  For use on the deploy server
+presync-train:
+	/home/dancy/presync-train
