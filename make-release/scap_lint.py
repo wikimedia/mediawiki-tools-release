@@ -74,6 +74,10 @@ def check_valid_json_file(path):
     """
     if not path.endswith(".json"):
         return
+    # T306524 - purposely skip MW core tests/phpunit/unit/includes/Settings/Source/fixtures/bad.json
+    if path.endswith("fixtures/bad.json"):
+        return
+
     with open(path) as json_file:
         try:
             json.load(json_file)
