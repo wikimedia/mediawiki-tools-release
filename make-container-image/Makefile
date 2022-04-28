@@ -104,6 +104,8 @@ pause-deploy-mwdebug:
 	echo Paused by $(SUDO_USER) on $$(date) > /var/lib/deploy-mwdebug/pause
 unpause-deploy-mwdebug:
 	rm -f /var/lib/deploy-mwdebug/pause
+update-mediawiki-release-values:
+	support/update-mediawiki-releases-values
 
 # Temporary.  For use on the deploy server
 presync-train:
