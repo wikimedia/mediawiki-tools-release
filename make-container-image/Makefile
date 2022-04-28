@@ -100,6 +100,10 @@ purge-old-images:
 # Temporary.  For use on the deploy server
 clear-deploy-mwdebug-error:
 	rm /var/lib/deploy-mwdebug/error
+pause-deploy-mwdebug:
+	echo Paused by $$(id -un) on $$(date) > /var/lib/deploy-mwdebug/pause
+unpause-deploy-mwdebug:
+	rm -f /var/lib/deploy-mwdebug/pause
 
 # Temporary.  For use on the deploy server
 presync-train:
