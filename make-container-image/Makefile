@@ -97,11 +97,11 @@ purge-restricted-images:
 purge-old-images:
 	docker image ls docker-registry.discovery.wmnet/restricted/mediawiki-multiversion  | grep 'days ago' | awk '{print $$1 ":" $$2}' | xargs -r docker image rm
 
-# Temporary.  For use on the deploy server
+# Temporary.  For use on the deploy server under sudo -u mwbuilder
 clear-deploy-mwdebug-error:
 	rm /var/lib/deploy-mwdebug/error
 pause-deploy-mwdebug:
-	echo Paused by $$(id -un) on $$(date) > /var/lib/deploy-mwdebug/pause
+	echo Paused by $(SUDO_USER) on $$(date) > /var/lib/deploy-mwdebug/pause
 unpause-deploy-mwdebug:
 	rm -f /var/lib/deploy-mwdebug/pause
 
