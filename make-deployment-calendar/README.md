@@ -24,18 +24,14 @@ the `.py` files in this directory are in your python path.
 
 ## Setup
 
-To setup a python3 virtualenv and install dependencies run:
-
-```
-$ make init
-```
-
-You also need to setup a [pywikibot user](toolforge) and [oauth](oauth) that
+You need to setup a [pywikibot user](toolforge) and [oauth](oauth) that
 user to create an edit pages on wikitech. Additionally, this script requires
 a phab conduit token to find a train.
 
 toolforge: <https://wikitech.wikimedia.org/wiki/Help:Toolforge/Pywikibot#Using_the_shared_Pywikibot_files_(recommended_setup)>
 oauth: <https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers>
+
+Running tests sets up a local virtualenv.
 
 ## Tests
 
