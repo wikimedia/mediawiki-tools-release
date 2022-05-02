@@ -25,11 +25,15 @@ the `.py` files in this directory are in your python path.
 ## Setup
 
 You need to setup a [pywikibot user](toolforge) and [oauth](oauth) that
-user to create an edit pages on wikitech. Additionally, this script requires
-a phab conduit token to find a train.
+user to create an edit pages on Wikitech.
+
+Additionally to find a train, this script requires a Phabricator conduit
+token. It can be installed using [Arcanist](arcanist) or may be set by using
+the `CONDUIT_TOKEN` environment variable.
 
 toolforge: <https://wikitech.wikimedia.org/wiki/Help:Toolforge/Pywikibot#Using_the_shared_Pywikibot_files_(recommended_setup)>
 oauth: <https://www.mediawiki.org/wiki/OAuth/Owner-only_consumers>
+arcanist: <https://www.mediawiki.org/wiki/Phabricator/Arcanist>
 
 Running tests sets up a local virtualenv.
 
