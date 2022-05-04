@@ -174,6 +174,7 @@ bundles:
         - "mediawiki/extensions/SecureLinkFixer"
         - "mediawiki/extensions/SecurePoll"
         - "mediawiki/extensions/ShortUrl"
+        - "mediawiki/extensions/SimilarEditors"
         - "mediawiki/extensions/SiteMatrix"
         - "mediawiki/extensions/SpamBlacklist"
         - "mediawiki/extensions/StopForumSpam"
