@@ -126,7 +126,6 @@ bundles:
         - "mediawiki/extensions/Linter"
         - "mediawiki/extensions/LiquidThreads"
         - "mediawiki/extensions/Listings"
-        - "mediawiki/extensions/LocalisationUpdate"
         - "mediawiki/extensions/LoginNotify"
         - "mediawiki/extensions/MachineVision"
         - "mediawiki/extensions/MapSources"
