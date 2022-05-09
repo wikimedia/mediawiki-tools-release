@@ -85,6 +85,11 @@
             "what": "...",
             "window": "Wikidata Query Service weekly deploy"
         },
+        "content_transform_services": {
+            "deployer": "Content Transform Team",
+            "what": "Content transform team node services (mobileapps/wikifeeds)",
+            "window": "Mobileapps/Wikifeeds"
+        },
         "no_deploy_day": {
             "deployer": "",
             "what": "No Deploys",
@@ -142,6 +147,10 @@
             }
         ],
         "tue,thu": [
+            {
+                "name": "content_transform_services",
+                "hour": "06"
+            },
             {
                 "name": "puppet",
                 "hour": "09"
