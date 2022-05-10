@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+"""
+phab-train-blocker-tasks
+========================
+
+Create train blocker tasks in phabricator.
+
+REQUIREMENTS:
+
+* phabricator <https://github.com/disqus/python-phabricator>
+* a valid ~/.arcrc.
+
+ USAGE:
+
+Create 10 release-blocker tasks, beginning with version 1.38.0-wmf.21
+on 2022-02-07:
+
+    ./phab-train-blocker-tasks --count 8 --date 2022-02-07 1.38.0-wmf.21
+
+Authors: Mukunda Modell <mmodell@wikimedia.org> 2018ish,
+         Tyler Cipriani <tcipriani@wikimedia.org> 2022
+"""
+# This Python file uses the following encoding: utf-8
+
+from __future__ import print_function, unicode_literals
+
+import argparse
+import datetime
+import re
+
+from calendar import Calendar
+from phabricator import Phabricator
+from datetime import timedelta
+
+
+ONEWEEK = timedelta(weeks=1)
+
+
+def trunc(len, string, ellipsis=" …"):
+    return string[0:len] + ellipsis
+
+
+# function by jfs, see <https://stackoverflow.com/a/8778548/1672995>
+def totimestamp(dt, epoch=datetime.datetime(1970, 1, 1)):
+    td = dt - epoch
+    # return td.total_seconds()
+    return int(
+        (td.microseconds + (td.seconds + td.days * 86400) * 10**6) / 10**6
+    )
+
+
+def find_mondays(year, month):
+    cal = Calendar()
+    mondays = list()
+    for week in cal.monthdays2calendar(year, month):
+        for day in week:
+            (monthday, weekday) = day
+            if (weekday == 1 and monthday > 0):
+                mondays.append(datetime.date(year=year,
+                                             month=month,
+                                             day=monthday))
+    return mondays
+
+
+phab = Phabricator(host='https://phabricator.wikimedia.org/api/')
+
+
+def phab_taskid(taskid):
+    if not taskid.startswith("T"):
+        raise Exception("Invalid task id: %s", taskid)
+    return taskid
+
+
+def mediawiki_version(ver):
+    """Validation our version number formats"""
+    try:
+        return re.match("(\\d+\\.\\d+(\\.\\d+-)?wmf\\.?\\d+)", ver).group(0)
+    except Exception:
+        raise argparse.ArgumentTypeError(
+            "Invalid wmf version '%s' expected: #.##.#-wmf.#" % ver)
+
+
+def date_str(datestr):
+    formats = ['%x', '%m-%d-%Y', '%Y%m%d', '%Y-%m-%d']
+    err = None
+    date = None
+    for format in formats:
+        try:
+            date = datetime.datetime.strptime(datestr, format)
+        except Exception as ex:
+            err = ex
+
+    if date is None and err is not None:
+        raise err
+
+    return date
+
+
+def map_transactions(obj):
+    trns = []
+
+    for key, val in obj.items():
+        trns.append({
+            "type": key,
+            "value": val
+        })
+    return trns
+
+
+def parse_args():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--count', help='Number of tasks to create, default=1',
+                    metavar='NUM', default=1, type=int)
+    ap.add_argument('--date', help='Date of the first release,\
+                    default=today\'s date', metavar='START',
+                    type=date_str, default=datetime.datetime.utcnow())
+    ap.add_argument('release', help='Create tasks beginning with VERSION',
+                    metavar='VERSION', type=mediawiki_version)
+    return ap.parse_args()
+
+
+def main():
+    """
+    Manage the deployment-blockers task series in phabricator.
+    """
+    arguments = parse_args()
+    v = arguments.release.split('-')
+    wmfnum = int(v[-1].split('.')[-1])
+    week = arguments.date
+    weekday = week.weekday()
+    if weekday:
+        # ofset some days so that we always use monday of the given week:
+        week -= timedelta(days=weekday)
+
+    for n in range(wmfnum, wmfnum + arguments.count):
+        v[-1] = 'wmf.%d' % n
+        vs = "-".join(v)
+
+        ts = totimestamp(week)
+        trns = map_transactions({
+            'title': "%s deployment blockers" % vs,
+            'subtype': 'release',
+            'projects.add': ["PHID-PROJ-fmcvjrkfvvzz3gxavs3a",
+                             "PHID-PROJ-pf35un2jsnsiriivnmeo"],
+            'custom.release.version': str(vs),
+            'custom.release.date': ts,
+        })
+        print("%s : %s, %s" % (vs, week, ts))
+        print(repr(phab.maniphest.edit(transactions=trns)))
+        week += ONEWEEK
+
+if __name__ == '__main__':
+    main()
