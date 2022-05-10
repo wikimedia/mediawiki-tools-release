@@ -270,6 +270,12 @@
         ]
     },
     "schedule@NoTrain": {
+        "mon": [
+            {
+                "name": "train_branch",
+                "hour": "18"
+            }
+        ]
     },
     "schedule@UTC-7+UTC-0": {
         "mon": [
