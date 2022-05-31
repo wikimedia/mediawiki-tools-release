@@ -9,8 +9,10 @@ EOF
     exit 1
 }
 
+scriptdir="$(dirname "$0")"
+supportdir="$scriptdir/support"
 # shellcheck source=support/utils.sh
-source "$(dirname "$0")/support/utils.sh"
+source "$supportdir/utils.sh"
 
 function announce {
     echo
@@ -23,140 +25,10 @@ default_base=multiversion-base:latest
 # Image name including registry, but excluding the tag.
 mv_image_name="${mv_image_name:-docker-registry.discovery.wmnet/restricted/mediawiki-multiversion}"
 
-rsync_args=(-a --stats \
-	       --delete --delete-excluded \
+rsync_args=(
 	       --exclude .git \
 	       --exclude **/cache/l10n/upstream \
 	   )
-
-# Satisfy shellcheck
-rsync_transferpct=
-rsync_nfiles=
-rsync_ndelfiles=
-
-last_estimated_image=
-
-function estimate_rsync {
-    local image="$1"
-
-    if [ "$image" = "$last_estimated_image" ]; then
-        return
-    fi
-
-    local rsync_out
-    rsync_out="$(mktemp)"
-
-    echo "Estimating $image"
-    if docker run --rm \
-              -v "$workdir:/workdir" \
-              --entrypoint /usr/bin/rsync \
-              "$image" \
-              "${rsync_args[@]}" -n \
-              "/workdir/" "/srv/mediawiki/" \
-              > "$rsync_out" 2>&1; then
-        # This sets a few rsync_* variables.  See grok-rsync-output for details.
-        eval "$(./grok-rsync-output < "$rsync_out")"
-        rm "$rsync_out"
-        echo "$image rsync_transferpct: $rsync_transferpct"
-
-        last_estimated_image="$image"
-    else
-        local status=$?
-        cat "$rsync_out"
-        rm "$rsync_out"
-        exit $status
-    fi
-}
-
-# Writes the Id of the specified image to stdout
-function image_id {
-    docker inspect -f '{{.Id}}' "$1"
-}
-
-# Writes the Id of the parent of the specified image to stdout.
-# If there is no parent, there is no output.
-function parent {
-    docker inspect -f '{{.Parent}}' "$1"
-}
-
-# Returns true if image1 is a descendent of image2.
-function is_descendent_of {
-    local image1="$1"
-    local image2="$2"
-
-    local image2_id
-    image2_id="$(image_id "$image2")"
-
-    local image="$image1"
-
-    while true; do
-        parent="$(parent "$image")"
-
-        if [ -z "$parent" ]; then
-            return 1
-        fi
-
-        if [ "$parent" == "$image2_id" ]; then
-            return 0
-        fi
-
-        image="$parent"
-    done
-}
-
-function count_image_layers {
-    local image="$1"
-
-    docker inspect "$image" --format '{{len .RootFS.Layers}}'
-}
-
-function image_is_suitable_as_base {
-    local image="$1"
-
-    if [ "$image" = "$default_base" ]; then
-        # The default base image is always suitable.
-        return 0
-    fi
-
-    if ! image_exists_locally "$image"; then
-       # Nonexistent images are not suitable.
-       return 1
-    fi
-
-    if ! is_descendent_of "$image" "$default_base"; then
-        echo "$image is not a descendent of $default_base"
-        return 1
-    fi
-
-    local num_layers
-    num_layers="$(count_image_layers "$image")"
-
-    if [ "$num_layers" -ge 125 ]; then
-        # Too many layers.  Max layer count of 125 for overlayfs
-        # measured on Linux 4.19.0-14-amd64
-        echo "Image $image is not suitable as a base image because it has $num_layers layers."
-        return 1
-    fi
-
-    if ./new-train-version "$workdir" "$image"; then
-        # A new train version is incoming, so we only want to use the default base.
-        return 1
-    fi
-
-    estimate_rsync "$image"
-    # As of Fri Jul 23 08:44:41 PDT 2021, changing a value in
-    # languages/i18n/en.json and rebuilding l10n results in a
-    # transferpct of 29.
-    if [ "$rsync_transferpct" -gt 25 ]; then
-        # The candidate base image doesn't provide sufficient data transfer savings.
-        echo "Image $image is not suitable due to rsync transfer pct $rsync_transferpct (threshold is 25)"
-        return 1
-    fi
-
-    # Looks ok
-    return 0
-}
-
 
 # sets $base_image global
 function select_base_image {
@@ -169,19 +41,7 @@ function select_base_image {
     if [ "${FORCE_FULL_BUILD:-false}" = "true" ]; then
         echo "FORCE_FULL_BUILD requested.   Using $default_base"
         base_image="$default_base"
-    elif ! image_is_suitable_as_base "$base_image"; then
-        echo "Falling back to $default_base"
-        base_image="$default_base"
     fi
-
-    # Run estimate_rsync here to set the final value of rsync_* globals
-    estimate_rsync "$base_image"
-}
-
-function image_exists_locally {
-    local image="$1"
-
-    [ "$(docker image ls -q "$image" | wc -l)" -gt 0 ]
 }
 
 function volume_exists {
@@ -201,8 +61,6 @@ function augment_rsync_args {
 
     # And exclude any other trees that may be lurking
     rsync_args+=(--exclude "/php-*")
-
-    echo "rsync_args: ${rsync_args[*]}"
 }
 
 
@@ -233,29 +91,12 @@ augment_rsync_args
 select_base_image
 echo "Using $base_image as base image"
 
-echo Starting build container
-builder_id=$(docker run --rm -d -v "$workdir:/workdir:ro" "$base_image")
-
-trap 'docker rm -f $builder_id >/dev/null' EXIT
-
-verbose=
-if [ "$rsync_nfiles" -le 100 ] && [ "$rsync_ndelfiles" -le 100 ]; then
-    verbose=-v
-fi
-
-echo "rsync $workdir to container:/srv/mediawiki"
-
-time docker exec "$builder_id" \
-     /usr/bin/rsync \
-     "${rsync_args[@]}" $verbose \
-     "/workdir/" "/srv/mediawiki/"
-
 tag=$(date '+%Y-%m-%d-%H%M%S-publish')
 fqin="$mv_image_name:$tag"
-echo "Commit $fqin"
-time docker commit "$builder_id" "$fqin"
 
-echo "$fqin has $(count_image_layers "$fqin") layers"
+set -x
+time "$supportdir/build-image-incr.py" "$default_base" "$workdir" "/srv/mediawiki" "$fqin" --layer "$base_image" "${rsync_args[@]}"
+set +x
 
 echo "$fqin" > last-build.tmp
 mv last-build.tmp last-build
