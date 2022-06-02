@@ -25,7 +25,9 @@ push:
 build-and-push-image: image push
 
 # Alternate building approach to be used by scap
-new-build-and-push-image: new-webserver-image push
+new-build-and-push-image:
+	$(MAKE) new-webserver-image fqin=$(fqin)
+	$(MAKE) push fqin=$(fqin)
 
 new-webserver-image: webserver-base-image
 	./build-webserver-image $(fqin)

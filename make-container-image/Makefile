@@ -24,11 +24,15 @@ build-debug-image:
 build-and-push-image: build-image push-last-image
 
 # like build-and-push-image but doesn't run auto-stage.
-build-and-push-mv-image: build-mv-image push-last-image
+build-and-push-mv-image: build-mv-image
+	$(MAKE) push-last-image
 
 # To be invoked by scap
-build-and-push-all-images: build-and-push-mv-image
+build-and-push-all-images: build-and-push-mv-image build-and-push-webserver-image
+
+build-and-push-webserver-image:
 	$(MAKE) -C webserver new-build-and-push-image
+# end To be invoked by scap
 
 push-last-image:
 	@echo Pushing image to registry
