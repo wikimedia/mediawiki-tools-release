@@ -272,7 +272,7 @@ def main():
     # Max layer count of 125 for overlayfs measured on Linux 4.19.0-14-amd64
     parser.add_argument(
         '--max-layers',
-        help='The maximum number of layers that --layer is allowed. If exceeded, the default base image will be used',
+        help='The maximum number of layers that LAYER is allowed to have. If exceeded, the default base image will be used',
         type=int,
         default=125)
     parser.add_argument('--exclude',
