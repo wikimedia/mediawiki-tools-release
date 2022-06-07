@@ -92,7 +92,7 @@ clean-workdir:
 	docker volume rm $(workdir_volume)
 
 check:
-	shellcheck auto-stage/auto-stage build-mv-image setup-workdir new-train-version build-debug-image support/{extract-image-tag,push-last-build,update-mediawiki-releases-values,utils.sh} webserver/{build-webserver-image,stage-srv-mediawiki}
+	shellcheck auto-stage/auto-stage build-mv-image setup-workdir build-debug-image support/{extract-image-tag,new-train-version,push-last-build,update-mediawiki-releases-values,utils.sh} webserver/{build-webserver-image,stage-srv-mediawiki}
 
 purge-restricted-images:
 	docker image ls --format '{{.Repository}}:{{.Tag}}' | grep restricted/mediawiki | xargs -r docker image rm

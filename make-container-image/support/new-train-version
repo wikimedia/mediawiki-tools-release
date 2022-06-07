@@ -2,6 +2,10 @@
 
 set -eu -o pipefail
 
+supportdir="$(dirname "$0")"
+# shellcheck source=support/utils.sh
+source "$supportdir/utils.sh"
+
 function usage {
     cat <<EOF
 Usage: $0 WORKDIR TARGET_IMAGE
@@ -22,9 +26,12 @@ function get_wikiversions_json {
         volume="-v $workdir:/srv/mediawiki"
     fi
 
+    local wikiversions_file
+    wikiversions_file=/srv/mediawiki/$(wikiversions_basename).json
+
     # Word splitting for $volume is desired
     # shellcheck disable=SC2086
-    docker run --rm $volume --entrypoint /bin/bash "$target_image" -c 'cat /srv/mediawiki/wikiversions.json'
+    docker run --rm $volume --entrypoint /bin/bash "$target_image" -c "cat $wikiversions_file"
 }
 
 function unique_wikiversions {

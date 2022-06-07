@@ -38,10 +38,34 @@ function select_base_image {
         base_image="$(cat last-build)"
     fi
 
+    if [ "$base_image" == "$default_base" ]; then
+        # The default base image is always a good choice
+        return
+    fi
+
     if [ "${FORCE_FULL_BUILD:-false}" = "true" ]; then
         echo "FORCE_FULL_BUILD requested.   Using $default_base"
         base_image="$default_base"
+        return
     fi
+
+    if ! image_exists_locally "$base_image"; then
+        # Nonexistent images are not suitable.
+        base_image="$default_base"
+        return
+    fi
+
+    if "$supportdir/new-train-version" "$workdir" "$base_image"; then
+        # A new train version is incoming, so we only want to use the default base.
+        base_image="$default_base"
+        return
+    fi
+}
+
+function image_exists_locally {
+    local image="$1"
+
+    [ "$(docker image ls -q "$image" | wc -l)" -gt 0 ]
 }
 
 function volume_exists {
