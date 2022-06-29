@@ -94,6 +94,11 @@
             "deployer": "",
             "what": "No Deploys",
             "window": "No deploys all day! See [[Deployments/Emergencies]] if things are broken."
+        },
+        "techengage": {
+            "deployer": "{{ircnick|bd808}}",
+            "what": "...",
+            "window": "Technical Engagement weekly deploy (Toolhub, Developer portal, Striker)"
         }
     },
     "@schedule_doc": "Schedule the above windows",
@@ -168,6 +173,10 @@
             {
                 "name": "utc_afternoon_backport",
                 "hour": "06"
+            },
+            {
+                "name": "techengage",
+                "hour": "10"
             },
             {
                 "name": "utc_late_training",
