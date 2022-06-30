@@ -47,6 +47,8 @@ subTasks = [
         "description": """Previous work:
 
 Tracking bug for next security release, {0}""".format(version),
+        "viewPolicy": aclSec,
+        "editPolicy": aclSec,
     },
     {
         "title": "Obtain CVEs for {0} security releases".format(version),
