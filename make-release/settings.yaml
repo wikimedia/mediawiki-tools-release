@@ -50,6 +50,7 @@ bundles:
         - "mediawiki/extensions/BounceHandler"
         - "mediawiki/extensions/Calendar"
         - "mediawiki/extensions/Campaigns"
+        - "mediawiki/extensions/CampaignEvents"
         - "mediawiki/extensions/Capiunto"
         - "mediawiki/extensions/CategoryTree"
         - "mediawiki/extensions/CentralAuth"
