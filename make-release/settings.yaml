@@ -69,7 +69,6 @@ bundles:
         - "mediawiki/extensions/Collection"
         - "mediawiki/extensions/CommonsMetadata"
         - "mediawiki/extensions/ConfirmEdit"
-        - "mediawiki/extensions/CongressLookup"
         - "mediawiki/extensions/ContactPage"
         - "mediawiki/extensions/ContentTranslation"
         - "mediawiki/extensions/CreditsSource"
