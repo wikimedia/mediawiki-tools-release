@@ -46,7 +46,7 @@
             "window": "[[Backport windows|UTC morning backport window]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
         "utc_morning_training": {
-            "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|apergos|Ariel}}, {{ircnick|jnuche|Jaime}}",
+            "deployer": "{{ircnick|Amir1|Amir}}, {{ircnick|apergos|Ariel}}, {{ircnick|jnuche|Jaime}}, {{ircnick|TheresNoTime|Sammy}}",
             "what": "Training to do backport and config deployment. To sign up for deployment training use the [https://phabricator.wikimedia.org/project/profile/5265/ Deployment Training Request phabricator milestone]\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to backport or config change''",
             "window": "[[Backport windows|UTC morning backport and config training]]<br/><small>'''Your patch may or may not be deployed at the sole discretion of the deployer'''<br />'''(Max 6 patches)'''</small>"
         },
