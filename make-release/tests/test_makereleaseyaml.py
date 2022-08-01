@@ -23,7 +23,7 @@ def test_get_bundle():
 
     # test the global config for sanity
     base = get_bundle('base')
-    assert(len(base))
+    assert len(base)
 
     # test with a custom config to validate that include: foo works:
     conf = {
@@ -40,8 +40,8 @@ def test_get_bundle():
     }
     foo = get_bundle("foo", conf)
     bar = get_bundle("bar", conf)
-    assert(len(bar) == len(foo) + 1)
-    assert("test1" in foo)
-    assert("test1" in bar)
-    assert("test2" in bar)
-    assert(len(foo) == 1)
+    assert len(bar) == len(foo) + 1
+    assert "test1" in foo
+    assert "test1" in bar
+    assert "test2" in bar
+    assert len(foo) == 1
