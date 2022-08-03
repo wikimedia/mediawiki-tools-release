@@ -209,7 +209,7 @@
         "mon": [
             {
                 "name": "train_branch",
-                "hour": "18"
+                "hour": "19"
             }
         ],
         "tue": [
@@ -250,7 +250,7 @@
         "mon": [
             {
                 "name": "train_branch",
-                "hour": "18"
+                "hour": "19"
             }
         ],
         "tue": [
@@ -291,7 +291,7 @@
         "mon": [
             {
                 "name": "train_branch",
-                "hour": "18"
+                "hour": "19"
             }
         ]
     },
@@ -299,7 +299,7 @@
         "mon": [
             {
                 "name": "train_branch",
-                "hour": "18"
+                "hour": "19"
             }
         ],
         "tue": [
@@ -358,7 +358,7 @@
         "mon": [
             {
                 "name": "train_branch",
-                "hour": "18"
+                "hour": "19"
             }
         ],
         "tue": [
