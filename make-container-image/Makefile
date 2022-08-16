@@ -92,7 +92,7 @@ clean-workdir:
 	docker volume rm $(workdir_volume)
 
 check:
-	shellcheck auto-stage/auto-stage build-mv-image setup-workdir build-debug-image support/{extract-image-tag,new-train-version,push-last-build,update-mediawiki-releases-values,utils.sh} webserver/{build-webserver-image,stage-srv-mediawiki}
+	shellcheck auto-stage/auto-stage build-mv-image setup-workdir build-debug-image support/{extract-image-tag,new-train-version,push-last-build,utils.sh} webserver/{build-webserver-image,stage-srv-mediawiki}
 
 purge-restricted-images:
 	docker image ls --format '{{.Repository}}:{{.Tag}}' | grep restricted/mediawiki | xargs -r docker image rm
@@ -100,17 +100,3 @@ purge-restricted-images:
 # Remove images older than a day
 purge-old-images:
 	docker image ls docker-registry.discovery.wmnet/restricted/mediawiki-multiversion  | grep 'days ago' | awk '{print $$1 ":" $$2}' | xargs -r docker image rm
-
-# Temporary.  For use on the deploy server under sudo -u mwbuilder
-clear-deploy-mwdebug-error:
-	rm /var/lib/deploy-mwdebug/error
-pause-deploy-mwdebug:
-	echo Paused by $(SUDO_USER) on $$(date) > /var/lib/deploy-mwdebug/pause
-unpause-deploy-mwdebug:
-	rm -f /var/lib/deploy-mwdebug/pause
-update-mediawiki-releases-values:
-	support/update-mediawiki-releases-values
-
-# Temporary.  For use on the deploy server
-presync-train:
-	/home/dancy/presync-train
