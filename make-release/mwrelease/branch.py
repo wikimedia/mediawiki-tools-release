@@ -28,6 +28,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
@@ -70,8 +71,14 @@ def get_branchpoint(branch, repository, default):
         return default
 
 
-def git(*args, **kwargs):
-    return subprocess.run(('/usr/bin/git',) + args, check=True, **kwargs)
+def git(*args, **kwargs) -> subprocess.CompletedProcess:
+
+    if "check" not in kwargs:
+        kwargs["check"] = True
+    if "universal_newlines" not in kwargs:
+        kwargs["universal_newlines"] = True  # AKA text mode
+
+    return subprocess.run(('/usr/bin/git',) + args, **kwargs)
 
 
 def create_branch(repository, branch, revision, noop=False):
@@ -231,7 +238,7 @@ def do_core_work(branch, bundle, version, no_review=False, task=None,
         git('checkout', '-B', branch)
 
         # Remove all existing submodules
-        output = git('submodule', 'status', stdout=subprocess.PIPE).stdout
+        output = git('submodule', '-q', 'foreach', 'echo $name', stdout=subprocess.PIPE).stdout
         existing_submodules = [line.split(' ').pop()
                                for line in output.splitlines()
                                if len(line) > 0]
@@ -264,7 +271,8 @@ def do_core_work(branch, bundle, version, no_review=False, task=None,
             else:
                 path = repo
 
-            git('submodule', 'add', '--force', '--branch', branch, url, path)
+            print("Adding submodule {}".format(url))
+            git('submodule', 'add', '--quiet', '--force', '--branch', branch, url, path)
 
             try:
                 ignores.remove('/%s\n' % path)
@@ -293,10 +301,42 @@ def do_core_work(branch, bundle, version, no_review=False, task=None,
         else:
             refspec = 'HEAD:refs/for/%s' % branch
 
-        git('push', 'origin', refspec,
-            *['--push-option=%s' % opt for opt in push_options])
+        res = git('push', 'origin', refspec,
+                  *['--push-option=%s' % opt for opt in push_options],
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.STDOUT,
+                  check=False)
+        if res.returncode != 0:
+            raise Exception("Command failed: {}\nOutput: {}\n".format(res.args, res.stdout))
+
+        pattern_match = re.search(r'/c/mediawiki/core/\+/(\d+)', res.stdout)
+        if pattern_match:
+            change_number = pattern_match.group(1)
+            wait_for_change_to_merge(change_number)
 
     os.chdir(cwd)
+
+
+def wait_for_change_to_merge(change_number):
+    # Values in seconds
+    POLLING_INTERVAL = 5  # seconds
+    TIMEOUT = 40*60  # 40 minutes.  The merge usually completes in about 20 minutes
+
+    start = time.time()
+
+    print("Waiting up to {} seconds for change {} to merge".format(TIMEOUT, change_number))
+
+    while time.time() - start < TIMEOUT:
+        detail = gerrit_client().get("/changes/{}/detail".format(change_number))
+        status = detail['status']
+
+        if status == 'MERGED':
+            print("Change {} has been merged".format(change_number))
+            return
+
+        time.sleep(POLLING_INTERVAL)
+
+    raise Exception("Change {} did not reach MERGED status within {} seconds".format(change_number, TIMEOUT))
 
 
 def branch(branch, branch_point, bundle=None, core=False, core_bundle=None,

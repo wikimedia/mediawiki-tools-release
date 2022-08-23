@@ -82,3 +82,32 @@ def test_delete_error_getting_branch_raises_an_exception(gerrit, capsys):
 
         captured = capsys.readouterr()
         assert captured.out == ""
+
+
+@mock.patch('subprocess.run')
+def test_git_text_modes(run):
+    branch.git()
+    run.assert_called_with(mock.ANY, check=mock.ANY, universal_newlines=True)
+    branch.git(universal_newlines=False)
+    run.assert_called_with(mock.ANY, check=mock.ANY, universal_newlines=False)
+
+
+@mock.patch('mwrelease.branch.gerrit_client')
+@mock.patch('time.time')
+def test_wait_for_change_to_merge(time, gerrit):
+    gerrit.return_value.get.return_value = {'status': 'MERGED'}
+    time.side_effect = [1, 40*60]  # start, timeout
+    branch.wait_for_change_to_merge(12345)
+
+
+@mock.patch('mwrelease.branch.gerrit_client')
+@mock.patch('time.time')
+def test_wait_for_change_waits(time, gerrit):
+    gerrit.return_value.get.return_value = {'status': 'OPEN'}
+    time.side_effect = [1, 40*60]  # start, timeout
+    with mock.patch('time.sleep') as sleep:
+        sleep.side_effect = Exception("Slept")
+
+        with pytest.raises(Exception) as e:
+            branch.wait_for_change_to_merge(12345)
+            assert 'Slept' == str(e.value)
