@@ -75,6 +75,11 @@
             "what": "Branch <code>wmf/<%= new_train %></code>",
             "window": "Automatic branching of MediaWiki, extensions, skins, and vendor – see [[Heterogeneous_deployment/Train_deploys]]"
         },
+        "train_testwikis": {
+            "deployer": "N/A",
+            "what": "Deploy <code>wmf/<%= new_train %></code> to testwikis",
+            "window": "Automatic deployment of of MediaWiki, extensions, skins, and vendor to testwikis only – see [[Heterogeneous_deployment/Train_deploys]]"
+        },
         "train_secondary": {
             "deployer": "<%= train_deployer %>",
             "what": "<%= roadmap %>\n<%= minical %>\n* <%= group %>\n* '''Blockers: {{phabricator|<%= train_blocker_task %>}}'''",
@@ -133,6 +138,14 @@
                 "name": "security",
                 "hour": "14",
                 "length": "2"
+            },
+            {
+                "name": "train_branch",
+                "hour": "19"
+            },
+            {
+                "name": "train_testwikis",
+                "hour": "20"
             },
             {
                 "name": "primary_switchover",
@@ -206,12 +219,6 @@
         ]
     },
     "schedule@UTC-7": {
-        "mon": [
-            {
-                "name": "train_branch",
-                "hour": "19"
-            }
-        ],
         "tue": [
             {
                 "name": "train",
@@ -247,12 +254,6 @@
         ]
     },
     "schedule@UTC-0": {
-        "mon": [
-            {
-                "name": "train_branch",
-                "hour": "19"
-            }
-        ],
         "tue": [
             {
                 "name": "train",
@@ -288,20 +289,8 @@
         ]
     },
     "schedule@NoTrain": {
-        "mon": [
-            {
-                "name": "train_branch",
-                "hour": "19"
-            }
-        ]
     },
     "schedule@UTC-7+UTC-0": {
-        "mon": [
-            {
-                "name": "train_branch",
-                "hour": "19"
-            }
-        ],
         "tue": [
             {
                 "name": "train",
@@ -355,12 +344,6 @@
         ]
     },
     "schedule@UTC-0+UTC-7": {
-        "mon": [
-            {
-                "name": "train_branch",
-                "hour": "19"
-            }
-        ],
         "tue": [
             {
                 "name": "train",
