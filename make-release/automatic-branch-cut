@@ -24,11 +24,6 @@ fi
 
 echo "Branching mediawiki version $VERSION ($task)"
 
-# This will be removed in a followup commit after testing
-echo $0 test completed
-exit 0
-
-
 HOME="$(dirname "$netrc_file")"
 export HOME
 
