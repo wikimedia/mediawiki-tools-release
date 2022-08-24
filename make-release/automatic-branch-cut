@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# https://releases-jenkins.wikimedia.org/job/Automatic%20branch%20cut runs this script
+
+set -eu -o pipefail
+
+infofile=$(mktemp)
+trap "rm -f $infofile" EXIT
+
+curl -sSf -o $infofile https://train-blockers.toolforge.org/api.php
+
+VERSION=$(jq -r .current.version $infofile)
+status=$(jq -r .current.status $infofile)
+task=$(jq -r .current.task_id $infofile)
+
+# FIXME: Consider using the status of the task to decide whether or not to
+# perform the branch cut.
+
+# Sanity check
+if [[ -z "$VERSION" ]]; then
+    echo "VERSION is blank.  This should not happen!"
+    exit 1
+fi
+
+echo "Branching mediawiki version $VERSION ($task)"
+
+# This will be removed in a followup commit after testing
+echo $0 test completed
+exit 0
+
+
+HOME="$(dirname "$netrc_file")"
+export HOME
+
+ln -s "$netrc_file" "$HOME/.netrc"
+
+# Ensure we can make a commit
+export GIT_AUTHOR_NAME=trainbranchbot
+export GIT_AUTHOR_EMAIL=trainbranchbot@releases-jenkins.wikimedia.org
+export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
+export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
+
+# Remove previous attempts to branch
+rm /tmp/mw-branching-* -rf
+
+cd make-release
+
+set -x
+# SSH_AUTH_SOCK=1 necessary due to check in branch.py
+SSH_AUTH_SOCK=1 ./branch.py \
+  --core --core-bundle wmf_core --bundle wmf_branch \
+  --branchpoint HEAD --core-version "$VERSION" \
+  --push-option l=Code-Review+2 \
+  --task "$task" \
+  "wmf/${VERSION}"
