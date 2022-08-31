@@ -42,7 +42,9 @@ cd make-release
 
 set -x
 # SSH_AUTH_SOCK=1 necessary due to check in branch.py
-SSH_AUTH_SOCK=1 ./branch.py \
+# PYTHONUNBUFFERED=1 needed to ensure timely console log updates when
+# running under Jenkins.
+SSH_AUTH_SOCK=1 PYTHONUNBUFFERED=1 ./branch.py \
   --core --core-bundle wmf_core --bundle wmf_branch \
   --branchpoint HEAD --core-version "$VERSION" \
   --push-option l=Code-Review+2 \
