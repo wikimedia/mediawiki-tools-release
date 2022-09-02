@@ -17,7 +17,7 @@ fi
 
 image="$1"
 
-tag=$(echo "$image" | awk 'BEGIN { FS = ":" } ; { print $2 }')
+tag=$(echo "$image" | awk 'BEGIN { FS = ":" } ; { print $NF }')
 if [ -z "$tag" ]; then
     echo "Could not extract the tag from base image name: $image"
     exit 1
