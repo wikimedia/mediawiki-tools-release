@@ -162,14 +162,15 @@ function list_versions {
 }
 
 function merge_message_file_list {
-    list_versions | while read -r wikidb version; do
+    for version in $(active_versions); do
         local em="wmf-config/ExtensionMessages-$version.php"
         local tmp="$em.tmp"
 
         update_atomically "$em" "$tmp" \
           run_quietly_if_ok \
             mwscript mergeMessageFileList.php \
-                 --wiki="$wikidb" \
+                 --wiki=aawiki \
+                 --force-version "$version" \
                  --list-file=wmf-config/extension-list \
                  --output="$tmp"
     done
@@ -185,7 +186,7 @@ function setup_l10n {
         langoption="--lang $lang"
     fi
 
-    list_versions | while read -r wikidb version; do
+    for version in $(active_versions); do
         echo -n "Building/updating L10N files for $version"
         if [ "$lang" ]; then
             echo " ($lang only)"
@@ -193,7 +194,8 @@ function setup_l10n {
         echo
         # shellcheck disable=SC2086
         mwscript rebuildLocalisationCache.php \
-                 --wiki="$wikidb" \
+                 --wiki=aawiki \
+                 --force-version "$version" \
                  $langoption \
                  --store-class=LCStoreCDB \
                  --threads="$(nproc)" \
