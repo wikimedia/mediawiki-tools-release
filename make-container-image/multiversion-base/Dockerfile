@@ -1,4 +1,4 @@
-FROM docker-registry.wikimedia.org/php7.4-fpm-multiversion-base
+FROM docker-registry.wikimedia.org/php7.2-fpm-multiversion-base
 USER root
 ARG MV_BASE_PACKAGES
 RUN apt-get update && apt-get install -y rsync $MV_BASE_PACKAGES
