@@ -172,6 +172,7 @@ bundles:
         - "mediawiki/extensions/Score"
         - "mediawiki/extensions/Scribunto"
         - "mediawiki/extensions/SearchExtraNS"
+        - "mediawiki/extensions/SearchVue"
         - "mediawiki/extensions/SecureLinkFixer"
         - "mediawiki/extensions/SecurePoll"
         - "mediawiki/extensions/ShortUrl"
