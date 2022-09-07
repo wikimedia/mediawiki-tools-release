@@ -12,6 +12,7 @@ bundles:
         - "mediawiki/extensions/ImageMap"
         - "mediawiki/extensions/InputBox"
         - "mediawiki/extensions/Interwiki"
+        - "mediawiki/extensions/Linter"
         - "mediawiki/extensions/Math"
         - "mediawiki/extensions/MultimediaViewer"
         - "mediawiki/extensions/Nuke"
