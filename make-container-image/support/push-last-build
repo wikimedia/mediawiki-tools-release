@@ -15,5 +15,5 @@ docker tag "$image" "$image_latest"
 
 for image in "$image" "$image_latest"; do
     echo "Pushing $image"
-    sudo /usr/local/bin/docker-pusher "$image"
+    time sudo /usr/local/bin/docker-pusher "$image"
 done

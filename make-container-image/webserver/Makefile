@@ -20,7 +20,7 @@ image:
 	mv last-build.tmp last-build
 
 push:
-	sudo /usr/local/bin/docker-pusher $(fqin)
+	time sudo /usr/local/bin/docker-pusher $(fqin)
 
 build-and-push-image: image push
 
