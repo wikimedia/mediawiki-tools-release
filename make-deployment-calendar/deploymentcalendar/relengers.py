@@ -9,6 +9,7 @@ RELENGERS = {
     'brennen': Relenger('Brennen', 'brennen', 'UTC-7'),
     'dancy': Relenger('Ahmon', 'dancy', 'UTC-7'),
     'dduvall': Relenger('Dan', 'dduvall', 'UTC-7'),
+    'demon': Relenger('Chad', '^demon', 'UTC-7'),
     'hashar': Relenger('Antoine', 'hashar', 'UTC-0'),
     'jeena': Relenger('Jeena', 'jeena', 'UTC-7'),
     'jnuche': Relenger('Jaime', 'jnuche', 'UTC-0'),
