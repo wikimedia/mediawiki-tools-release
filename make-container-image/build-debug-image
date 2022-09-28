@@ -31,7 +31,7 @@ cat <<EOF | docker build \
                    -t "$output_image" -f- empty/
 FROM $base
 USER root
-RUN apt-get update && apt-get install php-tideways-xhprof
+RUN apt-get update && apt-get install php7.4-tideways
 USER 33
 EOF
 
