@@ -1,4 +1,4 @@
-FROM docker-registry.wikimedia.org/php7.2-cli
+FROM docker-registry.wikimedia.org/php7.4-cli
 
 USER root
 
