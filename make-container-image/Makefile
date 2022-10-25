@@ -1,7 +1,7 @@
 .PHONY: build-image build-mv-image push-last-image auto-stage setup-workdir clean-workdir \
 	build-auto-stage-image build-multiversion-base-image build-debug-image build-webserver-image
 
-SHELL = /bin/bash
+SHELL = bash
 
 # Despite this appearing to be an unconditional assignment, any value
 # specified on the command line takes precedence.

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Returns true if building for train-dev environment
 function train_dev {

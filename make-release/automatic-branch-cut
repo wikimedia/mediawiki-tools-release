@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # https://releases-jenkins.wikimedia.org/job/Automatic%20branch%20cut runs this script
 

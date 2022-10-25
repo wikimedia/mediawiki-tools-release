@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 STAGE=/srv/mediawiki-staging
 OLDVERSION=$1

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 MIGRATE_PATCH_DIR=`dirname "$(readlink -f "$0")"`
 . $MIGRATE_PATCH_DIR/tc.sh
 TMPFILE=`mktemp`
