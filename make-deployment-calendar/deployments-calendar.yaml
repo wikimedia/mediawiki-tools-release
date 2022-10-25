@@ -93,7 +93,7 @@
         "content_transform_services": {
             "deployer": "Content Transform Team",
             "what": "Content transform team node services (mobileapps/wikifeeds)",
-            "window": "Mobileapps/Wikifeeds"
+            "window": "Mobileapps/RESTBase/Wikifeeds"
         },
         "no_deploy_day": {
             "deployer": "",
