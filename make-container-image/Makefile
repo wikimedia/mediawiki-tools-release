@@ -28,7 +28,7 @@ build-and-push-mv-image: build-mv-image
 	$(MAKE) push-last-image
 
 build-and-push-debug-image: build-debug-image
-	$(MAKE) push-debug-image
+	$(MAKE) push-last-debug-image
 
 # To be invoked by scap. The debug image is built and pushed last.
 build-and-push-all-images: build-and-push-mv-image build-and-push-webserver-image
