@@ -216,7 +216,7 @@ class Schedule(object):
                     active_schedule
                 )
             )
-            if not alt_schedule:
+            if alt_schedule is None:
                 raise RuntimeError('Schedule "{}" not found!'.format(
                     active_schedule
                 ))
