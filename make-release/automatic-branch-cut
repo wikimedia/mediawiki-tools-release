@@ -13,13 +13,15 @@ VERSION=$(jq -r .current.version $infofile)
 status=$(jq -r .current.status $infofile)
 task=$(jq -r .current.task_id $infofile)
 
-# FIXME: Consider using the status of the task to decide whether or not to
-# perform the branch cut.
-
 # Sanity check
 if [[ -z "$VERSION" ]]; then
     echo "VERSION is blank.  This should not happen!"
     exit 1
+fi
+
+if [[ "$status" != "open" ]]; then
+    echo "Phabricator task $task has status '$status'.  Cancelling operation."
+    exit 0
 fi
 
 echo "Branching mediawiki version $VERSION ($task)"
