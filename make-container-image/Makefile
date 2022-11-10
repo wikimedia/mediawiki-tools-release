@@ -1,5 +1,5 @@
 .PHONY: build-image build-mv-image push-last-image auto-stage setup-workdir clean-workdir \
-	build-auto-stage-image build-multiversion-base-image build-debug-image build-webserver-image
+	build-auto-stage-image build-multiversion-base-image build-debug-image
 
 SHELL = bash
 
