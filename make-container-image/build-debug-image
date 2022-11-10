@@ -21,20 +21,21 @@ if [ -z "$tag" ]; then
     exit 1
 fi
 
-output_image="docker-registry.discovery.wmnet/restricted/mediawiki-multiversion-debug:$tag"
+mv_debug_image_name="${mv_debug_image_name:-docker-registry.discovery.wmnet/restricted/mediawiki-multiversion-debug}"
+mv_debug_image_name="$mv_debug_image_name:$tag"
 
-echo "** Building debug image: $output_image **"
+echo "** Building debug image: $mv_debug_image_name **"
 
 cat <<EOF | docker build \
                    --build-arg "http_proxy=${http_proxy:-}" \
                    --build-arg "https_proxy=${https_proxy:-}" \
-                   -t "$output_image" -f- empty/
+                   -t "$mv_debug_image_name" -f- empty/
 FROM $base
 USER root
 RUN apt-get update && apt-get install -y php7.4-tideways php7.4-ldap
 USER 33
 EOF
 
-echo "$output_image" > last-debug-build.tmp
+echo "$mv_debug_image_name" > last-debug-build.tmp
 mv last-debug-build.tmp last-debug-build
 
