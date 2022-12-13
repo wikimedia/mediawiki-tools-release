@@ -20,6 +20,21 @@
             "what": "\n{{ircnick|irc-nickname|Requesting Developer}}\n* ''Gerrit link to Puppet change''",
             "window": "[[Puppet request window]]<br/><small>'''(Max 6 patches)'''</small>"
         },
+        "mediawiki_infra_early": {
+            "deployer": "SRE team",
+            "what": "MediaWiki-related infrastuctural changes that need a kubernetes deployment.",
+            "window": "[[MediaWiki_On_Kubernetes#How_to_manage_changes_to_the_infrastructure| MediaWiki infrastucture]] (UTC early)"
+        },
+        "mediawiki_infra_mid": {
+            "deployer": "SRE team",
+            "what": "MediaWiki-related infrastuctural changes that need a kubernetes deployment.",
+            "window": "[[MediaWiki_On_Kubernetes#How_to_manage_changes_to_the_infrastructure| MediaWiki infrastucture]] (UTC mid-day)"
+        },
+        "mediawiki_infra_late": {
+            "deployer": "SRE team",
+            "what": "MediaWiki-related infrastuctural changes that need a kubernetes deployment.",
+            "window": "[[MediaWiki_On_Kubernetes#How_to_manage_changes_to_the_infrastructure| MediaWiki infrastucture]] (UTC late)"
+        },
         "break": {
             "deployer": "",
             "what": "No Deploys",
@@ -114,12 +129,24 @@
                 "hour": "00"
             },
             {
+                "name": "mediawiki_infra_mid",
+                "hour": "03"
+            },
+            {
                 "name": "utc_afternoon_backport",
                 "hour": "06"
             },
             {
+                "name": "mediawiki_infra_late",
+                "hour": "10"
+            },
+            {
                 "name": "utc_late_backport",
                 "hour": "13"
+            },
+            {
+                "name": "mediawiki_infra_early",
+                "hour": "23"
             }
         ],
         "mon": [
@@ -180,6 +207,10 @@
                 "hour": "3"
             },
             {
+                "name": "mediawiki_infra_mid",
+                "hour": "03"
+            },
+            {
                 "name": "utc_morning_training",
                 "hour": "00"
             },
@@ -192,8 +223,16 @@
                 "hour": "10"
             },
             {
+                "name": "mediawiki_infra_late",
+                "hour": "10"
+            },
+            {
                 "name": "utc_late_training",
                 "hour": "13"
+            },
+            {
+                "name": "mediawiki_infra_early",
+                "hour": "23"
             }
         ],
         "fri": [
