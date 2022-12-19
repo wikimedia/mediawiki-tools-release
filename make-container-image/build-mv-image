@@ -48,24 +48,6 @@ function select_base_image {
         base_image="$default_base"
         return
     fi
-
-    if ! image_exists_locally "$base_image"; then
-        # Nonexistent images are not suitable.
-        base_image="$default_base"
-        return
-    fi
-
-    if "$supportdir/new-train-version" "$workdir" "$base_image"; then
-        # A new train version is incoming, so we only want to use the default base.
-        base_image="$default_base"
-        return
-    fi
-}
-
-function image_exists_locally {
-    local image="$1"
-
-    [ "$(docker image ls -q "$image" | wc -l)" -gt 0 ]
 }
 
 function volume_exists {
