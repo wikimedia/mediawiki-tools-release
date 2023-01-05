@@ -26,7 +26,7 @@ RUN bash /stage-srv-mediawiki
 ########
 ########
 
-FROM docker-registry.wikimedia.org/mediawiki-httpd:0.1.4
+FROM docker-registry.wikimedia.org/mediawiki-httpd:latest
 ARG CACHEBUSTER
 RUN echo CACHEBUSTER value is $CACHEBUSTER
 COPY --from=build /srv/mediawiki/ /srv/mediawiki/
