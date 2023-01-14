@@ -1,0 +1,10 @@
+Release has moved to GitLab!
+
+The release repo has been moved to https://gitlab.wikimedia.org/repos/releng/release
+To update your repository in place you can run the following commands:
+git remote set-url origin git@gitlab.wikimedia.org:repos/releng/release.git
+or 
+git remote set-url origin https://gitlab.wikimedia.org/repos/releng/release.git
+Then:
+git fetch origin
+git reset --hard origin/master

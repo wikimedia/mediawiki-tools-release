@@ -1,2 +1,0 @@
-<?php
-$wiki->login( 'wiki username', 'wiki password' );
